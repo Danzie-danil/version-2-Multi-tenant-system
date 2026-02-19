@@ -9,24 +9,48 @@
  * Note: async module renderers write directly to #mainContent themselves.
  * They return '' so we don't accidentally overwrite the DOM they already set.
  */
-window.switchView = function (viewName, clickedEl) {
-    // Update sidebar active state only when triggered by a sidebar click
-    if (clickedEl) {
-        document.querySelectorAll('.sidebar-item').forEach(btn => {
-            btn.classList.remove('active', 'text-indigo-600', 'bg-indigo-50');
-            btn.classList.add('text-gray-700');
-        });
-        const sidebarEl = clickedEl.closest('.sidebar-item');
-        if (sidebarEl) {
-            sidebarEl.classList.add('active', 'text-indigo-600', 'bg-indigo-50');
-            sidebarEl.classList.remove('text-gray-700');
-        }
+// ── Sidebar Toggle Using Tailwind Classes ──────────────────────────────────
+window.toggleSidebar = function () {
+    const sidebar = document.getElementById('mainSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    // Toggle transform class
+    sidebar.classList.toggle('-translate-x-full');
+
+    // Toggle overlay visibility
+    if (sidebar.classList.contains('-translate-x-full')) {
+        overlay.classList.add('hidden');
+    } else {
+        overlay.classList.remove('hidden');
+    }
+};
+
+window.switchView = function (viewId, btnElement) {
+    // 1. Update active state in sidebar
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+        el.classList.remove('active', 'text-indigo-600', 'bg-indigo-50');
+        el.classList.add('text-gray-700');
+    });
+
+    if (btnElement) {
+        btnElement.classList.add('active', 'text-indigo-600', 'bg-indigo-50');
+        btnElement.classList.remove('text-gray-700');
     }
 
+    // 2. Hide all views
+    // (Original logic for view switching)
     if (state.role === 'owner') {
-        renderOwnerView(viewName);
+        renderOwnerView(viewId);
     } else {
-        renderBranchView(viewName);
+        renderBranchView(viewId);
+    }
+
+    // 3. Mobile: Close sidebar after selection
+    if (window.innerWidth < 768) {
+        const sidebar = document.getElementById('mainSidebar');
+        if (!sidebar.classList.contains('-translate-x-full')) {
+            toggleSidebar();
+        }
     }
 };
 
