@@ -5,10 +5,11 @@
  * @param {string} viewName  - the view to render
  * @param {HTMLElement|null} clickedEl - the sidebar button that was clicked
  *   Pass `null` when calling programmatically (e.g. after form submit).
+ *
+ * Note: async module renderers write directly to #mainContent themselves.
+ * They return '' so we don't accidentally overwrite the DOM they already set.
  */
 window.switchView = function (viewName, clickedEl) {
-    const mainContent = document.getElementById('mainContent');
-
     // Update sidebar active state only when triggered by a sidebar click
     if (clickedEl) {
         document.querySelectorAll('.sidebar-item').forEach(btn => {
@@ -23,72 +24,74 @@ window.switchView = function (viewName, clickedEl) {
     }
 
     if (state.role === 'owner') {
-        renderOwnerView(viewName, mainContent);
+        renderOwnerView(viewName);
     } else {
-        renderBranchView(viewName, mainContent);
+        renderBranchView(viewName);
     }
-
-    lucide.createIcons();
 };
 
 // ── Owner View Dispatch ───────────────────────────────────────────────────
 
-window.renderOwnerView = function (view, container) {
+window.renderOwnerView = function (view) {
+    // Each renderer is responsible for writing to #mainContent
     switch (view) {
         case 'overview':
-            container.innerHTML = renderOwnerOverview();
+            renderOwnerOverview();
             break;
         case 'branches':
-            container.innerHTML = renderBranchesManagement();
+            renderBranchesManagement();
             break;
         case 'tasks':
-            container.innerHTML = renderTasksManagement();
+            renderTasksManagement();
             break;
-        case 'analytics':
-            container.innerHTML = renderAnalytics();
+        case 'analytics': {
+            const html = renderAnalytics();
+            document.getElementById('mainContent').innerHTML = html;
+            lucide.createIcons();
             initAnalyticsCharts();      // charts need DOM elements first
             break;
-        case 'security':
-            container.innerHTML = renderSecurity();
+        }
+        case 'security': {
+            const html = renderSecurity();
+            document.getElementById('mainContent').innerHTML = html;
+            lucide.createIcons();
             break;
+        }
         default:
-            container.innerHTML = renderOwnerOverview();
+            renderOwnerOverview();
     }
 };
 
 // ── Branch View Dispatch ──────────────────────────────────────────────────
 
-window.renderBranchView = function (view, container) {
+window.renderBranchView = function (view) {
     switch (view) {
         case 'dashboard':
-            container.innerHTML = renderBranchDashboard();
+            renderBranchDashboard();
             break;
         case 'sales':
-            container.innerHTML = renderSalesModule();
+            renderSalesModule();
             break;
         case 'expenses':
-            container.innerHTML = renderExpensesModule();
+            renderExpensesModule();
             break;
         case 'inventory':
-            container.innerHTML = renderInventoryModule();
+            renderInventoryModule();
             break;
         case 'customers':
-            container.innerHTML = renderCustomersModule();
+            renderCustomersModule();
             break;
         case 'tasks':
-            container.innerHTML = renderBranchTasks();
-            break;
-        case 'reports':
-            container.innerHTML = renderReportsModule();
+            renderBranchTasks();
             break;
         case 'notes':
-            container.innerHTML = renderNotesModule();
+            renderNotesModule();
             break;
         case 'loans':
-            container.innerHTML = renderLoansModule();
+            renderLoansModule();
             break;
         default:
-            container.innerHTML = renderBranchDashboard();
+            renderBranchDashboard();
     }
 };
 

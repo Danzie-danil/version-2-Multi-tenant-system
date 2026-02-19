@@ -7,6 +7,7 @@
     <title>BMS – Business Management System</title>
 
     <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -38,32 +39,94 @@
                     </select>
                 </div>
 
-                <div id="branchSelector" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Branch</label>
-                    <select id="branchSelect" class="form-input">
-                        <option value="downtown">Downtown Branch</option>
-                        <option value="mall">Shopping Mall Branch</option>
-                        <option value="airport">Airport Branch</option>
-                    </select>
+                <!-- Owner fields (shown by default) -->
+                <div id="ownerFields">
+                    <!-- Login Form -->
+                    <div id="loginForm" class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="ownerEmail" placeholder="owner@business.com" class="form-input"
+                                onkeydown="if(event.key==='Enter') login()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="ownerPassword" placeholder="Enter your password"
+                                class="form-input" onkeydown="if(event.key==='Enter') login()">
+                        </div>
+                        <div class="text-center pt-2">
+                            <button onclick="toggleRegistration()"
+                                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                Create new account
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form (hidden by default) -->
+                    <div id="registerForm" class="hidden space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                            <input type="text" id="regBusinessName" placeholder="My Business" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                            <div class="flex gap-2">
+                                <select id="regCountryCode" class="form-input w-24 bg-gray-50">
+                                    <option value="+254">🇰🇪 +254</option>
+                                    <option value="+255">🇹🇿 +255</option>
+                                    <option value="+256">🇺🇬 +256</option>
+                                    <option value="+250">🇷🇼 +250</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="">Other</option>
+                                </select>
+                                <input type="tel" id="regPhone" placeholder="712 345 678" class="form-input flex-1">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="regEmail" placeholder="owner@business.com" class="form-input">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input type="password" id="regPassword" placeholder="Create a password" class="form-input">
+                        </div>
+                        <div class="text-center pt-2">
+                            <button onclick="toggleRegistration()"
+                                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                Back to Login
+                            </button>
+                        </div>
+                        <button onclick="register()"
+                            class="w-full btn-primary justify-center py-3 text-base rounded-xl mt-4">
+                            Create Account
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Security PIN</label>
-                    <input type="password" id="pinInput" maxlength="6" placeholder="Enter 6-digit PIN"
-                        class="form-input text-center tracking-widest text-lg"
-                        onkeydown="if(event.key==='Enter') login()">
+                <!-- Branch fields (hidden by default) -->
+                <div id="branchSelector" class="hidden space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Owner Email</label>
+                        <input type="email" id="branchOwnerEmail" placeholder="owner@business.com" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
+                        <input type="text" id="branchNameInput" placeholder="e.g. Main Branch" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch PIN</label>
+                        <input type="password" id="pinInput" maxlength="6" placeholder="Enter 6-digit PIN"
+                            class="form-input text-center tracking-widest text-lg"
+                            onkeydown="if(event.key==='Enter') login()">
+                    </div>
                 </div>
 
-                <button onclick="login()" class="w-full btn-primary justify-center py-3 text-base rounded-xl">
+                <button id="mainLoginBtn" onclick="login()"
+                    class="w-full btn-primary justify-center py-3 text-base rounded-xl">
                     <i data-lucide="log-in" class="w-5 h-5"></i>
                     Access Dashboard
                 </button>
             </div>
-
-            <p class="mt-6 text-center text-xs text-gray-400">
-                Demo: Owner PIN <code class="bg-gray-100 px-1 rounded">123456</code> &nbsp;|&nbsp;
-                Branch PIN <code class="bg-gray-100 px-1 rounded">000000</code>
-            </p>
         </div>
     </div>
 
@@ -213,23 +276,29 @@
     <!--  JS MODULE LOAD ORDER (dependencies first)                         -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
 
-    <!-- 1. Shared State -->
+    <!-- 1. Supabase Client -->
+    <script src="js/supabase.js"></script>
+
+    <!-- 2. Shared State -->
     <script src="js/state.js"></script>
 
-    <!-- 2. Core Utilities -->
+    <!-- 3. Database Layer -->
+    <script src="js/db.js"></script>
+
+    <!-- 4. Core Utilities -->
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/simulation.js"></script>
     <script src="js/modals.js"></script>
 
-    <!-- 3. Owner Modules -->
+    <!-- 5. Owner Modules -->
     <script src="js/owner/overview.js"></script>
     <script src="js/owner/branches.js"></script>
     <script src="js/owner/tasks.js"></script>
     <script src="js/owner/analytics.js"></script>
     <script src="js/owner/security.js"></script>
 
-    <!-- 4. Branch Modules -->
+    <!-- 6. Branch Modules -->
     <script src="js/branch/dashboard.js"></script>
     <script src="js/branch/sales.js"></script>
     <script src="js/branch/expenses.js"></script>
@@ -240,7 +309,7 @@
     <script src="js/branch/notes.js"></script>
     <script src="js/branch/loans.js"></script>
 
-    <!-- 5. Main App Router (last — depends on everything above) -->
+    <!-- 7. Main App Router (last — depends on everything above) -->
     <script src="js/app.js"></script>
 
     <!-- 6. Initialize Lucide icons on page load -->

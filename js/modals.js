@@ -296,149 +296,242 @@ window.getModalHTML = function (type, data) {
             </form>
         </div>`;
 
+        /* ── Add Inventory Item (Branch) ─────────── */
+        case 'addInventoryItem': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Add Inventory Item</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleAddInventoryItem(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                    <input type="text" id="itemName" required class="form-input" placeholder="e.g. Product A">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                        <input type="text" id="itemSku" class="form-input" placeholder="PRD-001">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                        <input type="number" id="itemPrice" required step="0.01" min="0" class="form-input" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <input type="number" id="itemQty" required min="0" class="form-input" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
+                        <input type="number" id="itemMinThreshold" required min="0" class="form-input" placeholder="10">
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Add Item</button>
+                </div>
+            </form>
+        </div>`;
+
         default: return null;
     }
 };
 
-// ── Form Submit Handlers ──────────────────────────────────────────────────
+// ── Shared loading button helper ──────────────────────────────────────────
+function _setSubmitLoading(form, loading, originalText) {
+    const btn = form.querySelector('[type="submit"]');
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Saving…' : originalText;
+}
 
-window.handleAssignTask = function (e) {
+// ═══════════════════════════════════════════════════════════════════════════
+// Form Submit Handlers  (all async — write to Supabase)
+// ═══════════════════════════════════════════════════════════════════════════
+
+window.handleAssignTask = async function (e) {
     e.preventDefault();
-    const task = {
-        id: Date.now(),
-        title: document.getElementById('taskTitle').value,
-        branchId: document.getElementById('taskBranch').value,
-        priority: document.getElementById('taskPriority').value,
-        deadline: document.getElementById('taskDeadline').value,
-        status: 'pending'
-    };
-    state.tasks.push(task);
-    closeModal();
-    const branch = state.branches.find(b => b.id === task.branchId);
-    addActivity('task_assigned', `New task assigned: ${task.title}`, branch.name);
-    showToast('Task assigned successfully!', 'success');
-    switchView('tasks');
+    _setSubmitLoading(e.target, true, 'Assign Task');
+    try {
+        const branchId = document.getElementById('taskBranch').value;
+        const title = document.getElementById('taskTitle').value;
+        const description = document.getElementById('taskDesc').value;
+        const priority = document.getElementById('taskPriority').value;
+        const deadline = document.getElementById('taskDeadline').value;
+        await dbTasks.add(branchId, { title, description, priority, deadline });
+        closeModal();
+        const branch = state.branches.find(b => b.id === branchId);
+        addActivity('task_assigned', `New task assigned: ${title}`, branch?.name || 'Branch');
+        showToast('Task assigned successfully!', 'success');
+        switchView('tasks');
+    } catch (err) {
+        showToast('Failed to assign task: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Assign Task');
+    }
 };
 
-window.handleAddSale = function (e) {
+window.handleAddSale = async function (e) {
     e.preventDefault();
-    const amount = parseFloat(document.getElementById('saleAmount').value);
-    const sale = {
-        id: Date.now(),
-        customer: document.getElementById('saleCustomer').value || 'Walk-in Customer',
-        items: document.getElementById('saleItems').value,
-        amount,
-        payment: document.getElementById('salePayment').value,
-        branchId: state.branchId,
-        time: fmt.time()
-    };
-    state.sales.push(sale);
-    const branch = state.branches.find(b => b.id === state.branchId);
-    branch.todaySales += amount;
-    closeModal();
-    addActivity('sale', `New sale to ${sale.customer}`, branch.name, amount);
-    showToast(`Sale of ${fmt.currency(amount)} recorded!`, 'success');
-    switchView('sales');
+    _setSubmitLoading(e.target, true, 'Record Sale');
+    try {
+        const amount = parseFloat(document.getElementById('saleAmount').value);
+        const customer = document.getElementById('saleCustomer').value || 'Walk-in Customer';
+        const items = document.getElementById('saleItems').value;
+        const payment = document.getElementById('salePayment').value;
+        await dbSales.add(state.branchId, { customer, items, amount, payment });
+        closeModal();
+        addActivity('sale', `New sale to ${customer}`, state.currentUser, amount);
+        showToast(`Sale of ${fmt.currency(amount)} recorded!`, 'success');
+        switchView('sales');
+    } catch (err) {
+        showToast('Failed to record sale: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Record Sale');
+    }
 };
 
-window.handleAddExpense = function (e) {
+window.handleAddExpense = async function (e) {
     e.preventDefault();
-    const amount = parseFloat(document.getElementById('expenseAmount').value);
-    const expense = {
-        id: Date.now(),
-        category: document.getElementById('expenseCategory').value,
-        description: document.getElementById('expenseDesc').value,
-        amount,
-        branchId: state.branchId,
-        time: fmt.time()
-    };
-    state.expenses.push(expense);
-    const branch = state.branches.find(b => b.id === state.branchId);
-    closeModal();
-    addActivity('expense', `Expense: ${expense.description}`, branch.name, amount);
-    showToast(`Expense of ${fmt.currency(amount)} recorded!`, 'success');
-    switchView('expenses');
+    _setSubmitLoading(e.target, true, 'Add Expense');
+    try {
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const category = document.getElementById('expenseCategory').value;
+        const description = document.getElementById('expenseDesc').value;
+        await dbExpenses.add(state.branchId, { category, description, amount });
+        closeModal();
+        addActivity('expense', `Expense: ${description}`, state.currentUser, amount);
+        showToast(`Expense of ${fmt.currency(amount)} recorded!`, 'success');
+        switchView('expenses');
+    } catch (err) {
+        showToast('Failed to record expense: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Add Expense');
+    }
 };
 
-window.handleAddCustomer = function (e) {
+window.handleAddCustomer = async function (e) {
     e.preventDefault();
-    const customer = {
-        id: Date.now(),
-        name: document.getElementById('customerName').value,
-        phone: document.getElementById('customerPhone').value,
-        email: document.getElementById('customerEmail').value,
-        branchId: state.branchId,
-        loyaltyPoints: 0,
-        totalPurchases: 0,
-        joinedAt: fmt.time()
-    };
-    state.customers.push(customer);
-    closeModal();
-    showToast('Customer added successfully!', 'success');
-    switchView('customers');
+    _setSubmitLoading(e.target, true, 'Add Customer');
+    try {
+        const name = document.getElementById('customerName').value;
+        const phone = document.getElementById('customerPhone').value;
+        const email = document.getElementById('customerEmail').value;
+        await dbCustomers.add(state.branchId, { name, phone, email });
+        closeModal();
+        showToast('Customer added successfully!', 'success');
+        switchView('customers');
+    } catch (err) {
+        showToast('Failed to add customer: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Add Customer');
+    }
 };
 
-window.handleResetPin = function (e, branchId) {
+window.handleResetPin = async function (e, branchId) {
     e.preventDefault();
     const newPin = document.getElementById('newPin').value;
     const confirmPin = document.getElementById('confirmPin').value;
     if (newPin !== confirmPin) { showToast('PINs do not match!', 'error'); return; }
     if (!/^\d{6}$/.test(newPin)) { showToast('PIN must be 6 digits', 'error'); return; }
-    const branch = state.branches.find(b => b.id === branchId);
-    branch.pin = newPin;
-    closeModal();
-    showToast(`PIN for ${branch.name} reset successfully!`, 'success');
+    _setSubmitLoading(e.target, true, 'Reset PIN');
+    try {
+        await dbBranches.updatePin(branchId, newPin);
+        // Update local state too
+        const branch = state.branches.find(b => b.id === branchId);
+        if (branch) branch.pin = newPin;
+        closeModal();
+        showToast(`PIN for ${branch?.name || 'branch'} reset successfully!`, 'success');
+    } catch (err) {
+        showToast('Failed to reset PIN: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Reset PIN');
+    }
 };
 
-window.handleAddBranch = function (e) {
+window.handleAddBranch = async function (e) {
     e.preventDefault();
-    const branch = {
-        id: 'branch_' + Date.now(),
-        name: document.getElementById('branchName').value,
-        location: document.getElementById('branchLocation').value,
-        manager: document.getElementById('branchManager').value || 'Unassigned',
-        pin: document.getElementById('branchPin').value,
-        target: parseFloat(document.getElementById('branchTarget').value) || 10000,
-        todaySales: 0,
-        status: 'active'
-    };
-    state.branches.push(branch);
-    closeModal();
-    showToast(`Branch "${branch.name}" created!`, 'success');
-    switchView('branches');
+    _setSubmitLoading(e.target, true, 'Create Branch');
+    try {
+        const name = document.getElementById('branchName').value;
+        const location = document.getElementById('branchLocation').value;
+        const manager = document.getElementById('branchManager').value || 'Unassigned';
+        const pin = document.getElementById('branchPin').value;
+        const target = parseFloat(document.getElementById('branchTarget').value) || 10000;
+        // Fix: Pass owner_email to dbBranches.add so it's saved in the database
+        const branch = await dbBranches.add(state.ownerId, {
+            name,
+            location,
+            manager,
+            pin,
+            target,
+            owner_email: state.currentUser // Used for login lookup
+        });
+        state.branches.push(branch);
+        closeModal();
+        showToast(`Branch "${name}" created!`, 'success');
+        switchView('branches');
+    } catch (err) {
+        showToast('Failed to create branch: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Create Branch');
+    }
 };
 
-window.handleAddNote = function (e) {
+window.handleAddNote = async function (e) {
     e.preventDefault();
-    const note = {
-        id: Date.now(),
-        title: document.getElementById('noteTitle').value,
-        content: document.getElementById('noteContent').value,
-        tag: document.getElementById('noteTag').value,
-        branchId: state.branchId,
-        time: fmt.time(),
-        date: new Date().toLocaleDateString()
-    };
-    state.notes.push(note);
-    closeModal();
-    showToast('Note saved!', 'success');
-    switchView('notes');
+    _setSubmitLoading(e.target, true, 'Save Note');
+    try {
+        const title = document.getElementById('noteTitle').value;
+        const content = document.getElementById('noteContent').value;
+        const tag = document.getElementById('noteTag').value;
+        await dbNotes.add(state.branchId, { title, content, tag });
+        closeModal();
+        showToast('Note saved!', 'success');
+        switchView('notes');
+    } catch (err) {
+        showToast('Failed to save note: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Save Note');
+    }
 };
 
-window.handleAddLoan = function (e) {
+window.handleAddLoan = async function (e) {
     e.preventDefault();
-    const record = {
-        id: Date.now(),
-        type: document.getElementById('loanType').value,
-        party: document.getElementById('loanParty').value || 'Unknown',
-        amount: parseFloat(document.getElementById('loanAmount').value),
-        notes: document.getElementById('loanNotes').value,
-        branchId: state.branchId,
-        time: fmt.time(),
-        date: new Date().toLocaleDateString()
-    };
-    state.loans.push(record);
-    closeModal();
-    showToast('Record saved!', 'success');
-    switchView('loans');
+    _setSubmitLoading(e.target, true, 'Save Record');
+    try {
+        const type = document.getElementById('loanType').value;
+        const party = document.getElementById('loanParty').value || 'Unknown';
+        const amount = parseFloat(document.getElementById('loanAmount').value);
+        const notes = document.getElementById('loanNotes').value;
+        await dbLoans.add(state.branchId, { type, party, amount, notes });
+        closeModal();
+        showToast('Record saved!', 'success');
+        switchView('loans');
+    } catch (err) {
+        showToast('Failed to save record: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Save Record');
+    }
 };
+
+window.handleAddInventoryItem = async function (e) {
+    e.preventDefault();
+    _setSubmitLoading(e.target, true, 'Add Item');
+    try {
+        const name = document.getElementById('itemName').value;
+        const sku = document.getElementById('itemSku').value;
+        const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+        const quantity = parseInt(document.getElementById('itemQty').value, 10) || 0;
+        const min_threshold = parseInt(document.getElementById('itemMinThreshold').value, 10) || 10;
+        await dbInventory.add(state.branchId, { name, sku, quantity, min_threshold, price });
+        closeModal();
+        showToast('Item added to inventory!', 'success');
+        switchView('inventory');
+    } catch (err) {
+        showToast('Failed to add item: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Add Item');
+    }
+};
+
+/* ── Close modal on backdrop click ──────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('modalOverlay')
+        ?.addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
+});

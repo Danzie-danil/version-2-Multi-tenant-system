@@ -1,54 +1,23 @@
 // ── Owner: Business Overview ───────────────────────────────────────────────
 
 window.renderOwnerOverview = function () {
-    const totalSales = state.branches.reduce((s, b) => s + b.todaySales, 0);
-    const totalTarget = state.branches.reduce((s, b) => s + b.target, 0);
-    const progress = fmt.percent(totalSales, totalTarget);
-    const pendingTasks = state.tasks.filter(t => t.status !== 'completed').length;
+    const container = document.getElementById('mainContent');
 
-    return `
+    // Render skeleton immediately with structure + spinner
+    container.innerHTML = `
     <div class="space-y-6 slide-in">
         <div class="flex items-center justify-between">
             <h2 class="text-2xl font-bold text-gray-900">Business Overview</h2>
             <span class="text-sm text-gray-500">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
         </div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Revenue Today</span>
-                    <div class="p-2 bg-emerald-100 rounded-lg"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-600"></i></div>
-                </div>
-                <p class="text-2xl font-bold text-gray-900">${fmt.currency(totalSales)}</p>
-                <p class="text-xs text-emerald-600 mt-1 font-medium">▲ Across all branches</p>
-            </div>
-            <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Active Branches</span>
-                    <div class="p-2 bg-blue-100 rounded-lg"><i data-lucide="git-branch" class="w-4 h-4 text-blue-600"></i></div>
-                </div>
-                <p class="text-2xl font-bold text-gray-900">${state.branches.length}</p>
-                <p class="text-xs text-gray-500 mt-1">All operational</p>
-            </div>
-            <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Pending Tasks</span>
-                    <div class="p-2 bg-amber-100 rounded-lg"><i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i></div>
-                </div>
-                <p class="text-2xl font-bold text-gray-900">${pendingTasks}</p>
-                <p class="text-xs text-amber-600 mt-1 font-medium">Requires attention</p>
-            </div>
-            <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Target Progress</span>
-                    <div class="p-2 bg-violet-100 rounded-lg"><i data-lucide="target" class="w-4 h-4 text-violet-600"></i></div>
-                </div>
-                <p class="text-2xl font-bold text-gray-900">${progress}%</p>
-                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
-                    <div class="bg-violet-500 h-1.5 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
-                </div>
-            </div>
+        <!-- KPI skeleton -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="overviewKPIs">
+            ${[1, 2, 3, 4].map(() => `
+            <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 animate-pulse">
+                <div class="h-3 bg-gray-100 rounded mb-4 w-24"></div>
+                <div class="h-8 bg-gray-100 rounded w-32"></div>
+            </div>`).join('')}
         </div>
 
         <!-- Feed + Branch Performance -->
@@ -67,25 +36,12 @@ window.renderOwnerOverview = function () {
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="font-semibold text-gray-900 mb-4">Branch Performance</h3>
-                <div class="space-y-3">
-                    ${state.branches.map(branch => {
-        const pct = fmt.percent(branch.todaySales, branch.target);
-        const color = pct >= 100 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500';
-        const textColor = pct >= 100 ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-red-600';
-        return `
-                        <div class="p-3 bg-gray-50 rounded-xl">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <p class="font-medium text-sm text-gray-900">${branch.name}</p>
-                                    <p class="text-xs text-gray-500">${fmt.currency(branch.todaySales)} / ${fmt.currency(branch.target)}</p>
-                                </div>
-                                <span class="text-sm font-bold ${textColor}">${pct}%</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div class="${color} h-1.5 rounded-full progress-bar" style="width:${Math.min(pct, 100)}%"></div>
-                            </div>
-                        </div>`;
-    }).join('')}
+                <div id="branchPerformance" class="space-y-3 animate-pulse">
+                    ${[1, 2, 3].map(() => `
+                    <div class="p-3 bg-gray-50 rounded-xl">
+                        <div class="h-3 bg-gray-100 rounded mb-3 w-28"></div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5"></div>
+                    </div>`).join('')}
                 </div>
                 <button onclick="switchView('branches',null)" class="w-full mt-4 py-2 text-sm text-indigo-600 font-medium hover:bg-indigo-50 rounded-lg transition-colors">
                     Manage Branches →
@@ -116,6 +72,91 @@ window.renderOwnerOverview = function () {
             </div>
         </div>
     </div>`;
+    lucide.createIcons();
+
+    // Fetch data for all branches of this owner
+    dbBranches.fetchAll(state.ownerId).then(async branches => {
+        state.branches = branches;
+
+        // Fetch today's sales for all branches in parallel
+        const [salesTotals, taskCounts] = await Promise.all([
+            Promise.all(branches.map(b => dbSales.todayTotal(b.id).catch(() => 0))),
+            supabaseClient
+                .from('tasks')
+                .select('branch_id, status')
+                .in('branch_id', branches.map(b => b.id))
+                .then(r => r.data || [])
+        ]);
+
+        const withSales = branches.map((b, i) => ({ ...b, todaySales: salesTotals[i] }));
+        const totalSales = withSales.reduce((s, b) => s + b.todaySales, 0);
+        const totalTarget = withSales.reduce((s, b) => s + Number(b.target), 0);
+        const progress = fmt.percent(totalSales, totalTarget);
+        const pendingTasks = taskCounts.filter(t => t.status !== 'completed').length;
+
+        // Update KPI cards
+        document.getElementById('overviewKPIs').innerHTML = `
+        <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Revenue Today</span>
+                <div class="p-2 bg-emerald-100 rounded-lg"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-600"></i></div>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">${fmt.currency(totalSales)}</p>
+            <p class="text-xs text-emerald-600 mt-1 font-medium">▲ Across all branches</p>
+        </div>
+        <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Active Branches</span>
+                <div class="p-2 bg-blue-100 rounded-lg"><i data-lucide="git-branch" class="w-4 h-4 text-blue-600"></i></div>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">${branches.length}</p>
+            <p class="text-xs text-gray-500 mt-1">All operational</p>
+        </div>
+        <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Pending Tasks</span>
+                <div class="p-2 bg-amber-100 rounded-lg"><i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i></div>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">${pendingTasks}</p>
+            <p class="text-xs text-amber-600 mt-1 font-medium">Requires attention</p>
+        </div>
+        <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Target Progress</span>
+                <div class="p-2 bg-violet-100 rounded-lg"><i data-lucide="target" class="w-4 h-4 text-violet-600"></i></div>
+            </div>
+            <p class="text-2xl font-bold text-gray-900">${progress}%</p>
+            <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                <div class="bg-violet-500 h-1.5 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
+            </div>
+        </div>`;
+
+        // Update branch performance panel
+        document.getElementById('branchPerformance').innerHTML = withSales.length === 0
+            ? '<p class="text-gray-400 text-sm text-center py-4">No branches yet</p>'
+            : withSales.map(branch => {
+                const pct = fmt.percent(branch.todaySales, branch.target);
+                const color = pct >= 100 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500';
+                const textColor = pct >= 100 ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-red-600';
+                return `
+                <div class="p-3 bg-gray-50 rounded-xl">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-medium text-sm text-gray-900">${branch.name}</p>
+                            <p class="text-xs text-gray-500">${fmt.currency(branch.todaySales)} / ${fmt.currency(branch.target)}</p>
+                        </div>
+                        <span class="text-sm font-bold ${textColor}">${pct}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                        <div class="${color} h-1.5 rounded-full progress-bar" style="width:${Math.min(pct, 100)}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+
+        lucide.createIcons();
+    }).catch(err => {
+        console.error('Overview load error:', err);
+    });
 };
 
 window.renderActivities = function () {
