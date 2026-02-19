@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bms-v1';
+const CACHE_NAME = 'bms-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -29,6 +29,8 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+    // Force new SW to enter waiting state immediately
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             return cache.addAll(ASSETS_TO_CACHE);
@@ -36,27 +38,46 @@ self.addEventListener('install', (event) => {
     );
 });
 
-self.addEventListener('fetch', (event) => {
-    // Mobile/Simulated environments might use weird schemes
-    if (!event.request.url.startsWith('http')) return;
-
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
+self.addEventListener('activate', (event) => {
+    // Force new SW to become active immediately
+    event.waitUntil(
+        Promise.all([
+            self.clients.claim(),
+            caches.keys().then((keyList) => {
+                return Promise.all(
+                    keyList.map((key) => {
+                        if (key !== CACHE_NAME) {
+                            return caches.delete(key);
+                        }
+                    })
+                );
+            })
+        ])
     );
 });
 
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((keyList) => {
-            return Promise.all(
-                keyList.map((key) => {
-                    if (key !== CACHE_NAME) {
-                        return caches.delete(key);
-                    }
+self.addEventListener('fetch', (event) => {
+    // Network First for HTML and JS to ensure fresh code during development
+    // Fallback to cache if offline
+    if (event.request.mode === 'navigate' || event.request.destination === 'script' || event.request.destination === 'document') {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    return caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, response.clone());
+                        return response;
+                    });
                 })
-            );
-        })
-    );
+                .catch(() => {
+                    return caches.match(event.request);
+                })
+        );
+    } else {
+        // Cache First for other assets (images, css, etc.)
+        event.respondWith(
+            caches.match(event.request).then((response) => {
+                return response || fetch(event.request);
+            })
+        );
+    }
 });

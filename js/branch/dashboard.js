@@ -43,7 +43,7 @@ window.renderBranchDashboard = function () {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <button onclick="openModal('addSale')" class="p-4 border border-gray-200 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
+                <button onclick="openAddSaleModal()" class="p-4 border border-gray-200 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
                     <i data-lucide="plus-circle" class="w-6 h-6 text-emerald-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
                     <span class="text-sm font-medium text-gray-700">New Sale</span>
                 </button>

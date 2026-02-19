@@ -17,20 +17,20 @@ window.renderReportsModule = function () {
         </div>
 
         <!-- Daily Summary Card -->
-        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md">
+        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md dashboard-card">
             <h3 class="text-lg font-semibold mb-4 opacity-90">Daily Summary – ${branch.name}</h3>
-            <div class="grid grid-cols-3 gap-4">
-                <div>
-                    <p class="text-indigo-200 text-xs uppercase tracking-wide">Revenue</p>
-                    <p class="text-2xl font-bold">${fmt.currency(totalSales)}</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div class="min-w-0">
+                    <p class="text-indigo-200 text-[10px] md:text-xs uppercase tracking-wide truncate" title="Revenue">Revenue</p>
+                    <p class="text-dynamic-lg font-bold truncate" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
                 </div>
-                <div>
-                    <p class="text-indigo-200 text-xs uppercase tracking-wide">Expenses</p>
-                    <p class="text-2xl font-bold">${fmt.currency(totalExp)}</p>
+                <div class="min-w-0">
+                    <p class="text-indigo-200 text-[10px] md:text-xs uppercase tracking-wide truncate" title="Expenses">Expenses</p>
+                    <p class="text-dynamic-lg font-bold truncate" title="${fmt.currency(totalExp)}">${fmt.currency(totalExp)}</p>
                 </div>
-                <div>
-                    <p class="text-indigo-200 text-xs uppercase tracking-wide">Net Profit</p>
-                    <p class="text-2xl font-bold ${netProfit >= 0 ? 'text-emerald-200' : 'text-red-300'}">${fmt.currency(netProfit)}</p>
+                <div class="min-w-0">
+                    <p class="text-indigo-200 text-[10px] md:text-xs uppercase tracking-wide truncate" title="Net Profit">Net Profit</p>
+                    <p class="text-dynamic-lg font-bold ${netProfit >= 0 ? 'text-emerald-200' : 'text-red-300'} truncate" title="${fmt.currency(netProfit)}">${fmt.currency(netProfit)}</p>
                 </div>
             </div>
             <div class="mt-4">

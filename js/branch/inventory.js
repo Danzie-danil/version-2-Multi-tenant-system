@@ -33,18 +33,18 @@ window.renderInventoryModule = function () {
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total SKUs</p>
-                    <p class="text-2xl font-bold text-gray-900">${items.length}</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total SKUs">Total SKUs</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${items.length}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Low Stock</p>
-                    <p class="text-2xl font-bold text-red-600">${lowStock.length}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Low Stock">Low Stock</p>
+                    <p class="text-dynamic-lg font-bold text-red-600 truncate">${lowStock.length}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Units</p>
-                    <p class="text-2xl font-bold text-gray-900">${items.reduce((s, i) => s + i.quantity, 0)}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Units">Total Units</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${items.reduce((s, i) => s + i.quantity, 0)}</p>
                 </div>
             </div>
 

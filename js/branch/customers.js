@@ -30,14 +30,14 @@ window.renderCustomersModule = function () {
                 </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Customers</p>
-                    <p class="text-2xl font-bold text-gray-900">${customers.length}</p>
+            <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Customers">Total Customers</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${customers.length}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Purchases Value</p>
-                    <p class="text-2xl font-bold text-indigo-600">${fmt.currency(customers.reduce((s, c) => s + Number(c.total_purchases || 0), 0))}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Purchases Value">Total Purchases Value</p>
+                    <p class="text-dynamic-lg font-bold text-indigo-600 truncate" title="${fmt.currency(customers.reduce((s, c) => s + Number(c.total_purchases || 0), 0))}">${fmt.currency(customers.reduce((s, c) => s + Number(c.total_purchases || 0), 0))}</p>
                 </div>
             </div>
 

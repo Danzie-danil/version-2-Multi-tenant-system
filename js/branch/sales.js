@@ -21,7 +21,14 @@ window.renderSalesModule = function () {
     lucide.createIcons();
 
     // Async fetch then render
-    dbSales.fetchAll(state.branchId).then(sales => {
+    Promise.all([
+        dbSales.fetchAll(state.branchId),
+        dbInventory.fetchAll(state.branchId) // Pre-fetch inventory so it's ready for "New Sale"
+    ]).then(([sales, inventory]) => {
+        // Inventory is cached in state by fetchAll, or we can use the return value if specialized
+        // The modal uses dbInventory.fetchAll again which might be cached or fast, 
+        // but ensuring it's loaded here guarantees freshness.
+
         const todayTotal = sales.reduce((s, r) => s + Number(r.amount), 0);
         container.innerHTML = `
         <div class="space-y-6 slide-in">
@@ -33,18 +40,18 @@ window.renderSalesModule = function () {
             </div>
 
             <!-- Stats Row -->
-            <div class="grid grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Today's Total</p>
-                    <p class="text-2xl font-bold text-emerald-600">${fmt.currency(todayTotal)}</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Today's Total">Today's Total</p>
+                    <p class="text-dynamic-lg font-bold text-emerald-600 truncate" title="${fmt.currency(todayTotal)}">${fmt.currency(todayTotal)}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Transactions</p>
-                    <p class="text-2xl font-bold text-gray-900">${sales.length}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Transactions">Transactions</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${sales.length}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Average Sale</p>
-                    <p class="text-2xl font-bold text-gray-900">${sales.length ? fmt.currency(todayTotal / sales.length) : '$0.00'}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Average Sale">Average Sale</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate" title="${sales.length ? fmt.currency(todayTotal / sales.length) : '$0.00'}">${sales.length ? fmt.currency(todayTotal / sales.length) : '$0.00'}</p>
                 </div>
             </div>
 

@@ -41,18 +41,18 @@ window.renderExpensesModule = function () {
             </div>
 
             <!-- Stats Row -->
-            <div class="grid grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Spent</p>
-                    <p class="text-2xl font-bold text-red-600">${fmt.currency(total)}</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Spent">Total Spent</p>
+                    <p class="text-dynamic-lg font-bold text-red-600 truncate" title="${fmt.currency(total)}">${fmt.currency(total)}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Transactions</p>
-                    <p class="text-2xl font-bold text-gray-900">${expenses.length}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Transactions">Transactions</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${expenses.length}</p>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Largest Expense</p>
-                    <p class="text-2xl font-bold text-gray-900">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
+                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Largest Expense">Largest Expense</p>
+                    <p class="text-dynamic-lg font-bold text-gray-900 truncate" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
                 </div>
             </div>
 
