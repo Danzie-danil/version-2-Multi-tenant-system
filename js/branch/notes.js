@@ -53,7 +53,10 @@ window.renderNotesModule = function () {
                     <p class="text-sm text-gray-600 leading-relaxed line-clamp-4">${note.content}</p>
                     <div class="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center">
                         <span class="text-xs text-gray-400">${fmt.date(note.created_at)}</span>
-                        <button onclick="deleteNote('${note.id}')" class="text-xs text-red-500 hover:text-red-700 transition-colors">Delete</button>
+                        <div class="flex gap-2">
+                            <button onclick="openEditModal('editNote', '${note.id}')" class="text-xs text-blue-500 hover:text-blue-700 transition-colors">Edit</button>
+                            <button onclick="confirmDelete('note', '${note.id}', 'this note')" class="text-xs text-red-500 hover:text-red-700 transition-colors">Delete</button>
+                        </div>
                     </div>
                 </div>`).join('')}
             </div>`}

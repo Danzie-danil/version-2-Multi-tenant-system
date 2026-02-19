@@ -25,11 +25,7 @@ const ASSETS_TO_CACHE = [
     './js/branch/reports.js',
     './js/branch/notes.js',
     './js/branch/loans.js',
-    './logo.jpg',
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
-    'https://cdn.tailwindcss.com',
-    'https://unpkg.com/lucide@latest',
-    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js'
+    './logo.jpg'
 ];
 
 self.addEventListener('install', (event) => {

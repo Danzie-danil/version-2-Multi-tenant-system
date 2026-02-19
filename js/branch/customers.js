@@ -56,6 +56,7 @@ window.renderCustomersModule = function () {
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Email</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Loyalty Pts</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Added</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -75,6 +76,16 @@ window.renderCustomersModule = function () {
                                 <span class="badge bg-amber-100 text-amber-700">${c.loyalty_points} pts</span>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(c.created_at)}</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal('editCustomer', '${c.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="confirmDelete('customer', '${c.id}', '${c.name}')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>`).join('')}
                     </tbody>
                 </table>`}

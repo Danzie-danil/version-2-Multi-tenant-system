@@ -65,11 +65,13 @@ window.renderInventoryModule = function () {
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Product</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">SKU</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Price</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Qty</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Min</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -78,6 +80,7 @@ window.renderInventoryModule = function () {
             return `
                         <tr class="hover:bg-gray-50 transition-colors ${isLow ? 'bg-red-50' : ''}">
                             <td class="px-6 py-4 font-medium text-sm text-gray-900">${item.name}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500"><span class="badge bg-gray-100 text-gray-600">${item.category || 'General'}</span></td>
                             <td class="px-6 py-4 text-sm text-gray-500 font-mono">${item.sku || '—'}</td>
                             <td class="px-6 py-4 text-sm text-gray-900">${fmt.currency(item.price)}</td>
                             <td class="px-6 py-4 text-sm font-bold ${isLow ? 'text-red-600' : 'text-gray-900'}">${item.quantity}</td>
@@ -86,6 +89,16 @@ window.renderInventoryModule = function () {
                                 <span class="badge ${isLow ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}">
                                     ${isLow ? 'Low Stock' : 'OK'}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal('editInventoryItem', '${item.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="confirmDelete('inventory', '${item.id}', '${item.name}')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>`;
         }).join('')}

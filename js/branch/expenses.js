@@ -73,6 +73,7 @@ window.renderExpensesModule = function () {
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Amount</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -84,6 +85,16 @@ window.renderExpensesModule = function () {
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(exp.created_at)}</td>
                             <td class="px-6 py-4 text-right font-bold text-red-600">${fmt.currency(exp.amount)}</td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal('editExpense', '${exp.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
+                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="confirmDelete('expense', '${exp.id}', '${exp.description}')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>`).join('')}
                     </tbody>
                     <tfoot class="bg-gray-50 border-t border-gray-200">

@@ -90,6 +90,13 @@ window.login = async function () {
         state.branchId = branch.id;
         state.currentUser = `${branch.name} (Manager)`;
         state.ownerId = branch.owner_id;
+
+        // Persist Branch Session
+        localStorage.setItem('bms_branch_session', JSON.stringify({
+            branchId: branch.id,
+            ownerId: branch.owner_id,
+            name: branch.name
+        }));
     }
 
     document.getElementById('loginScreen').classList.add('hidden');
@@ -98,25 +105,114 @@ window.login = async function () {
     showToast(`Welcome back, ${state.currentUser}!`, 'success');
 };
 
-/* ── Registration ─────────────────────────────────────────────────────────── */
-
-
+// ── Auth State & UI Toggles ────────────────────────────────────────────────
 window.toggleRegistration = function () {
     const loginForm = document.getElementById('loginForm');
     const registerForm = document.getElementById('registerForm');
+    const resetForm = document.getElementById('resetPasswordForm');
     const mainLoginBtn = document.getElementById('mainLoginBtn');
-    const isRegistering = loginForm.classList.contains('hidden');
 
-    if (isRegistering) {
-        // Switch to Login
+    // Hide reset form if open
+    resetForm.classList.add('hidden');
+
+    if (loginForm.classList.contains('hidden')) {
         loginForm.classList.remove('hidden');
         registerForm.classList.add('hidden');
         if (mainLoginBtn) mainLoginBtn.classList.remove('hidden');
     } else {
-        // Switch to Register
         loginForm.classList.add('hidden');
         registerForm.classList.remove('hidden');
         if (mainLoginBtn) mainLoginBtn.classList.add('hidden');
+    }
+};
+
+window.toggleResetPassword = function () {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const resetForm = document.getElementById('resetPasswordForm');
+    const mainLoginBtn = document.getElementById('mainLoginBtn');
+
+    // Ensure reg form is hidden
+    registerForm.classList.add('hidden');
+
+    if (resetForm.classList.contains('hidden')) {
+        loginForm.classList.add('hidden');
+        resetForm.classList.remove('hidden');
+        if (mainLoginBtn) mainLoginBtn.classList.add('hidden');
+    } else {
+        resetForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        if (mainLoginBtn) mainLoginBtn.classList.remove('hidden');
+    }
+};
+
+window.handlePasswordReset = async function () {
+    const email = document.getElementById('resetEmail').value.trim();
+    if (!email) { showToast('Please enter your email', 'warning'); return; }
+
+    const btn = document.querySelector('#resetPasswordForm button');
+    const originalText = btn.textContent;
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/index.html',
+        });
+        if (error) throw error;
+        showToast('Check your email for the reset link!', 'success');
+        setTimeout(() => toggleResetPassword(), 2000);
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+};
+
+window.toggleBranchPinReset = function () {
+    const branchSelector = document.getElementById('branchSelector');
+    const resetForm = document.getElementById('branchPinReset');
+    const mainLoginBtn = document.getElementById('mainLoginBtn');
+
+    if (resetForm.classList.contains('hidden')) {
+        // Pre-fill fields for convenience
+        document.getElementById('reqOwnerEmail').value = document.getElementById('branchOwnerEmail').value;
+        document.getElementById('reqBranchName').value = document.getElementById('branchNameInput').value;
+
+        branchSelector.classList.add('hidden');
+        resetForm.classList.remove('hidden');
+        if (mainLoginBtn) mainLoginBtn.classList.add('hidden');
+    } else {
+        resetForm.classList.add('hidden');
+        branchSelector.classList.remove('hidden');
+        if (mainLoginBtn) mainLoginBtn.classList.remove('hidden');
+    }
+};
+
+window.requestPinReset = async function () {
+    const email = document.getElementById('reqOwnerEmail').value.trim();
+    const branch = document.getElementById('reqBranchName').value.trim();
+
+    if (!email || !branch) {
+        showToast('Please enter Owner Email and Branch Name', 'warning');
+        return;
+    }
+
+    const btn = document.querySelector('#branchPinReset button');
+    const originalText = btn.textContent;
+    btn.textContent = 'Sending Request...';
+    btn.disabled = true;
+
+    try {
+        await dbBranches.requestAccess(email, branch);
+        showToast('Request sent to owner! They will be notified.', 'success');
+        setTimeout(() => toggleBranchPinReset(), 2000);
+    } catch (err) {
+        showToast(err.message, 'error');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
 };
 
@@ -212,6 +308,8 @@ window.logout = async function () {
     if (state.role === 'owner') {
         await dbAuth.signOut();
     }
+    // Clear local storage for branch sessions
+    localStorage.removeItem('bms_branch_session');
     location.reload();
 };
 
@@ -230,6 +328,8 @@ window.setupDashboard = function () {
         document.getElementById('liveIndicator').classList.remove('hidden');
         switchView('overview');
         startLiveSimulation();
+        // Check for PIN Reset requests
+        if (window.checkNotifications) window.checkNotifications();
     } else {
         document.getElementById('branchNav').classList.remove('hidden');
         switchView('dashboard');
@@ -237,17 +337,121 @@ window.setupDashboard = function () {
     lucide.createIcons();
 };
 
-/* ── Role select: toggle login fields ─────────────────────────────────── */
+/* ── Role Toggle Logic ────────────────────────────────────────────────── */
+/* ── Role Toggle Logic ────────────────────────────────────────────────── */
+window.setLoginRole = function (role) {
+    const input = document.getElementById('roleSelect');
+    const slider = document.getElementById('roleSlider');
+    const btnOwner = document.getElementById('btn-owner');
+    const btnBranch = document.getElementById('btn-branch');
+
+    // Update value
+    if (input) input.value = role;
+
+    // Update Slider Position
+    if (role === 'owner') {
+        if (slider) slider.style.transform = 'translateX(0)';
+
+        if (btnOwner) {
+            btnOwner.classList.replace('text-gray-500', 'text-indigo-600');
+            btnOwner.classList.replace('font-medium', 'font-semibold');
+        }
+
+        if (btnBranch) {
+            btnBranch.classList.replace('text-indigo-600', 'text-gray-500');
+            btnBranch.classList.replace('font-semibold', 'font-medium');
+        }
+
+        // Show Owner Fields
+        const ownerFields = document.getElementById('ownerFields');
+        const branchSelector = document.getElementById('branchSelector');
+        const branchPinReset = document.getElementById('branchPinReset');
+
+        if (ownerFields) ownerFields.classList.remove('hidden');
+        if (branchSelector) branchSelector.classList.add('hidden');
+        if (branchPinReset) branchPinReset.classList.add('hidden');
+    } else {
+        if (slider) slider.style.transform = 'translateX(100%) translateX(4px)'; // Adjust for padding
+
+        if (btnBranch) {
+            btnBranch.classList.replace('text-gray-500', 'text-indigo-600');
+            btnBranch.classList.replace('font-medium', 'font-semibold');
+        }
+
+        if (btnOwner) {
+            btnOwner.classList.replace('text-indigo-600', 'text-gray-500');
+            btnOwner.classList.replace('font-semibold', 'font-medium');
+        }
+
+        // Show Branch Fields
+        const ownerFields = document.getElementById('ownerFields');
+        const branchSelector = document.getElementById('branchSelector');
+        const branchPinReset = document.getElementById('branchPinReset');
+
+        if (ownerFields) ownerFields.classList.add('hidden');
+        if (branchSelector) branchSelector.classList.remove('hidden');
+        if (branchPinReset) branchPinReset.classList.add('hidden');
+    }
+};
+
+// ── Session Initialization ─────────────────────────────────────────────────
+window.initAuth = async function () {
+    // 1. Check for Owner Session (Supabase)
+    const { data: { session } } = await dbAuth.getSession();
+
+    if (session) {
+        console.log('Restoring Owner Session...');
+        state.role = 'owner';
+        state.ownerId = session.user.id;
+        state.currentUser = session.user.email;
+
+        // Load branches
+        try {
+            state.branches = await dbBranches.fetchAll(state.ownerId);
+        } catch (e) {
+            console.error('Failed to load branches:', e);
+            state.branches = [];
+        }
+
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        setupDashboard();
+        return;
+    }
+
+    // 2. Check for Branch Session (LocalStorage)
+    const branchSession = localStorage.getItem('bms_branch_session');
+    if (branchSession) {
+        try {
+            const data = JSON.parse(branchSession);
+            console.log('Restoring Branch Session...');
+            state.role = 'branch';
+            state.branchId = data.branchId;
+            state.ownerId = data.ownerId;
+            state.currentUser = `${data.name} (Manager)`;
+
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            setupDashboard();
+            return;
+        } catch (e) {
+            console.error('Invalid branch session', e);
+            localStorage.removeItem('bms_branch_session');
+        }
+    }
+
+    // 3. No session, ensure login screen is visible (and correctly handled)
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+
+    // Default to owner view state if function exists
+    if (typeof setLoginRole === 'function') {
+        setLoginRole('owner');
+    }
+};
+
+// Initialize on Load
 document.addEventListener('DOMContentLoaded', () => {
-    const roleSelect = document.getElementById('roleSelect');
-
-    roleSelect?.addEventListener('change', e => {
-        const isOwner = e.target.value === 'owner';
-        const isBranch = e.target.value === 'branch';
-
-        document.getElementById('ownerFields').classList.toggle('hidden', !isOwner);
-        document.getElementById('branchSelector').classList.toggle('hidden', !isBranch);
-
-        // No need to load branch options anymore
-    });
+    console.log('Auth.js Loaded');
+    initAuth();
 });

@@ -65,6 +65,42 @@ window.dbBranches = {
         return _check(res, 'verifyBranchCredentials');
     },
 
+    /** Request access (PIN reset) */
+    requestAccess: async (ownerEmail, branchName) => {
+        // 1. Find Owner ID first
+        const { data: owners, error: ownerError } = await _db
+            .from('branches')
+            .select('owner_id')
+            .ilike('owner_email', ownerEmail)
+            .limit(1);
+
+        if (ownerError || !owners || !owners.length) throw new Error('Owner email not found.');
+        const ownerId = owners[0].owner_id;
+
+        // 2. Find Branch ID
+        const { data: branches, error: branchError } = await _db
+            .from('branches')
+            .select('id')
+            .eq('owner_id', ownerId)
+            .ilike('name', branchName)
+            .maybeSingle();
+
+        if (branchError || !branches) throw new Error('Branch not found.');
+
+        // 3. Insert Request
+        const { error: reqError } = await _db
+            .from('access_requests')
+            .insert({
+                branch_id: branches.id,
+                owner_id: ownerId,
+                requester_email: ownerEmail,
+                status: 'pending'
+            });
+
+        if (reqError) throw new Error('Failed to send request: ' + reqError.message);
+        return true;
+    },
+
     /** Create a new branch */
     add: async (ownerId, { name, location, manager, pin, target, owner_email }) => {
         const res = await _db
@@ -109,6 +145,11 @@ window.dbSales = {
         return _check(res, 'fetchSales');
     },
 
+    fetchOne: async (id) => {
+        const res = await _db.from('sales').select('*').eq('id', id).single();
+        return _check(res, 'fetchOneSale');
+    },
+
     /** Get today's sales total for a branch */
     todayTotal: async (branchId) => {
         const today = new Date().toISOString().split('T')[0];
@@ -129,6 +170,19 @@ window.dbSales = {
             .select()
             .single();
         return _check(res, 'addSale');
+    },
+
+    update: async (id, { customer, items, amount, payment }) => {
+        const res = await _db
+            .from('sales')
+            .update({ customer, items, amount, payment })
+            .eq('id', id);
+        return _check(res, 'updateSale');
+    },
+
+    delete: async (id) => {
+        const res = await _db.from('sales').delete().eq('id', id);
+        return _check(res, 'deleteSale');
     }
 };
 
@@ -146,6 +200,11 @@ window.dbExpenses = {
         return _check(res, 'fetchExpenses');
     },
 
+    fetchOne: async (id) => {
+        const res = await _db.from('expenses').select('*').eq('id', id).single();
+        return _check(res, 'fetchOneExpense');
+    },
+
     add: async (branchId, { category, description, amount }) => {
         const res = await _db
             .from('expenses')
@@ -153,6 +212,19 @@ window.dbExpenses = {
             .select()
             .single();
         return _check(res, 'addExpense');
+    },
+
+    update: async (id, { category, description, amount }) => {
+        const res = await _db
+            .from('expenses')
+            .update({ category, description, amount })
+            .eq('id', id);
+        return _check(res, 'updateExpense');
+    },
+
+    delete: async (id) => {
+        const res = await _db.from('expenses').delete().eq('id', id);
+        return _check(res, 'deleteExpense');
     }
 };
 
@@ -170,6 +242,11 @@ window.dbCustomers = {
         return _check(res, 'fetchCustomers');
     },
 
+    fetchOne: async (id) => {
+        const res = await _db.from('customers').select('*').eq('id', id).single();
+        return _check(res, 'fetchOneCustomer');
+    },
+
     add: async (branchId, { name, phone, email }) => {
         const res = await _db
             .from('customers')
@@ -177,6 +254,19 @@ window.dbCustomers = {
             .select()
             .single();
         return _check(res, 'addCustomer');
+    },
+
+    update: async (id, { name, phone, email }) => {
+        const res = await _db
+            .from('customers')
+            .update({ name, phone, email })
+            .eq('id', id);
+        return _check(res, 'updateCustomer');
+    },
+
+    delete: async (id) => {
+        const res = await _db.from('customers').delete().eq('id', id);
+        return _check(res, 'deleteCustomer');
     }
 };
 
@@ -194,10 +284,15 @@ window.dbInventory = {
         return _check(res, 'fetchInventory');
     },
 
-    add: async (branchId, { name, sku, quantity, min_threshold, price }) => {
+    fetchOne: async (id) => {
+        const res = await _db.from('inventory').select('*').eq('id', id).single();
+        return _check(res, 'fetchOneInventory');
+    },
+
+    add: async (branchId, { name, sku, quantity, min_threshold, price, category }) => {
         const res = await _db
             .from('inventory')
-            .insert({ branch_id: branchId, name, sku, quantity, min_threshold, price })
+            .insert({ branch_id: branchId, name, sku, quantity, min_threshold, price, category })
             .select()
             .single();
         return _check(res, 'addInventoryItem');
@@ -209,6 +304,19 @@ window.dbInventory = {
             .update({ quantity })
             .eq('id', itemId);
         return _check(res, 'updateInventoryQty');
+    },
+
+    update: async (id, { name, sku, category, quantity, min_threshold, price }) => {
+        const res = await _db
+            .from('inventory')
+            .update({ name, sku, category, quantity, min_threshold, price })
+            .eq('id', id);
+        return _check(res, 'updateInventory');
+    },
+
+    delete: async (id) => {
+        const res = await _db.from('inventory').delete().eq('id', id);
+        return _check(res, 'deleteInventory');
     }
 };
 
@@ -269,6 +377,11 @@ window.dbNotes = {
         return _check(res, 'fetchNotes');
     },
 
+    fetchOne: async (id) => {
+        const res = await _db.from('notes').select('*').eq('id', id).single();
+        return _check(res, 'fetchOneNote');
+    },
+
     add: async (branchId, { title, content, tag }) => {
         const res = await _db
             .from('notes')
@@ -281,6 +394,14 @@ window.dbNotes = {
     delete: async (noteId) => {
         const res = await _db.from('notes').delete().eq('id', noteId);
         return _check(res, 'deleteNote');
+    },
+
+    update: async (id, { title, content, tag }) => {
+        const res = await _db
+            .from('notes')
+            .update({ title, content, tag })
+            .eq('id', id);
+        return _check(res, 'updateNote');
     }
 };
 
@@ -298,6 +419,11 @@ window.dbLoans = {
         return _check(res, 'fetchLoans');
     },
 
+    fetchOne: async (id) => {
+        const res = await _db.from('loans').select('*').eq('id', id).single();
+        return _check(res, 'fetchOneLoan');
+    },
+
     add: async (branchId, { type, party, amount, notes }) => {
         const res = await _db
             .from('loans')
@@ -305,5 +431,18 @@ window.dbLoans = {
             .select()
             .single();
         return _check(res, 'addLoan');
+    },
+
+    update: async (id, { type, party, amount, notes }) => {
+        const res = await _db
+            .from('loans')
+            .update({ type, party, amount, notes })
+            .eq('id', id);
+        return _check(res, 'updateLoan');
+    },
+
+    delete: async (id) => {
+        const res = await _db.from('loans').delete().eq('id', id);
+        return _check(res, 'deleteLoan');
     }
 };

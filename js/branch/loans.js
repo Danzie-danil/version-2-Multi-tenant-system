@@ -70,6 +70,7 @@ window.renderLoansModule = function () {
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Notes</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Amount</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -85,6 +86,13 @@ window.renderLoansModule = function () {
                             <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(rec.created_at)}</td>
                             <td class="px-6 py-4 text-right font-bold ${t.isOut ? 'text-red-600' : 'text-emerald-600'}">
                                 ${t.isOut ? '-' : '+'}${fmt.currency(rec.amount)}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="confirmDelete('loan', '${rec.id}', 'this record')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>`;
         }).join('')}

@@ -120,7 +120,115 @@ window.renderBranchView = function (view) {
 };
 
 // ── Notification bell reset ───────────────────────────────────────────────
-window.showNotifications = function () {
-    document.getElementById('notifBadge')?.classList.add('hidden');
-    showToast('No new notifications', 'info', 2000);
+// ── Notification Logic ─────────────────────────────────────────────────────
+
+window.checkNotifications = async function () {
+    if (state.role !== 'owner') return;
+
+    const { count, error } = await supabase
+        .from('access_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', state.ownerId)
+        .eq('status', 'pending');
+
+    if (!error && count > 0) {
+        document.getElementById('notifBadge')?.classList.remove('hidden');
+    } else {
+        document.getElementById('notifBadge')?.classList.add('hidden');
+    }
+};
+
+window.showNotifications = async function () {
+    if (state.role !== 'owner') {
+        showToast('Notifications are for Business Owners', 'info');
+        return;
+    }
+
+    const { data: requests, error } = await supabase
+        .from('access_requests')
+        .select('*, branches(name)')
+        .eq('owner_id', state.ownerId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    if (!requests || requests.length === 0) {
+        showToast('No pending requests', 'info');
+        document.getElementById('notifBadge')?.classList.add('hidden');
+        return;
+    }
+
+    // Render Modal with Requests
+    const content = `
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Pending Requests</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                ${requests.map(req => `
+                    <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center border border-gray-100">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800">${req.branches?.name || 'Unknown Branch'}</p>
+                            <p class="text-xs text-gray-500">PIN Reset Requested</p>
+                            <p class="text-xs text-gray-400">${new Date(req.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="approveReset('${req.id}', '${req.branch_id}')" 
+                                class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                                Reset PIN
+                            </button>
+                            <button onclick="denyReset('${req.id}')" 
+                                class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                                Deny
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    document.getElementById('modalContent').innerHTML = content;
+    document.getElementById('modalOverlay').classList.remove('hidden');
+    lucide.createIcons();
+};
+
+window.approveReset = async function (reqId, branchId) {
+    const newPin = prompt("Enter new 6-digit PIN for this branch:");
+    if (newPin === null) return; // Cancelled
+    if (!newPin || newPin.length !== 6) {
+        alert("Invalid PIN. It must be exactly 6 digits.");
+        return;
+    }
+
+    // 1. Update Branch PIN
+    const { error: pinError } = await supabase
+        .from('branches')
+        .update({ pin: newPin })
+        .eq('id', branchId);
+
+    if (pinError) {
+        showToast('Failed to update PIN: ' + pinError.message, 'error');
+        return;
+    }
+
+    // 2. Update Request Status
+    await supabase.from('access_requests').update({ status: 'approved' }).eq('id', reqId);
+
+    showToast('PIN Updated Successfully', 'success');
+    closeModal();
+};
+
+window.denyReset = async function (reqId) {
+    if (!confirm("Deny this request?")) return;
+    await supabase.from('access_requests').update({ status: 'rejected' }).eq('id', reqId);
+    showToast('Request Denied', 'info');
+    closeModal();
 };

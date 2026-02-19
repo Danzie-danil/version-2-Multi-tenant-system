@@ -42,7 +42,46 @@ window.openModal = function (type, data = null) {
 };
 
 window.closeModal = function () {
-    document.getElementById('modalOverlay').classList.add('hidden');
+    const modal = document.getElementById('modalOverlay');
+    if (modal) modal.classList.add('hidden');
+};
+
+/* ── Edit Helper ────────────────────────────────── */
+window.openEditModal = async function (type, id) {
+    try {
+        let data = null;
+        // Fetch data based on type
+        switch (type) {
+            case 'editSale': data = await dbSales.fetchOne(id); break;
+            case 'editExpense': data = await dbExpenses.fetchOne(id); break;
+            case 'editInventoryItem': data = await dbInventory.fetchOne(id); break;
+            case 'editNote': data = await dbNotes.fetchOne(id); break;
+            case 'editCustomer': data = await dbCustomers.fetchOne(id); break;
+            case 'editLoan': data = await dbLoans.fetchOne(id); break;
+        }
+        if (data) openModal(type, data);
+    } catch (err) {
+        showToast('Failed to load data for editing: ' + err.message, 'error');
+    }
+};
+
+/* ── Delete Confirmation ────────────────────────── */
+window.confirmDelete = function (type, id, name = 'this item') {
+    // Simple confirm for now, can be upgraded to a modal later
+    if (confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+        const handlers = {
+            'sale': () => dbSales.delete(id).then(() => { showToast('Sale deleted'); switchView('sales'); }),
+            'expense': () => dbExpenses.delete(id).then(() => { showToast('Expense deleted'); switchView('expenses'); }),
+            'inventory': () => dbInventory.delete(id).then(() => { showToast('Item deleted'); switchView('inventory'); }),
+            'note': () => dbNotes.delete(id).then(() => { showToast('Note deleted'); switchView('notes'); }),
+            'customer': () => dbCustomers.delete(id).then(() => { showToast('Customer deleted'); switchView('customers'); }),
+            'loan': () => dbLoans.delete(id).then(() => { showToast('Record deleted'); switchView('loans'); })
+        };
+
+        if (handlers[type]) {
+            handlers[type]().catch(err => showToast('Delete failed: ' + err.message, 'error'));
+        }
+    }
 };
 
 /* ── Formatters ──────────────────────────────────── */
@@ -77,7 +116,13 @@ window.statusBadge = function (status) {
 };
 
 /* ── Close modal on backdrop click ──────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('modalOverlay')
-        ?.addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
-});
+/* ── Modal System ────────────────────────────────── */
+window.openModal = function (type, data = null) {
+    const modal = document.getElementById('modalOverlay');
+    const content = document.getElementById('modalContent');
+    const html = window.getModalHTML(type, data);
+    if (!html) return;
+    content.innerHTML = html;
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+};
