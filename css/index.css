@@ -151,7 +151,11 @@ body {
 }
 
 /* ── Cards ────────────────────────────────────── */
-.stat-card {
+.stat-card,
+.module-card,
+.dashboard-card {
+    /* generic fallback */
+    container-type: inline-size;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -166,6 +170,20 @@ body {
 
 .module-card:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09);
+}
+
+/* Dynamic text sizing based on container width */
+.text-dynamic {
+    font-size: clamp(0.9rem, 11cqw, 1.8rem);
+    line-height: 1.2;
+    white-space: nowrap;
+    /* Keep on one line as requested, but scale down */
+}
+
+.text-dynamic-lg {
+    font-size: clamp(1.1rem, 13cqw, 2.2rem);
+    line-height: 1.1;
+    white-space: nowrap;
 }
 
 /* ── Buttons ──────────────────────────────────── */

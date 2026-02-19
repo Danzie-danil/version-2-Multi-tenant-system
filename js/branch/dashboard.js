@@ -77,40 +77,40 @@ window.renderBranchDashboard = function () {
         const progress = fmt.percent(todaySalesTotal, branch.target);
 
         document.getElementById('dashKPIs').innerHTML = `
-        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md">
+        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md dashboard-card">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-indigo-100 text-xs font-medium uppercase tracking-wide">Today's Sales</span>
-                <i data-lucide="trending-up" class="w-5 h-5 text-indigo-200"></i>
+                <span class="text-indigo-100 text-xs font-medium uppercase tracking-wide truncate">Today's Sales</span>
+                <i data-lucide="trending-up" class="w-5 h-5 text-indigo-200 flex-shrink-0"></i>
             </div>
-            <p class="text-3xl font-bold">${fmt.currency(todaySalesTotal)}</p>
+            <p class="text-dynamic-lg font-bold" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
             <div class="mt-3 bg-white bg-opacity-20 rounded-full h-1.5">
                 <div class="bg-white h-1.5 rounded-full transition-all" style="width:${Math.min(progress, 100)}%"></div>
             </div>
-            <p class="text-indigo-100 text-xs mt-2">${progress}% of target</p>
+            <p class="text-indigo-100 text-xs mt-2 truncate">${progress}% of target</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-xs uppercase tracking-wide">Transactions</span>
-                <i data-lucide="shopping-cart" class="w-4 h-4 text-indigo-500"></i>
+                <span class="text-gray-500 text-xs uppercase tracking-wide truncate">Transactions</span>
+                <i data-lucide="shopping-cart" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
             </div>
-            <p class="text-2xl font-bold text-gray-900">${sales.length}</p>
-            <p class="text-xs text-gray-400 mt-1">All time</p>
+            <p class="text-dynamic-lg font-bold text-gray-900">${sales.length}</p>
+            <p class="text-xs text-gray-400 mt-1 truncate">All time</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-xs uppercase tracking-wide">Expenses</span>
-                <i data-lucide="credit-card" class="w-4 h-4 text-red-500"></i>
+                <span class="text-gray-500 text-xs uppercase tracking-wide truncate">Expenses</span>
+                <i data-lucide="credit-card" class="w-4 h-4 text-red-500 flex-shrink-0"></i>
             </div>
-            <p class="text-2xl font-bold text-red-600">${fmt.currency(todayExpenses)}</p>
-            <p class="text-xs text-gray-400 mt-1">All time</p>
+            <p class="text-dynamic-lg font-bold text-red-600" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
+            <p class="text-xs text-gray-400 mt-1 truncate">All time</p>
         </div>
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-xs uppercase tracking-wide">Open Tasks</span>
-                <i data-lucide="list-todo" class="w-4 h-4 text-amber-500"></i>
+                <span class="text-gray-500 text-xs uppercase tracking-wide truncate">Open Tasks</span>
+                <i data-lucide="list-todo" class="w-4 h-4 text-amber-500 flex-shrink-0"></i>
             </div>
-            <p class="text-2xl font-bold text-gray-900">${tasks.filter(t => t.status !== 'completed').length}</p>
-            <p class="text-xs text-gray-400 mt-1">${tasks.filter(t => t.status === 'completed').length} completed</p>
+            <p class="text-dynamic-lg font-bold text-gray-900">${tasks.filter(t => t.status !== 'completed').length}</p>
+            <p class="text-xs text-gray-400 mt-1 truncate">${tasks.filter(t => t.status === 'completed').length} completed</p>
         </div>`;
 
         // Task preview

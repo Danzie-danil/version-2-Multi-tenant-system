@@ -98,34 +98,34 @@ window.renderOwnerOverview = function () {
         document.getElementById('overviewKPIs').innerHTML = `
         <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Total Revenue Today</span>
-                <div class="p-2 bg-emerald-100 rounded-lg"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-600"></i></div>
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Total Revenue</span>
+                <div class="p-2 bg-emerald-100 rounded-lg flex-shrink-0"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-600"></i></div>
             </div>
-            <p class="text-2xl font-bold text-gray-900">${fmt.currency(totalSales)}</p>
-            <p class="text-xs text-emerald-600 mt-1 font-medium">▲ Across all branches</p>
+            <p class="text-dynamic-lg font-bold text-gray-900" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
+            <p class="text-xs text-emerald-600 mt-1 font-medium truncate">▲ Across all branches</p>
         </div>
         <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Active Branches</span>
-                <div class="p-2 bg-blue-100 rounded-lg"><i data-lucide="git-branch" class="w-4 h-4 text-blue-600"></i></div>
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Active Branches</span>
+                <div class="p-2 bg-blue-100 rounded-lg flex-shrink-0"><i data-lucide="git-branch" class="w-4 h-4 text-blue-600"></i></div>
             </div>
-            <p class="text-2xl font-bold text-gray-900">${branches.length}</p>
-            <p class="text-xs text-gray-500 mt-1">All operational</p>
+            <p class="text-dynamic-lg font-bold text-gray-900">${branches.length}</p>
+            <p class="text-xs text-gray-500 mt-1 truncate">All operational</p>
         </div>
         <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Pending Tasks</span>
-                <div class="p-2 bg-amber-100 rounded-lg"><i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i></div>
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Pending Tasks</span>
+                <div class="p-2 bg-amber-100 rounded-lg flex-shrink-0"><i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i></div>
             </div>
-            <p class="text-2xl font-bold text-gray-900">${pendingTasks}</p>
-            <p class="text-xs text-amber-600 mt-1 font-medium">Requires attention</p>
+            <p class="text-dynamic-lg font-bold text-gray-900">${pendingTasks}</p>
+            <p class="text-xs text-amber-600 mt-1 font-medium truncate">Requires attention</p>
         </div>
         <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide">Target Progress</span>
-                <div class="p-2 bg-violet-100 rounded-lg"><i data-lucide="target" class="w-4 h-4 text-violet-600"></i></div>
+                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Target Progress</span>
+                <div class="p-2 bg-violet-100 rounded-lg flex-shrink-0"><i data-lucide="target" class="w-4 h-4 text-violet-600"></i></div>
             </div>
-            <p class="text-2xl font-bold text-gray-900">${progress}%</p>
+            <p class="text-dynamic-lg font-bold text-gray-900">${progress}%</p>
             <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
                 <div class="bg-violet-500 h-1.5 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
             </div>
