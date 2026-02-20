@@ -75,7 +75,8 @@ window.advanceTask = async function (taskId, currentStatus) {
     try {
         await dbTasks.updateStatus(taskId, nextStatus);
         if (nextStatus === 'completed') {
-            addActivity('task_completed', `Task completed`, state.currentUser);
+            const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
+            addActivity('task_completed', `Task completed`, branch.name);
             showToast('Task completed! 🎉', 'success');
         } else {
             showToast('Task started!', 'info');

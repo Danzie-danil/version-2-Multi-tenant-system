@@ -33,6 +33,22 @@ window.login = async function () {
         state.ownerId = data.user.id;
         state.currentUser = data.user.email;
 
+        // Load profile
+        try {
+            let profile = await dbProfile.fetch(state.ownerId);
+            if (!profile) {
+                // First time login - Create stub
+                profile = await dbProfile.upsert(state.ownerId, {
+                    full_name: data.user.user_metadata?.first_name || 'Admin',
+                    currency: 'USD'
+                });
+            }
+            state.profile = profile;
+        } catch (e) {
+            console.error('Profile fetch failed', e);
+            state.profile = { currency: 'USD' }; // Fallback
+        }
+
         // Load all branches for this owner
         try {
             state.branches = await dbBranches.fetchAll(state.ownerId);
@@ -91,11 +107,40 @@ window.login = async function () {
         state.currentUser = `${branch.name} (Manager)`;
         state.ownerId = branch.owner_id;
 
+        // Load branch-specific details and merge into state
+        state.branchProfile = {
+            id: branch.id,
+            name: branch.name,
+            branch_code: branch.branch_code || `BR-${branch.id.substring(0, 5).toUpperCase()}`,
+            branch_reg_no: branch.branch_reg_no || '',
+            branch_tin: branch.branch_tin || '',
+            phone: branch.phone || '',
+            email: branch.email || '',
+            address: branch.address || ''
+        };
+
+        // Fetch the Enterprise Name (from owner's profile)
+        try {
+            const profile = await dbProfile.fetch(branch.owner_id);
+            state.enterpriseName = profile?.business_name || 'My Enterprise';
+
+            // Provide global profile, but inject the Branch's specific currency if it exists
+            state.profile = profile || { currency: 'USD' };
+            if (branch.currency) {
+                state.profile.currency = branch.currency;
+            }
+        } catch (e) {
+            console.warn('Failed to fetch enterprise profile from branch', e);
+            state.enterpriseName = 'BMS Enterprise';
+            state.profile = { currency: branch.currency || 'USD' };
+        }
+
         // Persist Branch Session
         localStorage.setItem('bms_branch_session', JSON.stringify({
             branchId: branch.id,
             ownerId: branch.owner_id,
-            name: branch.name
+            name: branch.name,
+            enterpriseName: state.enterpriseName
         }));
     }
 
@@ -405,6 +450,21 @@ window.initAuth = async function () {
         state.ownerId = session.user.id;
         state.currentUser = session.user.email;
 
+        // Load profile
+        try {
+            let profile = await dbProfile.fetch(state.ownerId);
+            if (!profile) {
+                profile = await dbProfile.upsert(state.ownerId, {
+                    full_name: session.user.user_metadata?.first_name || 'Admin',
+                    currency: 'USD'
+                });
+            }
+            state.profile = profile;
+        } catch (e) {
+            console.error('Profile fetch on restore failed', e);
+            state.profile = { currency: 'USD' }; // Fallback
+        }
+
         // Load branches
         try {
             state.branches = await dbBranches.fetchAll(state.ownerId);
@@ -429,6 +489,23 @@ window.initAuth = async function () {
             state.branchId = data.branchId;
             state.ownerId = data.ownerId;
             state.currentUser = `${data.name} (Manager)`;
+
+            // Must re-fetch branch and global profile data on reload
+            try {
+                const { data: bData } = await window.supabaseClient.from('branches').select('*').eq('id', data.branchId).single();
+                if (bData) {
+                    state.branchProfile = { ...bData, branch_code: bData.branch_code || `BR-${bData.id.substring(0, 5).toUpperCase()}` };
+
+                    const profile = await dbProfile.fetch(data.ownerId);
+                    state.enterpriseName = profile?.business_name || data.enterpriseName || 'BMS Enterprise';
+                    state.profile = profile || { currency: 'USD' };
+                    if (bData.currency) state.profile.currency = bData.currency;
+                }
+            } catch (err) {
+                console.warn('Failed to rehydrate full branch profile', err);
+                state.enterpriseName = data.enterpriseName || 'BMS Enterprise';
+                state.profile = { currency: 'USD' };
+            }
 
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('app').classList.remove('hidden');

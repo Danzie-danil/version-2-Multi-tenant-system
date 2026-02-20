@@ -65,10 +65,89 @@ window.openEditModal = async function (type, id) {
     }
 };
 
+/* ── Custom Modal Confirm ────────────────────────── */
+window.confirmModal = function (title, message, confirmText = 'Confirm', cancelText = 'Cancel', confirmClass = 'bg-red-600 hover:bg-red-700', requireText = null) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modalOverlay');
+        const content = document.getElementById('modalContent');
+
+        const inputHtml = requireText ? `
+            <div class="mt-4 mb-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type <strong>${requireText}</strong> to confirm</label>
+                <input type="text" id="confirmInputText" class="form-input w-full" autocomplete="off" onpaste="return false;" ondrop="return false;">
+            </div>
+        ` : '';
+
+        content.innerHTML = `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900">${title}</h3>
+                <button id="btnConfirmCloseX" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-gray-600 ${requireText ? '' : 'mb-6'}">${message}</p>
+            ${inputHtml}
+            <div class="flex gap-3 justify-end mt-6">
+                <button id="btnConfirmCancel" class="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">${cancelText}</button>
+                <button id="btnConfirmAccept" class="px-4 py-2 text-white rounded-lg font-medium text-sm ${confirmClass}" ${requireText ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>${confirmText}</button>
+            </div>
+        </div>
+        `;
+        lucide.createIcons();
+        modal.classList.remove('hidden');
+
+        const btnAccept = document.getElementById('btnConfirmAccept');
+        const inputField = document.getElementById('confirmInputText');
+
+        if (requireText && inputField) {
+            inputField.addEventListener('input', (e) => {
+                if (e.target.value === requireText) {
+                    btnAccept.disabled = false;
+                    btnAccept.style.opacity = '1';
+                    btnAccept.style.cursor = 'pointer';
+                } else {
+                    btnAccept.disabled = true;
+                    btnAccept.style.opacity = '0.5';
+                    btnAccept.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        const cleanup = () => {
+            modal.classList.add('hidden');
+            document.getElementById('btnConfirmCloseX').removeEventListener('click', onCancel);
+            document.getElementById('btnConfirmCancel').removeEventListener('click', onCancel);
+            btnAccept.removeEventListener('click', onAccept);
+        };
+
+        const onCancel = () => { cleanup(); resolve(false); };
+        const onAccept = () => {
+            if (requireText && inputField && inputField.value !== requireText) return;
+            cleanup();
+            resolve(true);
+        };
+
+        document.getElementById('btnConfirmCloseX').addEventListener('click', onCancel);
+        document.getElementById('btnConfirmCancel').addEventListener('click', onCancel);
+        btnAccept.addEventListener('click', onAccept);
+
+        if (requireText && inputField) {
+            setTimeout(() => inputField.focus(), 100);
+        }
+    });
+};
+
 /* ── Delete Confirmation ────────────────────────── */
-window.confirmDelete = function (type, id, name = 'this item') {
-    // Simple confirm for now, can be upgraded to a modal later
-    if (confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+window.confirmDelete = async function (type, id, name = 'this item') {
+    const confirmed = await confirmModal(
+        'Confirm Delete',
+        `Are you sure you want to delete ${name}? This action cannot be undone.`,
+        'Delete',
+        'Cancel'
+    );
+
+    if (confirmed) {
         const handlers = {
             'sale': () => dbSales.delete(id).then(() => { showToast('Sale deleted'); switchView('sales'); }),
             'expense': () => dbExpenses.delete(id).then(() => { showToast('Expense deleted'); switchView('expenses'); }),
@@ -86,7 +165,35 @@ window.confirmDelete = function (type, id, name = 'this item') {
 
 /* ── Formatters ──────────────────────────────────── */
 window.fmt = {
-    currency: (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    currency: (n) => {
+        // Map common codes to symbols for cleaner display
+        const symbols = {
+            'USD': '$',    // US Dollar
+            'EUR': '€',    // Euro
+            'GBP': '£',    // British Pound
+            'KES': 'KSH ', // Kenyan Shilling
+            'TZS': 'TSh ', // Tanzanian Shilling
+            'NGN': '₦',    // Nigerian Naira
+            'UGX': 'USh ', // Ugandan Shilling
+            'ZAR': 'R ',   // South African Rand
+            'INR': '₹'     // Indian Rupee
+        };
+
+        // Ensure state is loaded, default to USD if not set
+        const code = (window.state && window.state.profile && window.state.profile.currency) ? window.state.profile.currency : 'USD';
+
+        const symbol = symbols[code] || (code + ' ');
+        return symbol + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+    number: (n) => {
+        return Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    },
+    parseNumber: (val) => {
+        // Strip all commas and non-numeric characters (except decimal point and minus sign)
+        if (!val || typeof val !== 'string') return parseFloat(val) || 0;
+        const cleaned = val.toString().replace(/,/g, '').replace(/[^\d.\-]/g, '');
+        return parseFloat(cleaned) || 0;
+    },
     time: () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     date: (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     percent: (a, b) => b ? Math.round((a / b) * 100) : 0
@@ -116,6 +223,75 @@ window.statusBadge = function (status) {
 };
 
 /* ── Close modal on backdrop click ──────────────── */
+/* ── Global Number Formatting ────────────────────── */
+window.initNumberFormatting = function () {
+    // Attach event listener to document for real-time number formatting
+    document.addEventListener('input', function (e) {
+        const target = e.target;
+        
+        // Only process inputs with the 'number-format' class
+        if (!target.classList.contains('number-format')) return;
+        
+        // Get the current value and remove non-numeric characters (except decimal point and minus)
+        let value = target.value;
+        const isNegative = value.startsWith('-');
+        
+        // Strip non-numeric characters except decimal point
+        let numericValue = value.replace(/[^\d.]/g, '');
+        
+        // Handle multiple decimal points (keep only the first one)
+        const parts = numericValue.split('.');
+        if (parts.length > 2) {
+            numericValue = parts[0] + '.' + parts.slice(1).join('');
+        }
+        
+        // Parse the numeric value
+        const num = parseFloat(numericValue) || 0;
+        
+        // Format with thousands separators
+        const parts2 = numericValue.split('.');
+        const integerPart = parts2[0] || '0';
+        const decimalPart = parts2[1] || '';
+        
+        // Add commas to integer part
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        
+        // Reconstruct the formatted value
+        let formatted = isNegative ? '-' : '';
+        formatted += formattedInteger;
+        if (decimalPart) {
+            formatted += '.' + decimalPart;
+        }
+        
+        target.value = formatted;
+    });
+    
+    // Also handle blur events to ensure proper decimal formatting
+    document.addEventListener('blur', function (e) {
+        const target = e.target;
+        if (!target.classList.contains('number-format')) return;
+        
+        const value = target.value;
+        const num = fmt.parseNumber(value);
+        
+        // If it's a valid number and not empty, format it with 2 decimal places
+        if (num !== 0 || value.trim() !== '') {
+            const parts = value.split('.');
+            const integerPart = (parts[0] || '0').replace(/[^\d\-]/g, '');
+            const decimalPart = parts[1] ? parts[1].substring(0, 2) : '00';
+            
+            const isNegative = integerPart.startsWith('-');
+            const cleanInteger = integerPart.replace('-', '');
+            const formattedInteger = cleanInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            
+            target.value = (isNegative ? '-' : '') + formattedInteger + '.' + decimalPart.padEnd(2, '0');
+        }
+    }, true);
+};
+
+// Initialize number formatting when DOM is ready
+document.addEventListener('DOMContentLoaded', initNumberFormatting);
+
 /* ── Modal System ────────────────────────────────── */
 window.openModal = function (type, data = null) {
     const modal = document.getElementById('modalOverlay');
@@ -125,4 +301,6 @@ window.openModal = function (type, data = null) {
     content.innerHTML = html;
     modal.classList.remove('hidden');
     lucide.createIcons();
+    // Reinitialize number formatting after modal content is injected
+    initNumberFormatting();
 };

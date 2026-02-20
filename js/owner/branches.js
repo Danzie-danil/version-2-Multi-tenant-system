@@ -67,6 +67,11 @@ window.renderBranchesManagement = function () {
                 ${withSales.map(branch => {
             const pct = fmt.percent(branch.todaySales, branch.target);
             const barColor = pct >= 100 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500';
+
+            // Format currency for this specific branch, falling back to global currency
+            const currCode = branch.currency || (state.profile && state.profile.currency) || 'USD';
+            const fCurr = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currCode }).format(val || 0);
+
             return `
                 <div class="module-card bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                     <div class="flex items-start justify-between mb-4">
@@ -86,11 +91,11 @@ window.renderBranchesManagement = function () {
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">Today's Sales</span>
-                            <span class="font-bold text-emerald-600">${fmt.currency(branch.todaySales)}</span>
+                            <span class="font-bold text-emerald-600">${fCurr(branch.todaySales)}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">Target</span>
-                            <span class="font-medium">${fmt.currency(branch.target)}</span>
+                            <span class="font-medium">${fCurr(branch.target)}</span>
                         </div>
                     </div>
 
@@ -103,14 +108,18 @@ window.renderBranchesManagement = function () {
                         </div>
                     </div>
 
-                    <div class="flex gap-2">
-                        <button onclick="openModal('resetPin','${branch.id}')"
-                            class="flex-1 py-2 text-sm font-medium text-violet-700 bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors">
-                            Reset PIN
-                        </button>
-                        <button onclick="openModal('assignTask')"
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick='openModal("editBranch", ${JSON.stringify(branch).replace(/'/g, "&apos;")})'
                             class="flex-1 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
-                            Assign Task
+                            Edit Settings
+                        </button>
+                        <button onclick="openModal('resetPin','${branch.id}')"
+                            class="py-2 px-3 text-sm font-medium text-violet-700 bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors" title="Reset PIN">
+                            <i data-lucide="key" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deleteBranchRow('${branch.id}', '${branch.name}')"
+                            class="py-2 px-3 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Delete Branch">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>`;
@@ -123,4 +132,31 @@ window.renderBranchesManagement = function () {
     });
 
     return '';
+};
+
+// Global function to handle branch deletion
+window.deleteBranchRow = async function (id, name) {
+    const confirmed = await confirmModal(
+        'Delete Branch',
+        `Are you absolutely sure you want to delete the branch "${name}"? This action cannot be undone and will delete all associated data (sales, expenses, etc.).`,
+        'Delete Branch',
+        'Cancel',
+        'bg-red-600 hover:bg-red-700',
+        name
+    );
+    if (!confirmed) return;
+
+    try {
+        await dbBranches.delete(id);
+
+        // Remove from local state
+        state.branches = state.branches.filter(b => b.id !== id);
+
+        showToast(`Branch "${name}" deleted successfully.`, 'success');
+
+        // Re-render the view
+        switchView('branches');
+    } catch (err) {
+        showToast(`Failed to delete branch: ${err.message}`, 'error');
+    }
 };

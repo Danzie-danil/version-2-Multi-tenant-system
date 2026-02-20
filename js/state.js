@@ -7,6 +7,7 @@ window.state = {
     role: null,   // 'owner' | 'branch'
     branchId: null,   // UUID of the logged-in branch (branch role only)
     ownerId: null,   // UUID from Supabase Auth (owner role only)
+    profile: null,    // loaded from 'profiles' table (global settings)
     branches: [],     // loaded after owner login via dbBranches.fetchAll()
     activities: []      // live activity feed (in-memory, owner view)
 };

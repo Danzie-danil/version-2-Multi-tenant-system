@@ -89,11 +89,11 @@ window.getModalHTML = function (type, data) {
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                            <input type="number" id="saleQty" min="1" value="1" class="form-input" oninput="updateSaleTotal()">
+                            <input type="text" inputmode="decimal" id="saleQty" value="1" class="form-input number-format" oninput="updateSaleTotal()">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Total Amount ($)</label>
-                            <input type="number" id="saleAmount" required step="0.01" min="0.01" class="form-input font-bold text-emerald-600" placeholder="0.00">
+                            <input type="text" inputmode="decimal" id="saleAmount" required class="form-input number-format font-bold text-emerald-600" placeholder="0.00">
                         </div>
                     </div>
                 </div>
@@ -145,7 +145,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                    <input type="number" id="expenseAmount" required step="0.01" min="0.01" class="form-input" placeholder="0.00">
+                    <input type="text" inputmode="decimal" id="expenseAmount" required class="form-input number-format" placeholder="0.00">
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
@@ -217,7 +217,11 @@ window.getModalHTML = function (type, data) {
         }
 
         /* ── Add Branch (Owner) ─────────────────── */
-        case 'addBranch': return `
+        case 'addBranch':
+            // Default to Owner's chosen global currency
+            const defCurr = (state.profile && state.profile.currency) ? state.profile.currency : 'USD';
+
+            return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">Add New Branch</h3>
@@ -239,16 +243,89 @@ window.getModalHTML = function (type, data) {
                     <input type="text" id="branchManager" class="form-input" placeholder="Manager's full name">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Admin Owner Email (for App Login)</label>
+                    <input type="email" id="branchOwnerEmail" required class="form-input" placeholder="admin@example.com">
+                    <p class="text-xs text-gray-400 mt-1">Branch will use this email alongside their Name & PIN to log in.</p>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Initial PIN (6 digits)</label>
                     <input type="password" id="branchPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest text-lg" placeholder="••••••">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Sales Target ($)</label>
-                    <input type="number" id="branchTarget" required class="form-input" placeholder="15000">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
+                        <select id="branchCurrency" class="form-input w-full">
+                            <option value="USD" ${defCurr === 'USD' ? 'selected' : ''}>USD ($)</option>
+                            <option value="EUR" ${defCurr === 'EUR' ? 'selected' : ''}>EUR (€)</option>
+                            <option value="GBP" ${defCurr === 'GBP' ? 'selected' : ''}>GBP (£)</option>
+                            <option value="KES" ${defCurr === 'KES' ? 'selected' : ''}>KES (KSh)</option>
+                            <option value="TZS" ${defCurr === 'TZS' ? 'selected' : ''}>TZS (TSh)</option>
+                            <option value="NGN" ${defCurr === 'NGN' ? 'selected' : ''}>NGN (₦)</option>
+                            <option value="UGX" ${defCurr === 'UGX' ? 'selected' : ''}>UGX (USh)</option>
+                            <option value="ZAR" ${defCurr === 'ZAR' ? 'selected' : ''}>ZAR (R)</option>
+                            <option value="INR" ${defCurr === 'INR' ? 'selected' : ''}>INR (₹)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sales Target</label>
+                        <input type="text" inputmode="decimal" id="branchTarget" required class="form-input number-format" placeholder="15000">
+                    </div>
                 </div>
-                <div class="flex gap-3 pt-2">
+                <div class="flex gap-3 pt-4">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
                     <button type="submit" class="flex-1 btn-primary justify-center">Create Branch</button>
+                </div>
+            </form>
+        </div>`;
+
+        /* ── Edit Branch (Owner) ─────────────────── */
+        case 'editBranch':
+            // Provide a fallback if branch lacks a currency
+            const defaultEditCurr = data.currency || (state.profile?.currency || 'USD');
+            return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Edit Branch Settings</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleEditBranch(event, '${data.id}')" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
+                    <input type="text" id="editBranchName" value="${data.name}" required class="form-input">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input type="text" id="editBranchLocation" value="${data.location || ''}" class="form-input">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
+                    <input type="text" id="editBranchManager" value="${data.manager || ''}" class="form-input">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
+                        <select id="editBranchCurrency" class="form-input w-full">
+                            <option value="USD" ${defaultEditCurr === 'USD' ? 'selected' : ''}>USD ($)</option>
+                            <option value="EUR" ${defaultEditCurr === 'EUR' ? 'selected' : ''}>EUR (€)</option>
+                            <option value="GBP" ${defaultEditCurr === 'GBP' ? 'selected' : ''}>GBP (£)</option>
+                            <option value="KES" ${defaultEditCurr === 'KES' ? 'selected' : ''}>KES (KSh)</option>
+                            <option value="TZS" ${defaultEditCurr === 'TZS' ? 'selected' : ''}>TZS (TSh)</option>
+                            <option value="NGN" ${defaultEditCurr === 'NGN' ? 'selected' : ''}>NGN (₦)</option>
+                            <option value="UGX" ${defaultEditCurr === 'UGX' ? 'selected' : ''}>UGX (USh)</option>
+                            <option value="ZAR" ${defaultEditCurr === 'ZAR' ? 'selected' : ''}>ZAR (R)</option>
+                            <option value="INR" ${defaultEditCurr === 'INR' ? 'selected' : ''}>INR (₹)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sales Target ($)</label>
+                        <input type="text" inputmode="decimal" id="editBranchTarget" value="${data.target}" required class="form-input number-format">
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Save Changes</button>
                 </div>
             </form>
         </div>`;
@@ -312,7 +389,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                    <input type="number" id="loanAmount" required step="0.01" class="form-input" placeholder="0.00">
+                    <input type="text" inputmode="decimal" id="loanAmount" required class="form-input number-format" placeholder="0.00">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -361,17 +438,17 @@ window.getModalHTML = function (type, data) {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                        <input type="number" id="itemPrice" required step="0.01" min="0" class="form-input" placeholder="0.00">
+                        <input type="text" inputmode="decimal" id="itemPrice" required class="form-input number-format" placeholder="0.00">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                        <input type="number" id="itemQty" required min="0" class="form-input" placeholder="0">
+                        <input type="text" inputmode="decimal" id="itemQty" required class="form-input number-format" placeholder="0">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
-                        <input type="number" id="itemMinThreshold" required min="0" class="form-input" placeholder="10">
+                        <input type="text" inputmode="decimal" id="itemMinThreshold" required class="form-input number-format" placeholder="10">
                     </div>
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -402,7 +479,7 @@ window.getModalHTML = function (type, data) {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                        <input type="number" id="editSaleAmount" value="${data.amount}" required step="0.01" min="0.01" class="form-input">
+                        <input type="text" inputmode="decimal" id="editSaleAmount" value="${data.amount}" required class="form-input number-format">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
@@ -458,16 +535,16 @@ window.getModalHTML = function (type, data) {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                        <input type="number" id="editItemPrice" value="${data.price}" required step="0.01" min="0" class="form-input">
+                        <input type="text" inputmode="decimal" id="editItemPrice" value="${data.price}" required class="form-input number-format">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                        <input type="number" id="editItemQty" value="${data.quantity}" required min="0" class="form-input">
+                        <input type="text" inputmode="decimal" id="editItemQty" value="${data.quantity}" required class="form-input number-format">
                     </div>
                 </div>
                 <div class="pt-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
-                    <input type="number" id="editItemMinThreshold" value="${data.min_threshold}" required min="0" class="form-input">
+                    <input type="text" inputmode="decimal" id="editItemMinThreshold" value="${data.min_threshold}" required class="form-input number-format">
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
@@ -538,7 +615,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                    <input type="number" id="editExpenseAmount" value="${data.amount}" required step="0.01" min="0.01" class="form-input">
+                    <input type="text" inputmode="decimal" id="editExpenseAmount" value="${data.amount}" required class="form-input number-format">
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
@@ -611,7 +688,7 @@ function _getEditLoanHTML(data) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                    <input type="number" id="editLoanAmount" value="${data.amount}" required step="0.01" class="form-input">
+                    <input type="text" inputmode="decimal" id="editLoanAmount" value="${data.amount}" required class="form-input number-format">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -662,7 +739,7 @@ window.handleAddSale = async function (e) {
     e.preventDefault();
     _setSubmitLoading(e.target, true, 'Record Sale');
     try {
-        const amount = parseFloat(document.getElementById('saleAmount').value);
+        const amount = fmt.parseNumber(document.getElementById('saleAmount').value);
         const customer = document.getElementById('saleCustomer').value || 'Walk-in Customer';
         const payment = document.getElementById('salePayment').value;
 
@@ -687,7 +764,8 @@ window.handleAddSale = async function (e) {
 
         await dbSales.add(state.branchId, { customer, items, amount, payment });
         closeModal();
-        addActivity('sale', `New sale to ${customer}`, state.currentUser, amount);
+        const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
+        addActivity('sale', `New sale to ${customer}`, branch.name, amount);
         showToast(`Sale of ${fmt.currency(amount)} recorded!`, 'success');
         switchView('sales');
     } catch (err) {
@@ -700,12 +778,13 @@ window.handleAddExpense = async function (e) {
     e.preventDefault();
     _setSubmitLoading(e.target, true, 'Add Expense');
     try {
-        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const amount = fmt.parseNumber(document.getElementById('expenseAmount').value);
         const category = document.getElementById('expenseCategory').value;
         const description = document.getElementById('expenseDesc').value;
         await dbExpenses.add(state.branchId, { category, description, amount });
         closeModal();
-        addActivity('expense', `Expense: ${description}`, state.currentUser, amount);
+        const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
+        addActivity('expense', `Expense: ${description}`, branch.name, amount);
         showToast(`Expense of ${fmt.currency(amount)} recorded!`, 'success');
         switchView('expenses');
     } catch (err) {
@@ -759,23 +838,55 @@ window.handleAddBranch = async function (e) {
         const location = document.getElementById('branchLocation').value;
         const manager = document.getElementById('branchManager').value || 'Unassigned';
         const pin = document.getElementById('branchPin').value;
-        const target = parseFloat(document.getElementById('branchTarget').value) || 10000;
-        // Fix: Pass owner_email to dbBranches.add so it's saved in the database
+        const target = fmt.parseNumber(document.getElementById('branchTarget').value) || 10000;
+        const ownerEmail = document.getElementById('branchOwnerEmail').value.trim() || state.currentUser;
+        const currency = document.getElementById('branchCurrency').value || 'USD';
+
         const branch = await dbBranches.add(state.ownerId, {
             name,
             location,
             manager,
             pin,
             target,
-            owner_email: state.currentUser // Used for login lookup
+            owner_email: ownerEmail,
+            currency
         });
         state.branches.push(branch);
         closeModal();
-        showToast(`Branch "${name}" created!`, 'success');
+        showToast('Branch added successfully!', 'success');
         switchView('branches');
     } catch (err) {
-        showToast('Failed to create branch: ' + err.message, 'error');
+        showToast('Failed to add branch: ' + err.message, 'error');
         _setSubmitLoading(e.target, false, 'Create Branch');
+    }
+};
+
+window.handleEditBranch = async function (e, branchId) {
+    e.preventDefault();
+    _setSubmitLoading(e.target, true, 'Save Changes');
+    try {
+        const payload = {
+            name: document.getElementById('editBranchName').value.trim(),
+            location: document.getElementById('editBranchLocation').value.trim(),
+            manager: document.getElementById('editBranchManager').value.trim(),
+            target: fmt.parseNumber(document.getElementById('editBranchTarget').value) || 10000,
+            currency: document.getElementById('editBranchCurrency').value
+        };
+
+        const updatedBranch = await dbBranches.updateAdmin(branchId, payload);
+
+        // Update local state without needing to refetch all
+        const index = state.branches.findIndex(b => b.id === branchId);
+        if (index !== -1) {
+            state.branches[index] = { ...state.branches[index], ...updatedBranch };
+        }
+
+        closeModal();
+        showToast('Branch updated successfully!', 'success');
+        switchView('branches'); // re-render the list
+    } catch (err) {
+        showToast('Failed to edit branch: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Save Changes');
     }
 };
 
@@ -802,7 +913,7 @@ window.handleAddLoan = async function (e) {
     try {
         const type = document.getElementById('loanType').value;
         const party = document.getElementById('loanParty').value || 'Unknown';
-        const amount = parseFloat(document.getElementById('loanAmount').value);
+        const amount = fmt.parseNumber(document.getElementById('loanAmount').value);
         const notes = document.getElementById('loanNotes').value;
         await dbLoans.add(state.branchId, { type, party, amount, notes });
         closeModal();
@@ -821,7 +932,7 @@ window.handleAddInventoryItem = async function (e) {
         const name = document.getElementById('itemName').value;
         const sku = document.getElementById('itemSku').value;
         const category = document.getElementById('itemCategory').value;
-        const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+        const price = fmt.parseNumber(document.getElementById('itemPrice').value) || 0;
         const quantity = parseInt(document.getElementById('itemQty').value, 10) || 0;
         const min_threshold = parseInt(document.getElementById('itemMinThreshold').value, 10) || 10;
 
@@ -839,7 +950,7 @@ window.handleEditSale = async function (e, id) {
     e.preventDefault();
     _setSubmitLoading(e.target, true, 'Update Sale');
     try {
-        const amount = parseFloat(document.getElementById('editSaleAmount').value);
+        const amount = fmt.parseNumber(document.getElementById('editSaleAmount').value);
         const customer = document.getElementById('editSaleCustomer').value;
         const items = document.getElementById('editSaleItems').value;
         const payment = document.getElementById('editSalePayment').value;
@@ -860,7 +971,7 @@ window.handleEditInventoryItem = async function (e, id) {
         const name = document.getElementById('editItemName').value;
         const sku = document.getElementById('editItemSku').value;
         const category = document.getElementById('editItemCategory').value;
-        const price = parseFloat(document.getElementById('editItemPrice').value);
+        const price = fmt.parseNumber(document.getElementById('editItemPrice').value);
         const quantity = parseInt(document.getElementById('editItemQty').value, 10);
         const min_threshold = parseInt(document.getElementById('editItemMinThreshold').value, 10);
         await dbInventory.update(id, { name, sku, category, price, quantity, min_threshold });
@@ -894,7 +1005,7 @@ window.handleEditExpense = async function (e, id) {
     e.preventDefault();
     _setSubmitLoading(e.target, true, 'Update Expense');
     try {
-        const amount = parseFloat(document.getElementById('editExpenseAmount').value);
+        const amount = fmt.parseNumber(document.getElementById('editExpenseAmount').value);
         const category = document.getElementById('editExpenseCategory').value;
         const description = document.getElementById('editExpenseDesc').value;
         await dbExpenses.update(id, { category, description, amount });
@@ -930,7 +1041,7 @@ window.handleEditLoan = async function (e, id) {
     try {
         const type = document.getElementById('editLoanType').value;
         const party = document.getElementById('editLoanParty').value;
-        const amount = parseFloat(document.getElementById('editLoanAmount').value);
+        const amount = fmt.parseNumber(document.getElementById('editLoanAmount').value);
         const notes = document.getElementById('editLoanNotes').value;
         await dbLoans.update(id, { type, party, amount, notes });
         closeModal();

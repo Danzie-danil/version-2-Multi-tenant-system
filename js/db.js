@@ -38,6 +38,41 @@ window.dbAuth = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PROFILES (Global Settings)
+// ═══════════════════════════════════════════════════════════════════════════
+
+window.dbProfile = {
+    /** Fetch profile by user ID */
+    fetch: async (ownerId) => {
+        const { data, error } = await _db
+            .from('profiles')
+            .select('*')
+            .eq('id', ownerId)
+            .single();
+
+        // Return null instead of throwing error if not found, 
+        // to handle first-time users smoothly
+        if (error && error.code === 'PGRST116') return null;
+
+        return _check({ data, error }, 'fetchProfile');
+    },
+
+    /** Update or create profile */
+    upsert: async (ownerId, profileData) => {
+        const payload = { id: ownerId, ...profileData, updated_at: new Date().toISOString() };
+        console.log('[DEBUG] profileData to upsert:', payload);
+        const res = await _db
+            .from('profiles')
+            .upsert(payload, { onConflict: 'id' })
+            .select('*')
+            .single();
+
+        if (res.error) console.error('[DEBUG] Upsert Error:', res.error);
+        return _check(res, 'upsertProfile');
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // BRANCHES
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -102,13 +137,30 @@ window.dbBranches = {
     },
 
     /** Create a new branch */
-    add: async (ownerId, { name, location, manager, pin, target, owner_email }) => {
+    add: async (ownerId, { name, location, manager, pin, target, owner_email, currency }) => {
+        const payload = { owner_id: ownerId, name, location, manager, pin, target, owner_email };
+        if (currency) payload.currency = currency;
+
         const res = await _db
             .from('branches')
-            .insert({ owner_id: ownerId, name, location, manager, pin, target, owner_email })
+            .insert(payload)
             .select()
             .single();
         return _check(res, 'addBranch');
+    },
+
+    /** Update core branch info (Admin Level) */
+    updateAdmin: async (branchId, { name, manager, location, target, currency }) => {
+        const payload = { name, manager, location, target };
+        if (currency) payload.currency = currency;
+
+        const res = await _db
+            .from('branches')
+            .update(payload)
+            .eq('id', branchId)
+            .select()
+            .single();
+        return _check(res, 'updateBranchAdmin');
     },
 
     /** Reset branch PIN */
@@ -120,6 +172,25 @@ window.dbBranches = {
         return _check(res, 'updateBranchPin');
     },
 
+    /** Update branch profile details */
+    updateProfile: async (branchId, profileData) => {
+        // Only allow updating safe fields
+        const safeData = {
+            branch_reg_no: profileData.branch_reg_no,
+            branch_tin: profileData.branch_tin,
+            phone: profileData.phone,
+            email: profileData.email,
+            address: profileData.address
+        };
+        const res = await _db
+            .from('branches')
+            .update(safeData)
+            .eq('id', branchId)
+            .select()
+            .single();
+        return _check(res, 'updateBranchProfile');
+    },
+
     /** Update branch status */
     updateStatus: async (branchId, status) => {
         const res = await _db
@@ -127,6 +198,15 @@ window.dbBranches = {
             .update({ status })
             .eq('id', branchId);
         return _check(res, 'updateBranchStatus');
+    },
+
+    /** Delete a branch */
+    delete: async (branchId) => {
+        const res = await _db
+            .from('branches')
+            .delete()
+            .eq('id', branchId);
+        return _check(res, 'deleteBranch');
     }
 };
 
@@ -444,5 +524,54 @@ window.dbLoans = {
     delete: async (id) => {
         const res = await _db.from('loans').delete().eq('id', id);
         return _check(res, 'deleteLoan');
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ACTIVITIES (Aggregate for Owner Dashboard)
+// ═══════════════════════════════════════════════════════════════════════════
+
+window.dbActivities = {
+    fetchRecent: async (branchIds, limit = 20) => {
+        if (!branchIds || branchIds.length === 0) return [];
+
+        const [salesRes, expRes, tasksRes] = await Promise.all([
+            _db.from('sales').select('id, amount, created_at, branches(name)').in('branch_id', branchIds).order('created_at', { ascending: false }).limit(limit),
+            _db.from('expenses').select('id, amount, description, created_at, branches(name)').in('branch_id', branchIds).order('created_at', { ascending: false }).limit(limit),
+            _db.from('tasks').select('id, title, status, created_at, branches(name)').in('branch_id', branchIds).order('created_at', { ascending: false }).limit(limit)
+        ]);
+
+        const sales = _check(salesRes, 'fetchRecentSales').map(s => ({
+            type: 'sale',
+            message: 'New sale recorded',
+            branch: s.branches?.name || 'Unknown',
+            amount: s.amount,
+            created_at: s.created_at,
+            time: new Date(s.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+
+        const expenses = _check(expRes, 'fetchRecentExpenses').map(e => ({
+            type: 'expense',
+            message: e.description || 'Expense recorded',
+            branch: e.branches?.name || 'Unknown',
+            amount: e.amount,
+            created_at: e.created_at,
+            time: new Date(e.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+
+        const tasks = _check(tasksRes, 'fetchRecentTasks').map(t => ({
+            type: t.status === 'completed' ? 'task_completed' : 'task_assigned',
+            message: t.status === 'completed' ? `Completed: ${t.title}` : `New task: ${t.title}`,
+            branch: t.branches?.name || 'Unknown',
+            amount: null,
+            created_at: t.created_at,
+            time: new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+
+        const all = [...sales, ...expenses, ...tasks];
+        // Sort descending by created_at (newest first)
+        all.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        return all.slice(0, limit);
     }
 };

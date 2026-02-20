@@ -69,10 +69,7 @@ window.renderOwnerView = function (view) {
             renderTasksManagement();
             break;
         case 'analytics': {
-            const html = renderAnalytics();
-            document.getElementById('mainContent').innerHTML = html;
-            lucide.createIcons();
-            initAnalyticsCharts();      // charts need DOM elements first
+            renderAnalytics(); // function now handles its own async data loading & DOM injection
             break;
         }
         case 'security': {
@@ -81,6 +78,9 @@ window.renderOwnerView = function (view) {
             lucide.createIcons();
             break;
         }
+        case 'settings':
+            renderSettings();
+            break;
         default:
             renderOwnerOverview();
     }
@@ -114,6 +114,9 @@ window.renderBranchView = function (view) {
         case 'loans':
             renderLoansModule();
             break;
+        case 'settings':
+            renderBranchSettings();
+            break;
         default:
             renderBranchDashboard();
     }
@@ -125,7 +128,7 @@ window.renderBranchView = function (view) {
 window.checkNotifications = async function () {
     if (state.role !== 'owner') return;
 
-    const { count, error } = await supabase
+    const { count, error } = await supabaseClient
         .from('access_requests')
         .select('*', { count: 'exact', head: true })
         .eq('owner_id', state.ownerId)
@@ -144,60 +147,111 @@ window.showNotifications = async function () {
         return;
     }
 
-    const { data: requests, error } = await supabase
-        .from('access_requests')
-        .select('*, branches(name)')
-        .eq('owner_id', state.ownerId)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+    const overlay = document.getElementById('notifOverlay');
+    const panel = document.getElementById('notifPanel');
+    const content = document.getElementById('notifContent');
 
-    if (error) {
-        console.error(error);
-        return;
-    }
+    // Open panel first with loading state
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        panel.classList.remove('translate-x-full');
+    }, 10);
 
-    if (!requests || requests.length === 0) {
-        showToast('No pending requests', 'info');
-        document.getElementById('notifBadge')?.classList.add('hidden');
-        return;
-    }
-
-    // Render Modal with Requests
-    const content = `
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">Pending Requests</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="space-y-3">
-                ${requests.map(req => `
-                    <div class="p-3 bg-gray-50 rounded-lg flex justify-between items-center border border-gray-100">
-                        <div>
-                            <p class="font-bold text-sm text-gray-800">${req.branches?.name || 'Unknown Branch'}</p>
-                            <p class="text-xs text-gray-500">PIN Reset Requested</p>
-                            <p class="text-xs text-gray-400">${new Date(req.created_at).toLocaleDateString()}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="approveReset('${req.id}', '${req.branch_id}')" 
-                                class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-                                Reset PIN
-                            </button>
-                            <button onclick="denyReset('${req.id}')" 
-                                class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                                Deny
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-
-    document.getElementById('modalContent').innerHTML = content;
-    document.getElementById('modalOverlay').classList.remove('hidden');
+    content.innerHTML = '<div class="py-10 text-center text-gray-500 flex flex-col items-center"><i data-lucide="loader" class="w-6 h-6 animate-spin mb-2 text-indigo-500"></i><span class="text-sm">Loading notifications...</span></div>';
     lucide.createIcons();
+
+    try {
+        // 1. Fetch pending requests
+        const { data: requests, error: reqErr } = await supabaseClient
+            .from('access_requests')
+            .select('*, branches(name)')
+            .eq('owner_id', state.ownerId)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+
+        if (reqErr) throw reqErr;
+
+        // 2. Fetch recent activities globally
+        const branchIds = state.branches.map(b => b.id);
+        const activities = await dbActivities.fetchRecent(branchIds, 15);
+
+        let html = '';
+
+        // Render Requests (Actionable)
+        if (requests && requests.length > 0) {
+            html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 px-1">Action Required</h4>`;
+            html += requests.map(req => `
+                <div class="p-4 bg-white rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                    <p class="font-bold text-sm text-gray-900 mb-1">${req.branches?.name || 'Unknown Branch'}</p>
+                    <p class="text-xs text-gray-600 mb-3 flex items-center gap-1"><i data-lucide="key" class="w-3 h-3 text-indigo-500"></i> PIN Reset Requested</p>
+                    <div class="flex gap-2">
+                        <button onclick="approveReset('${req.id}', '${req.branch_id}')" 
+                            class="flex-1 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                            Approve
+                        </button>
+                        <button onclick="denyReset('${req.id}')" 
+                            class="flex-1 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                            Deny
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Recent Activities (Informational)
+        if (activities && activities.length > 0) {
+            html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-6 px-1">Recent Activity</h4>`;
+            const typeMap = {
+                sale: { bg: 'bg-emerald-100', icon: 'shopping-cart', ic: 'text-emerald-600', amt: 'text-emerald-600', sign: '+' },
+                expense: { bg: 'bg-red-100', icon: 'credit-card', ic: 'text-red-600', amt: 'text-red-600', sign: '-' },
+                task_completed: { bg: 'bg-blue-100', icon: 'check-circle', ic: 'text-blue-600', amt: null, sign: '' },
+                task_assigned: { bg: 'bg-amber-100', icon: 'clipboard-list', ic: 'text-amber-600', amt: null, sign: '' }
+            };
+
+            html += activities.map(a => {
+                const t = typeMap[a.type] || typeMap.task_completed;
+                return `
+                <div class="flex items-start gap-3 p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <div class="w-8 h-8 rounded-full ${t.bg} flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="${t.icon}" class="w-4 h-4 ${t.ic}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 leading-snug">${a.message}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">${a.branch} · ${a.time}</p>
+                    </div>
+                    ${a.amount ? `<span class="text-xs font-bold ${t.amt} flex-shrink-0 mt-0.5">${t.sign}${fmt.currency(a.amount)}</span>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        if (!html) {
+            html = '<div class="py-10 text-center text-gray-500 flex flex-col items-center"><div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3"><i data-lucide="bell-off" class="w-6 h-6 text-gray-400"></i></div><p class="text-sm">You\'re all caught up!</p></div>';
+        }
+
+        content.innerHTML = html;
+        lucide.createIcons();
+
+        // Clear badge if there are only activities and no pending requests
+        if (!requests || requests.length === 0) {
+            document.getElementById('notifBadge')?.classList.add('hidden');
+        }
+
+    } catch (err) {
+        content.innerHTML = `<div class="p-4 text-center text-red-500 text-sm">Failed to load notifications: ${err.message}</div>`;
+        console.error(err);
+    }
+};
+
+window.closeNotifications = function () {
+    const overlay = document.getElementById('notifOverlay');
+    const panel = document.getElementById('notifPanel');
+    if (panel) panel.classList.add('translate-x-full');
+    if (overlay) overlay.classList.add('opacity-0');
+    setTimeout(() => {
+        if (overlay) overlay.classList.add('hidden');
+    }, 300);
 };
 
 window.approveReset = async function (reqId, branchId) {
@@ -209,7 +263,7 @@ window.approveReset = async function (reqId, branchId) {
     }
 
     // 1. Update Branch PIN
-    const { error: pinError } = await supabase
+    const { error: pinError } = await supabaseClient
         .from('branches')
         .update({ pin: newPin })
         .eq('id', branchId);
@@ -220,15 +274,16 @@ window.approveReset = async function (reqId, branchId) {
     }
 
     // 2. Update Request Status
-    await supabase.from('access_requests').update({ status: 'approved' }).eq('id', reqId);
+    await supabaseClient.from('access_requests').update({ status: 'approved' }).eq('id', reqId);
 
     showToast('PIN Updated Successfully', 'success');
-    closeModal();
+    showNotifications();
 };
 
 window.denyReset = async function (reqId) {
-    if (!confirm("Deny this request?")) return;
-    await supabase.from('access_requests').update({ status: 'rejected' }).eq('id', reqId);
+    const confirmed = await confirmModal('Deny Request', 'Are you sure you want to deny this request?', 'Deny', 'Cancel');
+    if (!confirmed) return;
+    await supabaseClient.from('access_requests').update({ status: 'rejected' }).eq('id', reqId);
     showToast('Request Denied', 'info');
-    closeModal();
+    showNotifications();
 };
