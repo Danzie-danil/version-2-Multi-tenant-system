@@ -14,22 +14,22 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAssignTask(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Branch</label>
+                    <label for="taskBranch" class="block text-sm font-medium text-gray-700 mb-1">Assign to Branch</label>
                     <select id="taskBranch" class="form-input">
                         ${state.branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('')}
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
+                    <label for="taskTitle" class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
                     <input type="text" id="taskTitle" required class="form-input" placeholder="Enter task title">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                    <label for="taskDesc" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
                     <textarea id="taskDesc" rows="2" class="form-input" placeholder="Add details..."></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <label for="taskPriority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
                         <select id="taskPriority" class="form-input">
                             <option value="low">Low</option>
                             <option value="medium" selected>Medium</option>
@@ -37,7 +37,7 @@ window.getModalHTML = function (type, data) {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+                        <label for="taskDeadline" class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
                         <input type="date" id="taskDeadline" required class="form-input">
                     </div>
                 </div>
@@ -69,13 +69,13 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddSale(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                    <label for="saleCustomer" class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
                     <input type="text" id="saleCustomer" class="form-input" placeholder="Walk-in Customer">
                 </div>
                 
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Product</label>
+                        <label for="saleProduct" class="block text-sm font-medium text-gray-700 mb-1">Select Product</label>
                         <div class="flex gap-2">
                             <select id="saleProduct" class="form-input flex-1" onchange="updateSaleTotal()">
                                 <option value="" disabled selected>Select a product...</option>
@@ -89,18 +89,18 @@ window.getModalHTML = function (type, data) {
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                            <label for="saleQty" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                             <input type="text" inputmode="decimal" id="saleQty" value="1" class="form-input number-format" oninput="updateSaleTotal()">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Total Amount ($)</label>
+                            <label for="saleAmount" class="block text-sm font-medium text-gray-700 mb-1">Total Amount ($)</label>
                             <input type="text" inputmode="decimal" id="saleAmount" required class="form-input number-format font-bold text-emerald-600" placeholder="0.00">
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                    <label for="salePayment" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                     <select id="salePayment" class="form-input">
                         <option value="cash">Cash</option>
                         <option value="card">Credit Card</option>
@@ -129,7 +129,7 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddExpense(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <label for="expenseCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select id="expenseCategory" class="form-input">
                         <option value="supplies">Supplies</option>
                         <option value="utilities">Utilities</option>
@@ -141,11 +141,11 @@ window.getModalHTML = function (type, data) {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label for="expenseDesc" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <input type="text" id="expenseDesc" required class="form-input" placeholder="Enter description">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="expenseAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                     <input type="text" inputmode="decimal" id="expenseAmount" required class="form-input number-format" placeholder="0">
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -166,15 +166,15 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddCustomer(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                     <input type="text" id="customerName" required class="form-input" placeholder="Enter full name">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <label for="customerPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <input type="tel" id="customerPhone" class="form-input" placeholder="+1 (555) 000-0000">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label for="customerEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" id="customerEmail" class="form-input" placeholder="customer@example.com">
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -202,12 +202,24 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleResetPin(event, '${data}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">New 6-Digit PIN</label>
-                    <input type="password" id="newPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest text-lg" placeholder="••••••">
+                    <label for="newPin" class="block text-sm font-medium text-gray-700 mb-1">New 6-Digit PIN</label>
+                    <div class="relative">
+                        <input type="password" id="newPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest pr-10" placeholder="••••••">
+                        <button type="button" onclick="togglePasswordVisibility('newPin', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none">
+                            <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
+                        </button>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm PIN</label>
-                    <input type="password" id="confirmPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest text-lg" placeholder="••••••">
+                    <label for="confirmPin" class="block text-sm font-medium text-gray-700 mb-1">Confirm PIN</label>
+                    <div class="relative">
+                        <input type="password" id="confirmPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest pr-10" placeholder="••••••">
+                        <button type="button" onclick="togglePasswordVisibility('confirmPin', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none">
+                            <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
@@ -232,29 +244,35 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddBranch(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
+                    <label for="branchName" class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
                     <input type="text" id="branchName" required class="form-input" placeholder="e.g. Westside Branch">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <label for="branchLocation" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                     <input type="text" id="branchLocation" class="form-input" placeholder="e.g. 123 Main St">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
+                    <label for="branchManager" class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
                     <input type="text" id="branchManager" class="form-input" placeholder="Manager's full name">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Admin Owner Email (for App Login)</label>
+                    <label for="branchOwnerEmail" class="block text-sm font-medium text-gray-700 mb-1">Admin Owner Email (for App Login)</label>
                     <input type="email" id="branchOwnerEmail" required class="form-input" placeholder="admin@example.com">
                     <p class="text-xs text-gray-400 mt-1">Branch will use this email alongside their Name & PIN to log in.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Initial PIN (6 digits)</label>
-                    <input type="password" id="branchPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest text-lg" placeholder="••••••">
+                    <label for="branchPin" class="block text-sm font-medium text-gray-700 mb-1">Initial PIN (6 digits)</label>
+                    <div class="relative">
+                        <input type="password" id="branchPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest pr-10" placeholder="••••••">
+                        <button type="button" onclick="togglePasswordVisibility('branchPin', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none">
+                            <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
+                        <label for="branchCurrency" class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
                         <select id="branchCurrency" class="form-input w-full">
                             <option value="USD" ${defCurr === 'USD' ? 'selected' : ''}>USD ($)</option>
                             <option value="EUR" ${defCurr === 'EUR' ? 'selected' : ''}>EUR (€)</option>
@@ -268,7 +286,7 @@ window.getModalHTML = function (type, data) {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sales Target</label>
+                        <label for="branchTarget" class="block text-sm font-medium text-gray-700 mb-1">Sales Target</label>
                         <input type="text" inputmode="decimal" id="branchTarget" required class="form-input number-format" placeholder="15000">
                     </div>
                 </div>
@@ -293,20 +311,20 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleEditBranch(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
+                    <label for="editBranchName" class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
                     <input type="text" id="editBranchName" value="${data.name}" required class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <label for="editBranchLocation" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                     <input type="text" id="editBranchLocation" value="${data.location || ''}" class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
+                    <label for="editBranchManager" class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
                     <input type="text" id="editBranchManager" value="${data.manager || ''}" class="form-input">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
+                        <label for="editBranchCurrency" class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
                         <select id="editBranchCurrency" class="form-input w-full">
                             <option value="USD" ${defaultEditCurr === 'USD' ? 'selected' : ''}>USD ($)</option>
                             <option value="EUR" ${defaultEditCurr === 'EUR' ? 'selected' : ''}>EUR (€)</option>
@@ -320,7 +338,7 @@ window.getModalHTML = function (type, data) {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sales Target ($)</label>
+                        <label for="editBranchTarget" class="block text-sm font-medium text-gray-700 mb-1">Sales Target ($)</label>
                         <input type="text" inputmode="decimal" id="editBranchTarget" value="${data.target}" required class="form-input number-format">
                     </div>
                 </div>
@@ -342,15 +360,15 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddNote(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <label for="noteTitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
                     <input type="text" id="noteTitle" required class="form-input" placeholder="Note title">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                    <label for="noteContent" class="block text-sm font-medium text-gray-700 mb-1">Content</label>
                     <textarea id="noteContent" required rows="5" class="form-input" placeholder="Write your note..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tag</label>
+                    <label for="noteTag" class="block text-sm font-medium text-gray-700 mb-1">Tag</label>
                     <select id="noteTag" class="form-input">
                         <option value="general">General</option>
                         <option value="important">Important</option>
@@ -376,7 +394,7 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddLoan(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <label for="loanType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                     <select id="loanType" class="form-input">
                         <option value="income">Other Income</option>
                         <option value="loan_given">Loan Given</option>
@@ -385,15 +403,15 @@ window.getModalHTML = function (type, data) {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Party (Name)</label>
+                    <label for="loanParty" class="block text-sm font-medium text-gray-700 mb-1">Party (Name)</label>
                     <input type="text" id="loanParty" class="form-input" placeholder="Customer or entity name">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="loanAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                     <input type="text" inputmode="decimal" id="loanAmount" required class="form-input number-format" placeholder="0">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <label for="loanNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                     <textarea id="loanNotes" rows="2" class="form-input" placeholder="Additional details..."></textarea>
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -414,16 +432,16 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleAddInventoryItem(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                    <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
                     <input type="text" id="itemName" required class="form-input" placeholder="e.g. Product A">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                        <label for="itemSku" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
                         <input type="text" id="itemSku" class="form-input" placeholder="PRD-001" value="${data && data.suggestedSku ? data.suggestedSku : ''}">
                     </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <label for="itemCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select id="itemCategory" class="form-input">
                         <option value="General">General</option>
                         <option value="Electronics">Electronics</option>
@@ -438,17 +456,17 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                        <label for="itemPrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                         <input type="text" inputmode="decimal" id="itemPrice" required class="form-input number-format" placeholder="0">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <label for="itemQty" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                         <input type="text" inputmode="decimal" id="itemQty" required class="form-input number-format" placeholder="0">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
+                        <label for="itemMinThreshold" class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
                         <input type="text" inputmode="decimal" id="itemMinThreshold" required class="form-input number-format" placeholder="10">
                     </div>
                 </div>
@@ -470,20 +488,20 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleEditSale(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                    <label for="editSaleCustomer" class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
                     <input type="text" id="editSaleCustomer" value="${data.customer}" class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Items / Description</label>
+                    <label for="editSaleItems" class="block text-sm font-medium text-gray-700 mb-1">Items / Description</label>
                     <input type="text" id="editSaleItems" value="${data.items || ''}" class="form-input">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                        <label for="editSaleAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                         <input type="text" inputmode="decimal" id="editSaleAmount" value="${data.amount}" required class="form-input number-format">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <label for="editSalePayment" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                         <select id="editSalePayment" class="form-input">
                             <option value="cash" ${data.payment === 'cash' ? 'selected' : ''}>Cash</option>
                             <option value="card" ${data.payment === 'card' ? 'selected' : ''}>Credit Card</option>
@@ -510,16 +528,16 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleEditInventoryItem(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                    <label for="editItemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
                     <input type="text" id="editItemName" value="${data.name}" required class="form-input">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                        <label for="editItemSku" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
                         <input type="text" id="editItemSku" value="${data.sku || ''}" class="form-input">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <label for="editItemCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                         <select id="editItemCategory" class="form-input">
                             <option value="General" ${data.category === 'General' ? 'selected' : ''}>General</option>
                             <option value="Electronics" ${data.category === 'Electronics' ? 'selected' : ''}>Electronics</option>
@@ -535,16 +553,16 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                        <label for="editItemPrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
                         <input type="text" inputmode="decimal" id="editItemPrice" value="${data.price}" required class="form-input number-format">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                        <label for="editItemQty" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                         <input type="text" inputmode="decimal" id="editItemQty" value="${data.quantity}" required class="form-input number-format">
                     </div>
                 </div>
                 <div class="pt-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
+                    <label for="editItemMinThreshold" class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
                     <input type="text" inputmode="decimal" id="editItemMinThreshold" value="${data.min_threshold}" required class="form-input number-format">
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -565,15 +583,15 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleEditNote(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <label for="editNoteTitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
                     <input type="text" id="editNoteTitle" value="${data.title}" required class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                    <label for="editNoteContent" class="block text-sm font-medium text-gray-700 mb-1">Content</label>
                     <textarea id="editNoteContent" required rows="5" class="form-input">${data.content}</textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tag</label>
+                    <label for="editNoteTag" class="block text-sm font-medium text-gray-700 mb-1">Tag</label>
                     <select id="editNoteTag" class="form-input">
                         <option value="general" ${data.tag === 'general' ? 'selected' : ''}>General</option>
                         <option value="important" ${data.tag === 'important' ? 'selected' : ''}>Important</option>
@@ -599,7 +617,7 @@ window.getModalHTML = function (type, data) {
             </div>
             <form onsubmit="handleEditExpense(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <label for="editExpenseCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select id="editExpenseCategory" class="form-input">
                         <option value="supplies" ${data.category === 'supplies' ? 'selected' : ''}>Supplies</option>
                         <option value="utilities" ${data.category === 'utilities' ? 'selected' : ''}>Utilities</option>
@@ -611,11 +629,11 @@ window.getModalHTML = function (type, data) {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label for="editExpenseDesc" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <input type="text" id="editExpenseDesc" value="${data.description}" required class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="editExpenseAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                     <input type="text" inputmode="decimal" id="editExpenseAmount" value="${data.amount}" required class="form-input number-format">
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -644,15 +662,15 @@ function _getEditCustomerHTML(data) {
             </div>
             <form onsubmit="handleEditCustomer(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label for="editCustomerName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                     <input type="text" id="editCustomerName" value="${data.name}" required class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <label for="editCustomerPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <input type="tel" id="editCustomerPhone" value="${data.phone || ''}" class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label for="editCustomerEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" id="editCustomerEmail" value="${data.email || ''}" class="form-input">
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -675,7 +693,7 @@ function _getEditLoanHTML(data) {
             </div>
             <form onsubmit="handleEditLoan(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <label for="editLoanType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                     <select id="editLoanType" class="form-input">
                         <option value="income" ${data.type === 'income' ? 'selected' : ''}>Other Income</option>
                         <option value="loan_given" ${data.type === 'loan_given' ? 'selected' : ''}>Loan Given</option>
@@ -684,15 +702,15 @@ function _getEditLoanHTML(data) {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Party (Name)</label>
+                    <label for="editLoanParty" class="block text-sm font-medium text-gray-700 mb-1">Party (Name)</label>
                     <input type="text" id="editLoanParty" value="${data.party || ''}" class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="editLoanAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                     <input type="text" inputmode="decimal" id="editLoanAmount" value="${data.amount}" required class="form-input number-format">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <label for="editLoanNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                     <textarea id="editLoanNotes" rows="2" class="form-input">${data.notes || ''}</textarea>
                 </div>
                 <div class="flex gap-3 pt-2">

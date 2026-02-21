@@ -7,7 +7,7 @@ window.renderBranchDashboard = function () {
     const branch = state.branches.find(b => b.id === state.branchId) || { name: 'My Branch', manager: '', target: 0 };
 
     container.innerHTML = `
-    <div class="space-y-6 slide-in">
+    <div class="space-y-4 slide-in">
         <!-- Header -->
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden w-fit">
             <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Dashboard</div>
@@ -18,7 +18,7 @@ window.renderBranchDashboard = function () {
         </div>
 
         <!-- Loading KPIs -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="dashKPIs">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3" id="dashKPIs">
             <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md animate-pulse">
                 <p class="text-indigo-100 text-xs font-medium uppercase tracking-wide mb-6">Today's Sales</p>
                 <div class="h-8 bg-white bg-opacity-20 rounded"></div>
@@ -40,7 +40,7 @@ window.renderBranchDashboard = function () {
         <!-- Quick Actions -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
                 <button onclick="openAddSaleModal()" class="p-2 border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
                     <span class="text-xs font-medium text-gray-700">New Sale</span>
@@ -61,6 +61,7 @@ window.renderBranchDashboard = function () {
         </div>
 
         <div id="dashTasksSection"></div>
+        <div id="dashInventoryAlerts"></div>
     </div>`;
     lucide.createIcons();
 
@@ -68,8 +69,9 @@ window.renderBranchDashboard = function () {
     Promise.all([
         dbSales.fetchAll(state.branchId),
         dbExpenses.fetchAll(state.branchId),
-        dbTasks.fetchByBranch(state.branchId)
-    ]).then(([sales, expenses, tasks]) => {
+        dbTasks.fetchByBranch(state.branchId),
+        dbInventory.fetchAll(state.branchId)
+    ]).then(([sales, expenses, tasks, items]) => {
         const todaySalesTotal = sales.reduce((s, r) => s + Number(r.amount), 0);
         const todayExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
         const progress = fmt.percent(todaySalesTotal, branch.target);
@@ -112,6 +114,24 @@ window.renderBranchDashboard = function () {
                         <p class="flex-1 text-sm text-gray-900">${t.title}</p>
                         ${priorityBadge(t.priority)}
                     </div>`).join('')}
+                </div>
+            </div>`;
+        }
+
+        // Inventory Alerts
+        const lowStock = items.filter(i => i.quantity <= i.min_threshold);
+        if (lowStock.length > 0) {
+            document.getElementById('dashInventoryAlerts').innerHTML = `
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 mt-6 flex items-start gap-4">
+                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-amber-900 mb-1">${lowStock.length} Low Stock Alert(s)</h4>
+                    <p class="text-xs text-amber-700 mb-3">${lowStock.map(i => i.name).slice(0, 3).join(', ')}${lowStock.length > 3 ? '...' : ''} are below minimum levels.</p>
+                    <button onclick="switchView('inventory')" class="text-xs font-bold text-amber-800 bg-amber-200 hover:bg-amber-300 py-1.5 px-3 rounded-lg transition-colors">
+                        Manage Inventory
+                    </button>
                 </div>
             </div>`;
         }

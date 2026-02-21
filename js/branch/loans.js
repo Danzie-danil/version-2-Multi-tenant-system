@@ -11,7 +11,7 @@ window.renderLoansModule = function () {
     };
 
     container.innerHTML = `
-    <div class="space-y-6 slide-in">
+    <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                 <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Loans &amp; Income</div>
@@ -34,7 +34,7 @@ window.renderLoansModule = function () {
         const totalOutgoing = records.filter(r => typeMap[r.type]?.isOut).reduce((s, r) => s + Number(r.amount), 0);
 
         container.innerHTML = `
-        <div class="space-y-6 slide-in">
+        <div class="space-y-4 slide-in">
             <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
                 <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                     <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Loans &amp; Income</div>

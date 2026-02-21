@@ -138,6 +138,60 @@ window.confirmModal = function (title, message, confirmText = 'Confirm', cancelT
     });
 };
 
+/* ── Custom Modal Prompt ─────────────────────────── */
+window.promptModal = function (title, message, placeholder = '') {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modalOverlay');
+        const content = document.getElementById('modalContent');
+
+        content.innerHTML = `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900">${title}</h3>
+                <button id="btnPromptCloseX" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-gray-600 mb-4">${message}</p>
+            <input type="text" id="promptInputText" class="form-input w-full mb-6" placeholder="${placeholder}" autocomplete="off">
+            <div class="flex gap-3 justify-end">
+                <button id="btnPromptCancel" class="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                <button id="btnPromptSubmit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 text-sm">Submit</button>
+            </div>
+        </div>
+        `;
+        lucide.createIcons();
+        modal.classList.remove('hidden');
+
+        const inputField = document.getElementById('promptInputText');
+        const btnSubmit = document.getElementById('btnPromptSubmit');
+
+        const cleanup = () => {
+            modal.classList.add('hidden');
+            document.getElementById('btnPromptCloseX').removeEventListener('click', onCancel);
+            document.getElementById('btnPromptCancel').removeEventListener('click', onCancel);
+            btnSubmit.removeEventListener('click', onSubmit);
+        };
+
+        const onCancel = () => { cleanup(); resolve(null); };
+        const onSubmit = () => {
+            const val = inputField.value.trim();
+            cleanup();
+            resolve(val);
+        };
+
+        document.getElementById('btnPromptCloseX').addEventListener('click', onCancel);
+        document.getElementById('btnPromptCancel').addEventListener('click', onCancel);
+        btnSubmit.addEventListener('click', onSubmit);
+
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') onSubmit();
+        });
+
+        setTimeout(() => inputField.focus(), 100);
+    });
+};
+
 /* ── Delete Confirmation ────────────────────────── */
 window.confirmDelete = async function (type, id, name = 'this item') {
     const confirmed = await confirmModal(
@@ -228,69 +282,69 @@ window.initNumberFormatting = function () {
     // Attach event listener to document for real-time number formatting
     document.addEventListener('input', function (e) {
         const target = e.target;
-        
+
         // Only process inputs with the 'number-format' class
         if (!target.classList.contains('number-format')) return;
-        
+
         // Get the current value and remove non-numeric characters (except decimal point and minus)
         let value = target.value.trim();
-        
+
         // If empty, keep it empty (don't default to 0)
         if (!value) {
             target.value = '';
             return;
         }
-        
+
         const isNegative = value.startsWith('-');
-        
+
         // Strip non-numeric characters except decimal point
         let numericValue = value.replace(/[^\d.]/g, '');
-        
+
         // Handle multiple decimal points (keep only the first one)
         const parts = numericValue.split('.');
         if (parts.length > 2) {
             numericValue = parts[0] + '.' + parts.slice(1).join('');
         }
-        
+
         // Parse the numeric value
         const num = parseFloat(numericValue) || 0;
-        
+
         // Format with thousands separators
         const parts2 = numericValue.split('.');
         const integerPart = parts2[0] || '0';
         const decimalPart = parts2[1] || '';
-        
+
         // Add commas to integer part
         const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        
+
         // Reconstruct the formatted value
         let formatted = isNegative ? '-' : '';
         formatted += formattedInteger;
         if (decimalPart) {
             formatted += '.' + decimalPart;
         }
-        
+
         target.value = formatted;
     });
-    
+
     // Also handle blur events to ensure proper decimal formatting
     document.addEventListener('blur', function (e) {
         const target = e.target;
         if (!target.classList.contains('number-format')) return;
-        
+
         const value = target.value;
         const num = fmt.parseNumber(value);
-        
+
         // If it's a valid number and not empty, format it with 2 decimal places
         if (num !== 0 || value.trim() !== '') {
             const parts = value.split('.');
             const integerPart = (parts[0] || '0').replace(/[^\d\-]/g, '');
             const decimalPart = parts[1] ? parts[1].substring(0, 2) : '00';
-            
+
             const isNegative = integerPart.startsWith('-');
             const cleanInteger = integerPart.replace('-', '');
             const formattedInteger = cleanInteger.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            
+
             target.value = (isNegative ? '-' : '') + formattedInteger + '.' + decimalPart.padEnd(2, '0');
         }
     }, true);
@@ -310,4 +364,60 @@ window.openModal = function (type, data = null) {
     lucide.createIcons();
     // Reinitialize number formatting after modal content is injected
     initNumberFormatting();
+};
+
+/* ── Activity Feed Helper ────────────────────────── */
+window.addActivity = function (type, message, branchName, amount = null) {
+    const activity = { type, message, branch: branchName, amount, time: fmt.time() };
+    if (!state.activities) state.activities = [];
+    state.activities.unshift(activity); // Add to beginning
+    if (state.activities.length > 50) state.activities.pop(); // Cap at 50
+
+    // Refresh feed if visible
+    const feed = document.getElementById('activityFeed');
+    if (feed) {
+        feed.innerHTML = renderActivities();
+        lucide.createIcons();
+    }
+
+    // Badge
+    const badge = document.getElementById('notifBadge');
+    if (badge) badge.classList.remove('hidden');
+};
+
+/* ── App Update Utility ──────────────────────────── */
+window.updateApp = async function () {
+    try {
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                await registration.unregister();
+            }
+        }
+
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(key => caches.delete(key)));
+        }
+
+        // Force reload without cache
+        window.location.reload(true);
+    } catch (err) {
+        console.error('Update failed:', err);
+        // Fallback to simple reload
+        window.location.reload(true);
+    }
+};
+
+window.confirmUpdateApp = async function () {
+    const confirmed = await confirmModal(
+        'Update Application',
+        'Are you sure you want to force the application to reload and fetch the latest code? Any unsaved changes may be lost.',
+        'Update',
+        'Cancel',
+        'bg-indigo-600 hover:bg-indigo-700'
+    );
+    if (confirmed) {
+        window.updateApp();
+    }
 };

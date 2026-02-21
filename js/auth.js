@@ -156,6 +156,7 @@ window.toggleRegistration = function () {
     const registerForm = document.getElementById('registerForm');
     const resetForm = document.getElementById('resetPasswordForm');
     const mainLoginBtn = document.getElementById('mainLoginBtn');
+    const regToggle = document.getElementById('regToggle');
 
     // Hide reset form if open
     resetForm.classList.add('hidden');
@@ -164,10 +165,12 @@ window.toggleRegistration = function () {
         loginForm.classList.remove('hidden');
         registerForm.classList.add('hidden');
         if (mainLoginBtn) mainLoginBtn.classList.remove('hidden');
+        if (regToggle) regToggle.classList.remove('hidden');
     } else {
         loginForm.classList.add('hidden');
         registerForm.classList.remove('hidden');
         if (mainLoginBtn) mainLoginBtn.classList.add('hidden');
+        if (regToggle) regToggle.classList.add('hidden');
     }
 };
 
@@ -176,6 +179,7 @@ window.toggleResetPassword = function () {
     const registerForm = document.getElementById('registerForm');
     const resetForm = document.getElementById('resetPasswordForm');
     const mainLoginBtn = document.getElementById('mainLoginBtn');
+    const regToggle = document.getElementById('regToggle');
 
     // Ensure reg form is hidden
     registerForm.classList.add('hidden');
@@ -184,10 +188,12 @@ window.toggleResetPassword = function () {
         loginForm.classList.add('hidden');
         resetForm.classList.remove('hidden');
         if (mainLoginBtn) mainLoginBtn.classList.add('hidden');
+        if (regToggle) regToggle.classList.add('hidden');
     } else {
         resetForm.classList.add('hidden');
         loginForm.classList.remove('hidden');
         if (mainLoginBtn) mainLoginBtn.classList.remove('hidden');
+        if (regToggle) regToggle.classList.remove('hidden');
     }
 };
 
@@ -375,7 +381,6 @@ window.setupDashboard = function () {
         const lastView = localStorage.getItem('lastOwnerView') || 'overview';
         switchView(lastView);
 
-        startLiveSimulation();
         // Check for PIN Reset requests
         if (window.checkNotifications) window.checkNotifications();
     } else {
@@ -404,43 +409,55 @@ window.setLoginRole = function (role) {
 
         if (btnOwner) {
             btnOwner.classList.replace('text-gray-500', 'text-indigo-600');
-            btnOwner.classList.replace('font-medium', 'font-semibold');
+            btnOwner.classList.add('font-semibold');
+            btnOwner.classList.remove('font-medium');
+            btnOwner.classList.add('shadow-sm');
         }
 
         if (btnBranch) {
             btnBranch.classList.replace('text-indigo-600', 'text-gray-500');
-            btnBranch.classList.replace('font-semibold', 'font-medium');
+            btnBranch.classList.add('font-medium');
+            btnBranch.classList.remove('font-semibold');
+            btnBranch.classList.remove('shadow-sm');
         }
 
         // Show Owner Fields
         const ownerFields = document.getElementById('ownerFields');
         const branchSelector = document.getElementById('branchSelector');
         const branchPinReset = document.getElementById('branchPinReset');
+        const regToggle = document.getElementById('regToggle');
 
         if (ownerFields) ownerFields.classList.remove('hidden');
         if (branchSelector) branchSelector.classList.add('hidden');
         if (branchPinReset) branchPinReset.classList.add('hidden');
+        if (regToggle) regToggle.classList.remove('hidden');
     } else {
         if (slider) slider.style.transform = 'translateX(100%) translateX(4px)'; // Adjust for padding
 
         if (btnBranch) {
             btnBranch.classList.replace('text-gray-500', 'text-indigo-600');
-            btnBranch.classList.replace('font-medium', 'font-semibold');
+            btnBranch.classList.add('font-semibold');
+            btnBranch.classList.remove('font-medium');
+            btnBranch.classList.add('shadow-sm');
         }
 
         if (btnOwner) {
             btnOwner.classList.replace('text-indigo-600', 'text-gray-500');
-            btnOwner.classList.replace('font-semibold', 'font-medium');
+            btnOwner.classList.add('font-medium');
+            btnOwner.classList.remove('font-semibold');
+            btnOwner.classList.remove('shadow-sm');
         }
 
         // Show Branch Fields
         const ownerFields = document.getElementById('ownerFields');
         const branchSelector = document.getElementById('branchSelector');
         const branchPinReset = document.getElementById('branchPinReset');
+        const regToggle = document.getElementById('regToggle');
 
         if (ownerFields) ownerFields.classList.add('hidden');
         if (branchSelector) branchSelector.classList.remove('hidden');
         if (branchPinReset) branchPinReset.classList.add('hidden');
+        if (regToggle) regToggle.classList.add('hidden');
     }
 };
 

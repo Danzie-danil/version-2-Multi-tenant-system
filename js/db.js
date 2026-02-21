@@ -180,7 +180,11 @@ window.dbBranches = {
             branch_tin: profileData.branch_tin,
             phone: profileData.phone,
             email: profileData.email,
-            address: profileData.address
+            address: profileData.address,
+            tax_rate: profileData.tax_rate,
+            opening_time: profileData.opening_time,
+            closing_time: profileData.closing_time,
+            low_stock_notifications: profileData.low_stock_notifications
         };
         const res = await _db
             .from('branches')
@@ -263,6 +267,21 @@ window.dbSales = {
     delete: async (id) => {
         const res = await _db.from('sales').delete().eq('id', id);
         return _check(res, 'deleteSale');
+    },
+
+    /** Fetch historical sales for trend analysis */
+    fetchHistory: async (branchIds, days = 7) => {
+        const date = new Date();
+        date.setDate(date.getDate() - days);
+        const iso = date.toISOString().split('T')[0];
+
+        const res = await _db
+            .from('sales')
+            .select('amount, created_at, branch_id')
+            .in('branch_id', branchIds)
+            .gte('created_at', iso)
+            .order('created_at', { ascending: true });
+        return _check(res, 'fetchSalesHistory');
     }
 };
 

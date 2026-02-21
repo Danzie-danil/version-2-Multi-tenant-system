@@ -8,7 +8,7 @@ window.renderBranchSettings = function () {
     <div class="max-w-4xl mx-auto opacity-0 translate-y-4 animate-fade-in-up">
         
         <!-- Header -->
-        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden w-fit mb-8">
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden w-fit mb-5">
             <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Settings</div>
             <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400">
                 <i data-lucide="settings" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i>
@@ -29,19 +29,19 @@ window.renderBranchSettings = function () {
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="col-span-1 md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Parent Enterprise Name</label>
-                        <input type="text" value="${state.enterpriseName || 'BMS Enterprise'}" class="form-input w-full bg-gray-100 text-gray-500 cursor-not-allowed font-medium" disabled>
+                        <label for="parentEnterprise" class="block text-sm font-medium text-gray-700 mb-1">Parent Enterprise Name</label>
+                        <input type="text" id="parentEnterprise" value="${state.enterpriseName || 'BMS Enterprise'}" class="form-input w-full bg-gray-100 text-gray-500 cursor-not-allowed font-medium" disabled>
                         <p class="text-xs text-gray-400 mt-1">This is managed by the main account administrator.</p>
                     </div>
 
                     <div class="col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
-                        <input type="text" value="${branch.name || ''}" class="form-input w-full bg-gray-50 text-gray-600 cursor-not-allowed" disabled>
+                        <label for="branchNameDisplay" class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
+                        <input type="text" id="branchNameDisplay" value="${branch.name || ''}" class="form-input w-full bg-gray-50 text-gray-600 cursor-not-allowed" disabled>
                     </div>
                     
                     <div class="col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch Code (ID)</label>
-                        <input type="text" value="${branch.branch_code || ''}" class="form-input w-full bg-gray-50 font-mono text-gray-600 cursor-not-allowed" disabled>
+                        <label for="branchCodeDisplay" class="block text-sm font-medium text-gray-700 mb-1">Branch Code (ID)</label>
+                        <input type="text" id="branchCodeDisplay" value="${branch.branch_code || ''}" class="form-input w-full bg-gray-50 font-mono text-gray-600 cursor-not-allowed" disabled>
                     </div>
                 </div>
             </div>
@@ -60,24 +60,24 @@ window.renderBranchSettings = function () {
                 
                 <div id="contactDetailsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 editable-section opacity-75 grayscale-[20%] transition-all">
                     <div class="col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <label for="branch_set_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                         <input type="tel" id="branch_set_phone" value="${branch.phone || ''}" class="form-input w-full bg-gray-50" placeholder="+1 (555) 123-4567" disabled onchange="autoSaveBranchSettings()">
                     </div>
                     
                     <div class="col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label for="branch_set_email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                         <input type="email" id="branch_set_email" value="${branch.email || ''}" class="form-input w-full bg-gray-50" placeholder="branch@example.com" disabled onchange="autoSaveBranchSettings()">
                     </div>
                     
                     <div class="col-span-1 md:col-span-2 mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Physical Address</label>
+                        <label for="branch_set_address" class="block text-sm font-medium text-gray-700 mb-1">Physical Address</label>
                         <textarea id="branch_set_address" class="form-input w-full bg-gray-50" rows="2" placeholder="123 Main St, City, Country" disabled onchange="autoSaveBranchSettings()">${branch.address || ''}</textarea>
                     </div>
                 </div>
             </div>
 
             <!-- Section: Legal / Tax Info -->
-            <div class="p-8 group transition-colors hover:bg-gray-50/30">
+            <div class="p-8 border-b border-gray-50 group transition-colors hover:bg-gray-50/30">
                 <div class="flex items-center justify-between mb-6 text-indigo-700">
                     <div class="flex items-center gap-2">
                         <i data-lucide="briefcase" class="w-5 h-5"></i>
@@ -90,14 +90,66 @@ window.renderBranchSettings = function () {
                 
                 <div id="legalInfoSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 editable-section opacity-75 grayscale-[20%] transition-all">
                     <div class="col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Business Registration No.</label>
+                        <label for="branch_set_reg_no" class="block text-sm font-medium text-gray-700 mb-1">Business Registration No.</label>
                         <input type="text" id="branch_set_reg_no" value="${branch.branch_reg_no || ''}" class="form-input w-full bg-gray-50" placeholder="e.g. REG-55214" disabled onchange="autoSaveBranchSettings()">
                     </div>
                     
                     <div class="col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tax Identification Number (TIN)</label>
+                        <label for="branch_set_tin" class="block text-sm font-medium text-gray-700 mb-1">Tax Identification Number (TIN)</label>
                         <input type="text" id="branch_set_tin" value="${branch.branch_tin || ''}" class="form-input w-full bg-gray-50" placeholder="e.g. TIN-998877" disabled onchange="autoSaveBranchSettings()">
                     </div>
+                </div>
+            </div>
+
+            <!-- Section: Operational Settings -->
+            <div class="p-8 group transition-colors hover:bg-gray-50/30">
+                <div class="flex items-center justify-between mb-6 text-indigo-700">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                        <h3 class="text-lg font-bold">Operational Settings</h3>
+                    </div>
+                    <button onclick="enableSectionEditing('opsSettingsSection', this)" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer" title="Edit Section">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div id="opsSettingsSection" class="grid grid-cols-1 md:grid-cols-3 gap-6 editable-section opacity-75 grayscale-[20%] transition-all">
+                    <div class="col-span-1">
+                        <label for="branch_set_tax" class="block text-sm font-medium text-gray-700 mb-1">Default Tax Rate (%)</label>
+                        <input type="number" id="branch_set_tax" value="${branch.tax_rate || 0}" step="0.01" class="form-input w-full bg-gray-50" placeholder="0.00" disabled onchange="autoSaveBranchSettings()">
+                    </div>
+                    <div class="col-span-1">
+                        <label for="branch_set_open" class="block text-sm font-medium text-gray-700 mb-1">Opening Time</label>
+                        <input type="time" id="branch_set_open" value="${branch.opening_time || '08:00'}" class="form-input w-full bg-gray-50" disabled onchange="autoSaveBranchSettings()">
+                    </div>
+                    <div class="col-span-1">
+                        <label for="branch_set_close" class="block text-sm font-medium text-gray-700 mb-1">Closing Time</label>
+                        <input type="time" id="branch_set_close" value="${branch.closing_time || '18:00'}" class="form-input w-full bg-gray-50" disabled onchange="autoSaveBranchSettings()">
+                    </div>
+                    <div class="col-span-1 md:col-span-3 flex items-center gap-3 mt-2">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="branch_set_notifs" ${branch.low_stock_notifications ? 'checked' : ''} class="sr-only peer" disabled onchange="autoSaveBranchSettings()">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                        <span class="text-sm font-medium text-gray-700">Receive Low Stock Email Notifications</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: System Utilities -->
+            <div class="p-8 border-b border-gray-100 bg-gray-50/30">
+                <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">System Utilities</h4>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white rounded-xl border border-gray-100 gap-4">
+                    <div>
+                        <p class="font-medium text-sm text-gray-900">Fetch New Code Changes</p>
+                        <p class="text-xs text-gray-500 mt-1">Force the application to reload and download the latest updates.</p>
+                    </div>
+                    <button type="button" onclick="confirmUpdateApp()" class="flex items-center justify-center gap-3 px-4 py-2 bg-[#0f172a] border border-gray-700/50 rounded-full hover:bg-[#1e293b] transition-colors w-full sm:w-auto shadow-sm group">
+                        <div class="w-6 h-6 rounded bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center shadow-sm">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
+                        </div>
+                        <span class="text-gray-300 font-medium text-sm pr-1">Check for Updates</span>
+                    </button>
                 </div>
             </div>
 
@@ -189,7 +241,11 @@ window.autoSaveBranchSettings = function () {
             email: document.getElementById('branch_set_email').value.trim(),
             address: document.getElementById('branch_set_address').value.trim(),
             branch_reg_no: document.getElementById('branch_set_reg_no').value.trim(),
-            branch_tin: document.getElementById('branch_set_tin').value.trim()
+            branch_tin: document.getElementById('branch_set_tin').value.trim(),
+            tax_rate: parseFloat(document.getElementById('branch_set_tax').value) || 0,
+            opening_time: document.getElementById('branch_set_open').value,
+            closing_time: document.getElementById('branch_set_close').value,
+            low_stock_notifications: document.getElementById('branch_set_notifs').checked
         };
 
         try {

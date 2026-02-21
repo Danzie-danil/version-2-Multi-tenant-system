@@ -11,8 +11,7 @@ window.renderSettings = function () {
     <div class="max-w-5xl mx-auto opacity-0 translate-y-4 animate-fade-in-up">
         
         <!-- Header -->
-        <!-- Header -->
-        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between mb-8 overflow-hidden">
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between mb-5 overflow-hidden">
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                 <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Account Settings</div>
                 <span class="text-[10px] sm:text-sm font-medium text-gray-500 hidden md:block whitespace-nowrap">Manage your profile and business details.</span>
@@ -55,20 +54,20 @@ window.renderSettings = function () {
                         <h3 class="text-lg font-bold text-gray-900 mb-6">Personal Admin Information</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="col-span-1 md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label for="set_full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                                 <input type="text" id="set_full_name" value="${profile.full_name || ''}" class="form-input w-full" placeholder="e.g. John Doe">
                             </div>
                             <div class="col-span-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Admin Email Address</label>
-                                <input type="email" value="${state.currentUser}" class="form-input w-full bg-gray-50 cursor-not-allowed text-gray-500" disabled title="To change login email, please contact support.">
+                                <label for="set_admin_email" class="block text-sm font-medium text-gray-700 mb-1">Admin Email Address</label>
+                                <input type="email" id="set_admin_email" value="${state.currentUser}" class="form-input w-full bg-gray-50 cursor-not-allowed text-gray-500" disabled title="To change login email, please contact support.">
                                 <p class="text-xs text-gray-400 mt-1">Primary communication email.</p>
                             </div>
                             <div class="col-span-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                                <label for="set_mobile_number" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
                                 <input type="tel" id="set_mobile_number" value="${profile.mobile_number || ''}" class="form-input w-full" placeholder="+1 (555) 000-0000">
                             </div>
                             <div class="col-span-1 md:col-span-2 mt-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Profile Avatar (URL)</label>
+                                <label for="set_avatar_url" class="block text-sm font-medium text-gray-700 mb-2">Profile Avatar (URL)</label>
                                 <div class="flex items-center gap-4">
                                     <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 text-xl font-bold overflow-hidden border-2 border-white shadow">
                                         ${profile.avatar_url ? `<img src="${profile.avatar_url}" class="w-full h-full object-cover">` : (profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U')}
@@ -84,11 +83,11 @@ window.renderSettings = function () {
                         <h3 class="text-lg font-bold text-gray-900 mb-6">Business / Organization Details</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="col-span-1 md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                                <label for="set_business_name" class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
                                 <input type="text" id="set_business_name" value="${profile.business_name || ''}" class="form-input w-full" placeholder="Your Enterprise Name">
                             </div>
                             <div class="col-span-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Industry / Category</label>
+                                <label for="set_industry" class="block text-sm font-medium text-gray-700 mb-1">Industry / Category</label>
                                 <select id="set_industry" class="form-input w-full">
                                     <option value="">Select Industry...</option>
                                     <option value="retail" ${profile.industry === 'retail' ? 'selected' : ''}>Retail</option>
@@ -98,7 +97,7 @@ window.renderSettings = function () {
                                 </select>
                             </div>
                             <div class="col-span-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Tax ID / Business Reg No.</label>
+                                <label for="set_tax_id" class="block text-sm font-medium text-gray-700 mb-1">Tax ID / Business Reg No.</label>
                                 <input type="text" id="set_tax_id" value="${profile.tax_id || ''}" class="form-input w-full" placeholder="e.g. TAX-12345">
                             </div>
                             
@@ -108,7 +107,7 @@ window.renderSettings = function () {
                                 <h4 class="text-sm font-bold text-gray-900 mb-4">Localization</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Global Currency</label>
+                                        <label for="set_currency" class="block text-sm font-medium text-gray-700 mb-1">Global Currency</label>
                                         <select id="set_currency" class="form-input w-full">
                                             <option value="USD" ${profile.currency === 'USD' ? 'selected' : ''}>USD ($) - US Dollar</option>
                                             <option value="EUR" ${profile.currency === 'EUR' ? 'selected' : ''}>EUR (€) - Euro</option>
@@ -122,7 +121,7 @@ window.renderSettings = function () {
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+                                        <label for="set_timezone" class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
                                         <select id="set_timezone" class="form-input w-full">
                                             <option value="UTC" ${profile.timezone === 'UTC' ? 'selected' : ''}>UTC</option>
                                             <option value="Africa/Nairobi" ${profile.timezone === 'Africa/Nairobi' ? 'selected' : ''}>Africa/Nairobi</option>
@@ -141,7 +140,7 @@ window.renderSettings = function () {
                         <h3 class="text-lg font-bold text-gray-900 mb-6">Global Branch Preferences</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="col-span-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Default Daily Sales Target</label>
+                                <label for="set_default_target" class="block text-sm font-medium text-gray-700 mb-1">Default Daily Sales Target</label>
                                 <div class="flex items-stretch rounded-lg shadow-sm border border-gray-300 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden active:border-indigo-500 transition-colors bg-white">
                                     <span class="flex items-center px-4 bg-gray-50 border-r border-gray-300 text-gray-500 font-medium whitespace-nowrap">${fmt.currency(0).replace(/[0-9.,\s]/g, '').trim()}</span>
                                     <input type="text" inputmode="decimal" id="set_default_target" value="${profile.default_target || 10000}" class="flex-1 block w-full px-4 py-2 text-gray-900 border-0 focus:ring-0 focus:outline-none number-format">
@@ -149,7 +148,7 @@ window.renderSettings = function () {
                                 <p class="text-xs text-gray-400 mt-2">Applied as baseline when creating new branches.</p>
                             </div>
                             <div class="col-span-1">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Global Operating Hours</label>
+                                <label for="set_hours_open" class="block text-sm font-medium text-gray-700 mb-1">Global Operating Hours</label>
                                 <div class="flex items-center gap-2">
                                     <input type="time" id="set_hours_open" value="${(profile.operating_hours ? JSON.parse(profile.operating_hours).open : '08:00')}" class="form-input flex-1">
                                     <span class="text-gray-400 text-sm">to</span>
@@ -157,7 +156,7 @@ window.renderSettings = function () {
                                 </div>
                             </div>
                             <div class="col-span-1 md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Default Receipt / Invoice Footer Text</label>
+                                <label for="set_receipt_text" class="block text-sm font-medium text-gray-700 mb-1">Default Receipt / Invoice Footer Text</label>
                                 <textarea id="set_receipt_text" class="form-input w-full" rows="3" placeholder="Thank you for your business!">${profile.receipt_text || 'Thank you for your business!'}</textarea>
                             </div>
                         </div>
@@ -197,6 +196,22 @@ window.renderSettings = function () {
                                         Manage Billing
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">System Utilities</h4>
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 gap-4">
+                                <div>
+                                    <p class="font-medium text-sm text-gray-900">Fetch New Code Changes</p>
+                                    <p class="text-xs text-gray-500 mt-1">Force the application to reload and download the latest updates.</p>
+                                </div>
+                                <button type="button" onclick="confirmUpdateApp()" class="flex items-center justify-center gap-3 px-4 py-2 bg-[#0f172a] border border-gray-700/50 rounded-full hover:bg-[#1e293b] transition-colors w-full sm:w-auto shadow-sm group">
+                                    <div class="w-6 h-6 rounded bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center shadow-sm">
+                                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
+                                    </div>
+                                    <span class="text-gray-300 font-medium text-sm pr-1">Check for Updates</span>
+                                </button>
                             </div>
                         </div>
                     </div>

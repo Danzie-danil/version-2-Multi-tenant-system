@@ -1,5 +1,5 @@
 // Geometric Network Background Animation
-// Adapted for Nexus BMS
+// Adapted for BMS
 
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');

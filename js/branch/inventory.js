@@ -4,7 +4,7 @@ window.renderInventoryModule = function () {
     const container = document.getElementById('mainContent');
 
     container.innerHTML = `
-    <div class="space-y-6 slide-in">
+    <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                 <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Inventory Management</div>
@@ -26,7 +26,7 @@ window.renderInventoryModule = function () {
         const lowStock = items.filter(i => i.quantity <= i.min_threshold);
 
         container.innerHTML = `
-        <div class="space-y-6 slide-in">
+        <div class="space-y-4 slide-in">
             <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
                 <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                     <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Inventory Management</div>
@@ -37,7 +37,7 @@ window.renderInventoryModule = function () {
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                 <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
                     <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total SKUs">Total SKUs</p>
                     <p class="text-dynamic-lg font-bold text-gray-900 truncate">${items.length}</p>

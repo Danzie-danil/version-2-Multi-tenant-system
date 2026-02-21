@@ -4,7 +4,7 @@ window.renderTasksManagement = function () {
     const container = document.getElementById('mainContent');
 
     container.innerHTML = `
-    <div class="space-y-6 slide-in">
+    <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                 <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Tasks &amp; Objectives</div>
@@ -33,7 +33,7 @@ window.renderTasksManagement = function () {
             const myTasks = (tasks || []).filter(t => t.branch?.owner_id === state.ownerId);
 
             container.innerHTML = `
-            <div class="space-y-6 slide-in">
+            <div class="space-y-4 slide-in">
                 <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
                     <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                         <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Tasks &amp; Objectives</div>
@@ -72,7 +72,7 @@ window.renderTasksManagement = function () {
                             ` : myTasks.map(task => `
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4" data-label="Task">
-                                    <p class="font-medium text-gray-900">${task.title}</p>
+                                    <p class="text-sm sm:text-base font-medium text-gray-900">${task.title}</p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600" data-label="Branch">${task.branch?.name || '—'}</td>
                                 <td class="px-6 py-4 text-sm text-gray-600" data-label="Deadline">${task.deadline ? fmt.date(task.deadline) : '—'}</td>

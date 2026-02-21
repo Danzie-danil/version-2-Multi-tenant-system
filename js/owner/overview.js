@@ -5,7 +5,7 @@ window.renderOwnerOverview = function () {
 
     // Render skeleton immediately with structure + spinner
     container.innerHTML = `
-    <div class="space-y-6 slide-in">
+    <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                 <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Business Overview</div>
@@ -17,7 +17,7 @@ window.renderOwnerOverview = function () {
         </div>
 
         <!-- KPI skeleton -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="overviewKPIs">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3" id="overviewKPIs">
             ${[1, 2, 3, 4].map(() => `
             <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 animate-pulse">
                 <div class="h-3 bg-gray-100 rounded mb-4 w-24"></div>
@@ -54,10 +54,12 @@ window.renderOwnerOverview = function () {
             </div>
         </div>
 
+        <div id="dashStockAlerts"></div>
+
         <!-- Quick Actions -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                 <button onclick="openModal('assignTask')" class="p-2 border border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-all text-center group">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
                     <span class="text-xs font-medium text-gray-700">Assign Task</span>
@@ -102,6 +104,46 @@ window.renderOwnerOverview = function () {
         const totalTarget = withSales.reduce((s, b) => s + Number(b.target), 0);
         const progress = totalTarget > 0 ? fmt.percent(totalSales, totalTarget) : 0;
         const pendingTasks = taskCounts.filter(t => t.status !== 'completed').length;
+
+        // ── Inventory Alerts (Across All Branches) ───────────────────────────
+        Promise.all(branchIds.map(id => dbInventory.fetchAll(id))).then(results => {
+            const allItems = results.flat();
+            const lowStock = allItems.filter(i => i.quantity <= i.min_threshold);
+            const alertContainer = document.getElementById('dashStockAlerts');
+
+            if (lowStock.length > 0 && alertContainer) {
+                alertContainer.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-sm border border-orange-100 p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2 text-orange-600">
+                            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                            <h3 class="font-bold text-gray-900">Critical Stock Alerts</h3>
+                        </div>
+                        <span class="badge bg-orange-100 text-orange-700">${lowStock.length} items low</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        ${lowStock.slice(0, 6).map(item => {
+                    const branch = branches.find(b => b.id === item.branch_id);
+                    return `
+                            <div class="flex items-center gap-3 p-3 bg-orange-50 border border-orange-100 rounded-xl">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 truncate">${item.name}</p>
+                                    <p class="text-[10px] text-orange-600 font-medium truncate">${branch?.name || 'Branch'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-red-600">${item.quantity}</p>
+                                    <p class="text-[10px] text-gray-400">Min: ${item.min_threshold}</p>
+                                </div>
+                            </div>`;
+                }).join('')}
+                    </div>
+                    ${lowStock.length > 6 ? `
+                    <p class="text-center text-xs text-gray-400 mt-4">+ ${lowStock.length - 6} more items across branches</p>
+                    ` : ''}
+                </div>`;
+                lucide.createIcons();
+            }
+        });
 
         // Update KPI cards
         document.getElementById('overviewKPIs').innerHTML = `
@@ -149,6 +191,27 @@ window.renderOwnerOverview = function () {
 
         // Update Activity Feed DOM
         document.getElementById('activityFeed').innerHTML = renderActivities();
+
+        // ── Real-time Polling for Activities ────────────────────────────────
+        // Refresh activities every 15 seconds while on this view
+        if (window.ownerOverviewInterval) clearInterval(window.ownerOverviewInterval);
+        window.ownerOverviewInterval = setInterval(async () => {
+            const currentFeed = document.getElementById('activityFeed');
+            // Stop polling if the feed element is gone (user switched view)
+            if (!currentFeed) {
+                clearInterval(window.ownerOverviewInterval);
+                return;
+            }
+
+            try {
+                const latest = await dbActivities.fetchRecent(branchIds);
+                state.activities = latest || [];
+                currentFeed.innerHTML = renderActivities();
+                lucide.createIcons();
+            } catch (err) {
+                console.warn('Polling error:', err);
+            }
+        }, 15000);
 
         lucide.createIcons();
     }).catch(err => {
