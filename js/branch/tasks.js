@@ -20,9 +20,9 @@ window.renderBranchTasks = function () {
     dbTasks.fetchByBranch(state.branchId).then(tasks => {
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">My Tasks</h2>
-                <div class="flex gap-2 text-sm">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">My Tasks</h2>
+                <div class="flex flex-wrap gap-2 text-xs sm:text-sm">
                     <span class="badge bg-gray-100 text-gray-700">${tasks.filter(t => t.status === 'pending').length} pending</span>
                     <span class="badge bg-blue-100 text-blue-700">${tasks.filter(t => t.status === 'in_progress').length} in progress</span>
                     <span class="badge bg-emerald-100 text-emerald-700">${tasks.filter(t => t.status === 'completed').length} done</span>

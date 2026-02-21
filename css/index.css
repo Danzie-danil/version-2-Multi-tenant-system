@@ -62,6 +62,29 @@ body {
     color: #4f46e5 !important;
 }
 
+#mainContent {
+    position: relative;
+}
+
+#mainContent::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80vw;
+    height: 80vh;
+    max-width: 800px;
+    max-height: 800px;
+    background-image: url('../bg_logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.04;
+    z-index: 0;
+    pointer-events: none;
+}
+
 /* ── Animations ───────────────────────────────── */
 .activity-pulse {
     animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
@@ -174,14 +197,14 @@ body {
 
 /* Dynamic text sizing based on container width */
 .text-dynamic {
-    font-size: clamp(0.9rem, 11cqw, 1.8rem);
+    font-size: clamp(0.875rem, 8cqw, 1.25rem);
     line-height: 1.2;
     white-space: nowrap;
     /* Keep on one line as requested, but scale down */
 }
 
 .text-dynamic-lg {
-    font-size: clamp(1.1rem, 13cqw, 2.2rem);
+    font-size: clamp(0.875rem, 8cqw, 1.25rem);
     line-height: 1.1;
     white-space: nowrap;
 }
@@ -306,6 +329,7 @@ tbody tr {
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.02em;
+    white-space: nowrap;
 }
 
 /* ── Scrollbar ────────────────────────────────── */

@@ -145,7 +145,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                    <input type="text" inputmode="decimal" id="expenseAmount" required class="form-input number-format" placeholder="0.00">
+                    <input type="text" inputmode="decimal" id="expenseAmount" required class="form-input number-format" placeholder="0">
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
@@ -389,7 +389,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                    <input type="text" inputmode="decimal" id="loanAmount" required class="form-input number-format" placeholder="0.00">
+                    <input type="text" inputmode="decimal" id="loanAmount" required class="form-input number-format" placeholder="0">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -438,7 +438,7 @@ window.getModalHTML = function (type, data) {
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                        <input type="text" inputmode="decimal" id="itemPrice" required class="form-input number-format" placeholder="0.00">
+                        <input type="text" inputmode="decimal" id="itemPrice" required class="form-input number-format" placeholder="0">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">

@@ -362,7 +362,7 @@ window.logout = async function () {
 window.setupDashboard = function () {
     const isOwner = state.role === 'owner';
 
-    document.getElementById('userRole').textContent = isOwner ? 'Business Owner' : 'Branch Manager';
+    document.getElementById('userRole').textContent = isOwner ? 'Business Owner' : (state.branchProfile?.name || state.currentUser?.replace(' (Manager)', '') || 'Branch');
     document.getElementById('currentUser').textContent = state.currentUser;
     document.getElementById('currentBranch').textContent = isOwner
         ? 'All Branches'

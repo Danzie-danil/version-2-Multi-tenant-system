@@ -8,17 +8,6 @@ window.renderBranchDashboard = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">${branch.name}</h2>
-                <p class="text-gray-500 text-sm mt-0.5">Manager: ${branch.manager || state.currentUser}</p>
-            </div>
-            <div class="text-right">
-                <p class="text-xs text-gray-500">Sales Target</p>
-                <p class="text-2xl font-bold text-gray-900">${fmt.currency(branch.target)}</p>
-            </div>
-        </div>
-
         <!-- Loading KPIs -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="dashKPIs">
             <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md animate-pulse">
@@ -43,21 +32,21 @@ window.renderBranchDashboard = function () {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <button onclick="openAddSaleModal()" class="p-4 border border-gray-200 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
-                    <i data-lucide="plus-circle" class="w-6 h-6 text-emerald-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">New Sale</span>
+                <button onclick="openAddSaleModal()" class="p-2 border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">New Sale</span>
                 </button>
-                <button onclick="openModal('addExpense')" class="p-4 border border-gray-200 rounded-xl hover:border-red-400 hover:bg-red-50 transition-all text-center group">
-                    <i data-lucide="minus-circle" class="w-6 h-6 text-red-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Add Expense</span>
+                <button onclick="openModal('addExpense')" class="p-2 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all text-center group">
+                    <i data-lucide="minus-circle" class="w-4 h-4 text-red-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Add Expense</span>
                 </button>
-                <button onclick="openModal('addCustomer')" class="p-4 border border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all text-center group">
-                    <i data-lucide="user-plus" class="w-6 h-6 text-blue-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Add Customer</span>
+                <button onclick="openModal('addCustomer')" class="p-2 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-center group">
+                    <i data-lucide="user-plus" class="w-4 h-4 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Add Customer</span>
                 </button>
-                <button onclick="openModal('addNote')" class="p-4 border border-gray-200 rounded-xl hover:border-amber-400 hover:bg-amber-50 transition-all text-center group">
-                    <i data-lucide="edit-3" class="w-6 h-6 text-amber-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Add Note</span>
+                <button onclick="openModal('addNote')" class="p-2 border border-gray-200 rounded-lg hover:border-amber-400 hover:bg-amber-50 transition-all text-center group">
+                    <i data-lucide="edit-3" class="w-4 h-4 text-amber-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Add Note</span>
                 </button>
             </div>
         </div>
@@ -77,40 +66,25 @@ window.renderBranchDashboard = function () {
         const progress = fmt.percent(todaySalesTotal, branch.target);
 
         document.getElementById('dashKPIs').innerHTML = `
-        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md dashboard-card">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-indigo-100 text-xs font-medium uppercase tracking-wide truncate">Today's Sales</span>
-                <i data-lucide="trending-up" class="w-5 h-5 text-indigo-200 flex-shrink-0"></i>
-            </div>
-            <p class="text-dynamic-lg font-bold" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
-            <div class="mt-3 bg-white bg-opacity-20 rounded-full h-1.5">
-                <div class="bg-white h-1.5 rounded-full transition-all" style="width:${Math.min(progress, 100)}%"></div>
-            </div>
-            <p class="text-indigo-100 text-xs mt-2 truncate">${progress}% of target</p>
+        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 md:p-5 rounded-2xl text-white shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate">Today's Sales</p>
+            <p class="text-dynamic-lg font-bold truncate" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-xs uppercase tracking-wide truncate">Transactions</span>
-                <i data-lucide="shopping-cart" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
-            </div>
-            <p class="text-dynamic-lg font-bold text-gray-900">${sales.length}</p>
-            <p class="text-xs text-gray-400 mt-1 truncate">All time</p>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Transactions</p>
+            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${sales.length}</p>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-xs uppercase tracking-wide truncate">Expenses</span>
-                <i data-lucide="credit-card" class="w-4 h-4 text-red-500 flex-shrink-0"></i>
-            </div>
-            <p class="text-dynamic-lg font-bold text-red-600" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
-            <p class="text-xs text-gray-400 mt-1 truncate">All time</p>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Expenses</p>
+            <p class="text-dynamic-lg font-bold text-red-600 truncate" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm stat-card">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-gray-500 text-xs uppercase tracking-wide truncate">Open Tasks</span>
-                <i data-lucide="list-todo" class="w-4 h-4 text-amber-500 flex-shrink-0"></i>
-            </div>
-            <p class="text-dynamic-lg font-bold text-gray-900">${tasks.filter(t => t.status !== 'completed').length}</p>
-            <p class="text-xs text-gray-400 mt-1 truncate">${tasks.filter(t => t.status === 'completed').length} completed</p>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Open Tasks</p>
+            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${tasks.filter(t => t.status !== 'completed').length}</p>
+        </div>
+        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Sales Target</p>
+            <p class="text-dynamic-lg font-bold text-indigo-600 truncate" title="${fmt.currency(branch.target)}">${fmt.currency(branch.target)}</p>
         </div>`;
 
         // Task preview

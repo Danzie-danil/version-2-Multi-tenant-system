@@ -183,10 +183,10 @@ window.fmt = {
         const code = (window.state && window.state.profile && window.state.profile.currency) ? window.state.profile.currency : 'USD';
 
         const symbol = symbols[code] || (code + ' ');
-        return symbol + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return symbol + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     number: (n) => {
-        return Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        return Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     parseNumber: (val) => {
         // Strip all commas and non-numeric characters (except decimal point and minus sign)
@@ -233,7 +233,14 @@ window.initNumberFormatting = function () {
         if (!target.classList.contains('number-format')) return;
         
         // Get the current value and remove non-numeric characters (except decimal point and minus)
-        let value = target.value;
+        let value = target.value.trim();
+        
+        // If empty, keep it empty (don't default to 0)
+        if (!value) {
+            target.value = '';
+            return;
+        }
+        
         const isNegative = value.startsWith('-');
         
         // Strip non-numeric characters except decimal point

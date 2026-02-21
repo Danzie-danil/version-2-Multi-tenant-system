@@ -53,21 +53,21 @@ window.renderOwnerOverview = function () {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <button onclick="openModal('assignTask')" class="p-4 border border-gray-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all text-center group">
-                    <i data-lucide="plus-circle" class="w-6 h-6 text-indigo-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Assign Task</span>
+                <button onclick="openModal('assignTask')" class="p-2 border border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-all text-center group">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Assign Task</span>
                 </button>
-                <button onclick="switchView('analytics',null)" class="p-4 border border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all text-center group">
-                    <i data-lucide="bar-chart-3" class="w-6 h-6 text-blue-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Analytics</span>
+                <button onclick="switchView('analytics',null)" class="p-2 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-center group">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Analytics</span>
                 </button>
-                <button onclick="switchView('branches',null)" class="p-4 border border-gray-200 rounded-xl hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
-                    <i data-lucide="git-branch" class="w-6 h-6 text-emerald-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Branches</span>
+                <button onclick="switchView('branches',null)" class="p-2 border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
+                    <i data-lucide="git-branch" class="w-4 h-4 text-emerald-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Branches</span>
                 </button>
-                <button onclick="switchView('security',null)" class="p-4 border border-gray-200 rounded-xl hover:border-violet-400 hover:bg-violet-50 transition-all text-center group">
-                    <i data-lucide="shield" class="w-6 h-6 text-violet-500 mx-auto mb-2 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-sm font-medium text-gray-700">Security</span>
+                <button onclick="switchView('security',null)" class="p-2 border border-gray-200 rounded-lg hover:border-violet-400 hover:bg-violet-50 transition-all text-center group">
+                    <i data-lucide="shield" class="w-4 h-4 text-violet-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-medium text-gray-700">Security</span>
                 </button>
             </div>
         </div>
