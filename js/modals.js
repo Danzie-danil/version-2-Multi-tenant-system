@@ -81,8 +81,9 @@ window.getModalHTML = function (type, data) {
                                 <option value="" disabled selected>Select a product...</option>
                                 ${productOptions}
                             </select>
-                            <button type="button" onclick="refreshSaleProducts()" class="p-2 text-gray-500 hover:text-indigo-600 border border-gray-300 rounded-lg" title="Refresh Products">
-                                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                            <button type="button" onclick="refreshSaleProducts()" class="p-2 text-gray-500 hover:text-indigo-600 border border-gray-300 rounded-lg flex items-center justify-center min-w-[38px] min-h-[38px]" title="Refresh Products">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                <span class="loader loader-inline hidden"></span>
                             </button>
                         </div>
                     </div>

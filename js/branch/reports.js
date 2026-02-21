@@ -1,7 +1,15 @@
 // ── Branch: Reports Module ────────────────────────────────────────────────
 
 window.renderReportsModule = function () {
+    const container = document.getElementById('mainContent');
     const branch = state.branches.find(b => b.id === state.branchId);
+
+    // Fallback if branch not found
+    if (!branch) {
+        container.innerHTML = '<div class="py-20 text-center text-red-500">Branch data not found.</div>';
+        return;
+    }
+
     const sales = state.sales.filter(s => s.branchId === state.branchId);
     const expenses = state.expenses.filter(e => e.branchId === state.branchId);
     const totalSales = sales.reduce((s, r) => s + r.amount, 0);
@@ -9,11 +17,16 @@ window.renderReportsModule = function () {
     const netProfit = totalSales - totalExp;
     const progress = fmt.percent(branch.todaySales, branch.target);
 
-    return `
+    container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Reports</h2>
-            <span class="text-sm text-gray-500">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Business Reports</div>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400 mr-2">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                <span class="text-[10px] sm:text-xs font-medium whitespace-nowrap">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+            </div>
         </div>
 
         <!-- Daily Summary Card -->
@@ -92,4 +105,5 @@ window.renderReportsModule = function () {
             </div>
         </div>
     </div>`;
+    lucide.createIcons();
 };

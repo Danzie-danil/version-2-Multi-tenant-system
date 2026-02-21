@@ -371,13 +371,18 @@ window.setupDashboard = function () {
     if (isOwner) {
         document.getElementById('ownerNav').classList.remove('hidden');
         document.getElementById('liveIndicator').classList.remove('hidden');
-        switchView('overview');
+
+        const lastView = localStorage.getItem('lastOwnerView') || 'overview';
+        switchView(lastView);
+
         startLiveSimulation();
         // Check for PIN Reset requests
         if (window.checkNotifications) window.checkNotifications();
     } else {
         document.getElementById('branchNav').classList.remove('hidden');
-        switchView('dashboard');
+
+        const lastView = localStorage.getItem('lastBranchView') || 'dashboard';
+        switchView(lastView);
     }
     lucide.createIcons();
 };

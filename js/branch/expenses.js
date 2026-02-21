@@ -14,16 +14,18 @@ window.renderExpensesModule = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Expenses</h2>
-            <button onclick="openModal('addExpense')" class="btn-primary btn-danger">
-                <i data-lucide="plus" class="w-4 h-4"></i> Add Expense
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Expense Management</div>
+            </div>
+            <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Expense
             </button>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Loading expenses…</p>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
+                <p class="text-gray-400 text-sm">Loading expenses…</p>
             </div>
         </div>
     </div>`;
@@ -33,10 +35,12 @@ window.renderExpensesModule = function () {
         const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Expenses</h2>
-                <button onclick="openModal('addExpense')" class="btn-primary btn-danger">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Add Expense
+            <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Expense Management</div>
+                </div>
+                <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Expense
                 </button>
             </div>
 
@@ -66,7 +70,7 @@ window.renderExpensesModule = function () {
                     <p class="text-gray-400 text-sm">No expenses recorded yet</p>
                     <button onclick="openModal('addExpense')" class="mt-4 btn-primary btn-danger text-sm">Add First Expense</button>
                 </div>` : `
-                <table class="w-full">
+                <table class="w-full responsive-table">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
@@ -79,13 +83,13 @@ window.renderExpensesModule = function () {
                     <tbody class="divide-y divide-gray-50">
                         ${expenses.map(exp => `
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900">${exp.description}</td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900" data-label="Description">${exp.description}</td>
+                            <td class="px-6 py-4" data-label="Category">
                                 <span class="badge ${categoryColors[exp.category] || 'bg-gray-100 text-gray-700'}">${exp.category}</span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(exp.created_at)}</td>
-                            <td class="px-6 py-4 text-right font-bold text-red-600">${fmt.currency(exp.amount)}</td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-sm text-gray-400" data-label="Date">${fmt.date(exp.created_at)}</td>
+                            <td class="px-6 py-4 text-right font-bold text-red-600" data-label="Amount">${fmt.currency(exp.amount)}</td>
+                            <td class="px-6 py-4 text-center" data-label="Actions">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openEditModal('editExpense', '${exp.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
                                         <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -97,12 +101,6 @@ window.renderExpensesModule = function () {
                             </td>
                         </tr>`).join('')}
                     </tbody>
-                    <tfoot class="bg-gray-50 border-t border-gray-200">
-                        <tr>
-                            <td colspan="3" class="px-6 py-3 text-sm font-semibold text-gray-700">Total</td>
-                            <td class="px-6 py-3 text-right font-bold text-red-700 text-lg">${fmt.currency(total)}</td>
-                        </tr>
-                    </tfoot>
                 </table>`}
             </div>
         </div>`;

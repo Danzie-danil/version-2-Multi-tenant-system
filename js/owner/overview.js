@@ -6,9 +6,14 @@ window.renderOwnerOverview = function () {
     // Render skeleton immediately with structure + spinner
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Business Overview</h2>
-            <span class="text-sm text-gray-500">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Business Overview</div>
+                <span class="text-[10px] sm:text-sm font-medium text-gray-500 flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
+                    <i data-lucide="calendar" class="w-3 h-3 sm:w-4 sm:h-4"></i>
+                    ${new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </span>
+            </div>
         </div>
 
         <!-- KPI skeleton -->
@@ -100,38 +105,23 @@ window.renderOwnerOverview = function () {
 
         // Update KPI cards
         document.getElementById('overviewKPIs').innerHTML = `
-        <div onclick="switchView('sales')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 transition-transform">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Total Revenue</span>
-                <div class="p-2 bg-emerald-100 rounded-lg flex-shrink-0"><i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-600"></i></div>
-            </div>
-            <p class="text-dynamic-lg font-bold text-gray-900" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
-            <p class="text-xs text-emerald-600 mt-1 font-medium truncate">▲ Across all branches</p>
+        <div onclick="switchView('sales')" class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 md:p-5 rounded-2xl text-white shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
+            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate">Total Revenue</p>
+            <p class="text-dynamic-lg font-bold truncate" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
         </div>
-        <div onclick="switchView('branches')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 transition-transform">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Active Branches</span>
-                <div class="p-2 bg-blue-100 rounded-lg flex-shrink-0"><i data-lucide="git-branch" class="w-4 h-4 text-blue-600"></i></div>
-            </div>
-            <p class="text-dynamic-lg font-bold text-gray-900">${branches.length}</p>
-            <p class="text-xs text-gray-500 mt-1 truncate">All operational</p>
+        <div onclick="switchView('branches')" class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Active Branches</p>
+            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${branches.length}</p>
         </div>
-        <div onclick="switchView('tasks')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 transition-transform">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Pending Tasks</span>
-                <div class="p-2 bg-amber-100 rounded-lg flex-shrink-0"><i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i></div>
-            </div>
-            <p class="text-dynamic-lg font-bold text-gray-900">${pendingTasks}</p>
-            <p class="text-xs text-amber-600 mt-1 font-medium truncate">Requires attention</p>
+        <div onclick="switchView('tasks')" class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Pending Tasks</p>
+            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${pendingTasks}</p>
         </div>
-        <div onclick="switchView('branches')" class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:-translate-y-1 transition-transform">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-gray-500 text-xs font-medium uppercase tracking-wide truncate">Target Progress</span>
-                <div class="p-2 bg-violet-100 rounded-lg flex-shrink-0"><i data-lucide="target" class="w-4 h-4 text-violet-600"></i></div>
-            </div>
-            <p class="text-dynamic-lg font-bold text-gray-900">${progress}%</p>
-            <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2">
-                <div class="bg-violet-500 h-1.5 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
+        <div onclick="switchView('branches')" class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col justify-center">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Target Progress</p>
+            <p class="text-dynamic-lg font-bold text-violet-600 truncate mb-1">${progress}%</p>
+            <div class="w-full bg-gray-100 rounded-full h-1 mt-auto">
+                <div class="bg-violet-500 h-1 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
             </div>
         </div>`;
 

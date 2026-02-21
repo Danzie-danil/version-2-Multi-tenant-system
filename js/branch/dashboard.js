@@ -8,6 +8,15 @@ window.renderBranchDashboard = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
+        <!-- Header -->
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden w-fit">
+            <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Dashboard</div>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400">
+                <i data-lucide="calendar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i>
+                <span class="text-[10px] sm:text-xs font-medium whitespace-nowrap">${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            </div>
+        </div>
+
         <!-- Loading KPIs -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="dashKPIs">
             <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md animate-pulse">

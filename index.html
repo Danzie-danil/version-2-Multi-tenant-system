@@ -254,7 +254,7 @@
             </div>
         </header>
 
-        <div class="flex h-[calc(100dvh-57px)] relative">
+        <div class="flex h-[calc(100dvh-57px)] relative bg-gray-50">
             <!-- Sidebar Overlay (Mobile) -->
             <div id="sidebarOverlay" onclick="toggleSidebar()"
                 class="fixed inset-0 bg-black/50 z-20 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
@@ -262,7 +262,7 @@
             <!-- Sidebar -->
             <aside id="mainSidebar" class="w-64 bg-white flex flex-col flex-shrink-0 
                           absolute md:relative z-30 transition-transform duration-300 transform 
-                          -translate-x-full md:translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.04)]
+                          -translate-x-[calc(100%+1rem)] md:translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.04)]
                           m-4 rounded-3xl h-[calc(100dvh-57px-32px)]">
                 <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" id="sidebarNav">
 
@@ -349,9 +349,15 @@
                     </button>
                 </div>
             </aside>
+            <!-- Background Logo Watermark -->
+            <div
+                class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center opacity-[0.04] overflow-hidden">
+                <img src="bg_logo.png" alt=""
+                    class="w-[80vw] h-[80vh] max-w-[800px] max-h-[800px] object-contain object-center">
+            </div>
 
             <!-- Main Content -->
-            <main class="flex-1 overflow-auto bg-gray-50 p-6" id="mainContent">
+            <main class="flex-1 overflow-auto bg-transparent p-6 relative z-10" id="mainContent">
                 <!-- Injected by JS -->
             </main>
         </div>

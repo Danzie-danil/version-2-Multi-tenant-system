@@ -5,16 +5,18 @@ window.renderCustomersModule = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Customers</h2>
-            <button onclick="openModal('addCustomer')" class="btn-primary">
-                <i data-lucide="user-plus" class="w-4 h-4"></i> Add Customer
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Customer Directory</div>
+            </div>
+            <button onclick="openModal('addCustomer')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Customer
             </button>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Loading customers…</p>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
+                <p class="text-gray-400 text-sm">Loading customer data…</p>
             </div>
         </div>
     </div>`;
@@ -23,10 +25,12 @@ window.renderCustomersModule = function () {
     dbCustomers.fetchAll(state.branchId).then(customers => {
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Customers</h2>
-                <button onclick="openModal('addCustomer')" class="btn-primary">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i> Add Customer
+            <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Customer Directory</div>
+                </div>
+                <button onclick="openModal('addCustomer')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Customer
                 </button>
             </div>
 
@@ -48,7 +52,7 @@ window.renderCustomersModule = function () {
                     <p class="text-gray-400 text-sm">No customers added yet</p>
                     <button onclick="openModal('addCustomer')" class="mt-4 btn-primary text-sm">Add First Customer</button>
                 </div>` : `
-                <table class="w-full">
+                <table class="w-full responsive-table">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Name</th>
@@ -62,7 +66,7 @@ window.renderCustomersModule = function () {
                     <tbody class="divide-y divide-gray-50">
                         ${customers.map(c => `
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4" data-label="Name">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                                         <span class="text-sm font-bold text-indigo-600">${c.name.charAt(0).toUpperCase()}</span>
@@ -70,13 +74,13 @@ window.renderCustomersModule = function () {
                                     <span class="font-medium text-sm text-gray-900">${c.name}</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">${c.phone || '—'}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">${c.email || '—'}</td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-sm text-gray-600" data-label="Phone">${c.phone || '—'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600" data-label="Email">${c.email || '—'}</td>
+                            <td class="px-6 py-4" data-label="Loyalty Pts">
                                 <span class="badge bg-amber-100 text-amber-700">${c.loyalty_points} pts</span>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(c.created_at)}</td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-sm text-gray-400" data-label="Added">${fmt.date(c.created_at)}</td>
+                            <td class="px-6 py-4 text-center" data-label="Actions">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openEditModal('editCustomer', '${c.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
                                         <i data-lucide="pencil" class="w-4 h-4"></i>

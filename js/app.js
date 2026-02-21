@@ -15,10 +15,10 @@ window.toggleSidebar = function () {
     const overlay = document.getElementById('sidebarOverlay');
 
     // Toggle transform class
-    sidebar.classList.toggle('-translate-x-full');
+    sidebar.classList.toggle('-translate-x-[calc(100%+1rem)]');
 
     // Toggle overlay visibility
-    if (sidebar.classList.contains('-translate-x-full')) {
+    if (sidebar.classList.contains('-translate-x-[calc(100%+1rem)]')) {
         overlay.classList.add('hidden');
     } else {
         overlay.classList.remove('hidden');
@@ -26,6 +26,11 @@ window.toggleSidebar = function () {
 };
 
 window.switchView = function (viewId, btnElement) {
+    // If no button passed (e.g., initial load), try to find the matching sidebar item
+    if (!btnElement) {
+        btnElement = document.querySelector(`.sidebar-item[onclick*="switchView('${viewId}'"]`);
+    }
+
     // 1. Update active state in sidebar
     document.querySelectorAll('.sidebar-item').forEach(el => {
         el.classList.remove('active', 'text-indigo-600', 'bg-indigo-50');
@@ -37,18 +42,19 @@ window.switchView = function (viewId, btnElement) {
         btnElement.classList.remove('text-gray-700');
     }
 
-    // 2. Hide all views
-    // (Original logic for view switching)
+    // 2. Hide all views and save preference
     if (state.role === 'owner') {
+        localStorage.setItem('lastOwnerView', viewId);
         renderOwnerView(viewId);
     } else {
+        localStorage.setItem('lastBranchView', viewId);
         renderBranchView(viewId);
     }
 
     // 3. Mobile: Close sidebar after selection
     if (window.innerWidth < 768) {
         const sidebar = document.getElementById('mainSidebar');
-        if (!sidebar.classList.contains('-translate-x-full')) {
+        if (!sidebar.classList.contains('-translate-x-[calc(100%+1rem)]')) {
             toggleSidebar();
         }
     }
@@ -114,6 +120,9 @@ window.renderBranchView = function (view) {
         case 'loans':
             renderLoansModule();
             break;
+        case 'reports':
+            renderReportsModule();
+            break;
         case 'settings':
             renderBranchSettings();
             break;
@@ -158,7 +167,11 @@ window.showNotifications = async function () {
         panel.classList.remove('translate-x-full');
     }, 10);
 
-    content.innerHTML = '<div class="py-10 text-center text-gray-500 flex flex-col items-center"><i data-lucide="loader" class="w-6 h-6 animate-spin mb-2 text-indigo-500"></i><span class="text-sm">Loading notifications...</span></div>';
+    content.innerHTML = `
+        <div class="py-10 text-center text-gray-500 flex flex-col items-center">
+            <span class="loader scale-[0.6] mb-20"></span>
+            <span class="text-sm">Loading notifications...</span>
+        </div>`;
     lucide.createIcons();
 
     try {

@@ -8,10 +8,11 @@ window.renderBranchSettings = function () {
     <div class="max-w-4xl mx-auto opacity-0 translate-y-4 animate-fade-in-up">
         
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-2xl font-bold border-b-2 border-indigo-500 pb-1 pr-4 inline-block text-gray-900 tracking-tight">Branch Settings</h1>
-                <p class="text-sm text-gray-500 mt-2">Manage your branch contact details and business registration info.</p>
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden w-fit mb-8">
+            <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Settings</div>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400">
+                <i data-lucide="settings" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i>
+                <span class="text-[10px] sm:text-xs font-medium whitespace-nowrap">Profile & System</span>
             </div>
         </div>
 
@@ -175,7 +176,7 @@ window.autoSaveBranchSettings = function () {
     clearTimeout(activeIndicatorTimeout);
 
     // Show "Saving..." indicator
-    indicator.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin text-indigo-500"></i> <span class="text-indigo-600">Saving...</span>';
+    indicator.innerHTML = '<span class="loader loader-inline"></span> <span class="text-indigo-600">Saving...</span>';
     indicator.classList.remove('opacity-0', 'bg-emerald-50', 'bg-red-50');
     indicator.classList.add('opacity-100', 'bg-indigo-50');
     lucide.createIcons();

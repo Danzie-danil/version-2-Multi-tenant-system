@@ -5,16 +5,18 @@ window.renderBranchesManagement = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Branch Management</h2>
-            <button onclick="openModal('addBranch')" class="btn-primary">
-                <i data-lucide="plus" class="w-4 h-4"></i> Add Branch
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Management</div>
+            </div>
+            <button onclick="openModal('addBranch')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Branch
             </button>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Loading branches…</p>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
+                <p class="text-gray-400 text-sm">Loading branches…</p>
             </div>
         </div>
     </div>`;
@@ -34,10 +36,12 @@ window.renderBranchesManagement = function () {
 
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Branch Management</h2>
-                <button onclick="openModal('addBranch')" class="btn-primary">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Add Branch
+            <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Management</div>
+                </div>
+                <button onclick="openModal('addBranch')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Branch
                 </button>
             </div>
 
@@ -73,56 +77,56 @@ window.renderBranchesManagement = function () {
             const fCurr = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currCode }).format(val || 0);
 
             return `
-                <div class="module-card bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                    <div class="flex items-start justify-between mb-4">
-                        <div>
-                            <h3 class="font-semibold text-gray-900">${branch.name}</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">
-                                <i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i>${branch.location || 'No location set'}
-                            </p>
+                    <div class="module-card bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">${branch.name}</h3>
+                                <p class="text-sm text-gray-500 mt-0.5">
+                                    <i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i>${branch.location || 'No location set'}
+                                </p>
+                            </div>
+                            <span class="badge ${branch.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}">${branch.status}</span>
                         </div>
-                        <span class="badge ${branch.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}">${branch.status}</span>
-                    </div>
 
-                    <div class="space-y-2 mb-4 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Manager</span>
-                            <span class="font-medium text-gray-900">${branch.manager || '—'}</span>
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Manager</span>
+                                <span class="font-medium text-gray-900">${branch.manager || '—'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Today's Sales</span>
+                                <span class="font-bold text-emerald-600">${fCurr(branch.todaySales)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Target</span>
+                                <span class="font-medium">${fCurr(branch.target)}</span>
+                            </div>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Today's Sales</span>
-                            <span class="font-bold text-emerald-600">${fCurr(branch.todaySales)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Target</span>
-                            <span class="font-medium">${fCurr(branch.target)}</span>
-                        </div>
-                    </div>
 
-                    <div class="mb-4">
-                        <div class="flex justify-between text-xs text-gray-500 mb-1">
-                            <span>Progress</span><span>${pct}%</span>
+                        <div class="mb-4">
+                            <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                <span>Progress</span><span>${pct}%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2">
+                                <div class="${barColor} h-2 rounded-full progress-bar" style="width:${Math.min(pct, 100)}%"></div>
+                            </div>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-2">
-                            <div class="${barColor} h-2 rounded-full progress-bar" style="width:${Math.min(pct, 100)}%"></div>
-                        </div>
-                    </div>
 
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick='openModal("editBranch", ${JSON.stringify(branch).replace(/'/g, "&apos;")})'
-                            class="flex-1 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
-                            Edit Settings
-                        </button>
-                        <button onclick="openModal('resetPin','${branch.id}')"
-                            class="py-2 px-3 text-sm font-medium text-violet-700 bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors" title="Reset PIN">
-                            <i data-lucide="key" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="deleteBranchRow('${branch.id}', '${branch.name}')"
-                            class="py-2 px-3 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Delete Branch">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>`;
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick='openModal("editBranch", ${JSON.stringify(branch).replace(/'/g, "&apos;")})'
+                                class="flex-1 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
+                                Edit Settings
+                            </button>
+                            <button onclick="openModal('resetPin','${branch.id}')"
+                                class="py-2 px-3 text-sm font-medium text-violet-700 bg-violet-50 rounded-lg hover:bg-violet-100 transition-colors" title="Reset PIN">
+                                <i data-lucide="key" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteBranchRow('${branch.id}', '${branch.name}')"
+                                class="py-2 px-3 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Delete Branch">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>`;
         }).join('')}
             </div>`}
         </div>`;

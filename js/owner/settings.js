@@ -11,14 +11,15 @@ window.renderSettings = function () {
     <div class="max-w-5xl mx-auto opacity-0 translate-y-4 animate-fade-in-up">
         
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-2xl font-bold border-b-2 border-indigo-500 pb-1 pr-4 inline-block text-gray-900 tracking-tight">Account Settings</h1>
-                <p class="text-sm text-gray-500 mt-2">Manage your profile, business details, and global preferences.</p>
+        <!-- Header -->
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between mb-8 overflow-hidden">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Account Settings</div>
+                <span class="text-[10px] sm:text-sm font-medium text-gray-500 hidden md:block whitespace-nowrap">Manage your profile and business details.</span>
             </div>
             
-            <button onclick="saveSettings()" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all active:scale-95">
-                <i data-lucide="save" class="w-4 h-4"></i> Save Changes
+            <button onclick="saveSettings()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all active:scale-95 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="save" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Save</span>
             </button>
         </div>
 
@@ -252,7 +253,7 @@ window.switchSettingsTab = function (tabName) {
 window.saveSettings = async function () {
     const notifyBtn = document.querySelector('button[onclick="saveSettings()"]');
     const originalText = notifyBtn.innerHTML;
-    notifyBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving...';
+    notifyBtn.innerHTML = '<span class="loader loader-inline"></span> Saving...';
     notifyBtn.disabled = true;
 
     // Gather Personal Data

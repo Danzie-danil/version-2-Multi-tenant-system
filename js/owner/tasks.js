@@ -5,16 +5,18 @@ window.renderTasksManagement = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Tasks &amp; Objectives</h2>
-            <button onclick="openModal('assignTask')" class="btn-primary">
-                <i data-lucide="plus" class="w-4 h-4"></i> New Task
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Tasks &amp; Objectives</div>
+            </div>
+            <button onclick="openModal('assignTask')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> New Task
             </button>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Loading tasks…</p>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
+                <p class="text-gray-400 text-sm">Loading tasks…</p>
             </div>
         </div>
     </div>`;
@@ -32,10 +34,12 @@ window.renderTasksManagement = function () {
 
             container.innerHTML = `
             <div class="space-y-6 slide-in">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-2xl font-bold text-gray-900">Tasks &amp; Objectives</h2>
-                    <button onclick="openModal('assignTask')" class="btn-primary">
-                        <i data-lucide="plus" class="w-4 h-4"></i> New Task
+                <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                    <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                        <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Tasks &amp; Objectives</div>
+                    </div>
+                    <button onclick="openModal('assignTask')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> New Task
                     </button>
                 </div>
 
@@ -52,7 +56,7 @@ window.renderTasksManagement = function () {
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full">
+                    <table class="w-full responsive-table">
                         <thead class="bg-gray-50 border-b border-gray-100">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Task</th>
@@ -67,13 +71,13 @@ window.renderTasksManagement = function () {
                             <tr><td colspan="5" class="px-6 py-10 text-center text-gray-400 text-sm">No tasks yet. Assign one from the button above.</td></tr>
                             ` : myTasks.map(task => `
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4" data-label="Task">
                                     <p class="font-medium text-gray-900">${task.title}</p>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-600">${task.branch?.name || '—'}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">${task.deadline ? fmt.date(task.deadline) : '—'}</td>
-                                <td class="px-6 py-4">${priorityBadge(task.priority)}</td>
-                                <td class="px-6 py-4">${statusBadge(task.status)}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600" data-label="Branch">${task.branch?.name || '—'}</td>
+                                <td class="px-6 py-4 text-sm text-gray-600" data-label="Deadline">${task.deadline ? fmt.date(task.deadline) : '—'}</td>
+                                <td class="px-6 py-4" data-label="Priority">${priorityBadge(task.priority)}</td>
+                                <td class="px-6 py-4" data-label="Status">${statusBadge(task.status)}</td>
                             </tr>`).join('')}
                         </tbody>
                     </table>

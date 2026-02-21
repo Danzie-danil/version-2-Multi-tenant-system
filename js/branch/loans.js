@@ -12,16 +12,18 @@ window.renderLoansModule = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Loans &amp; Income</h2>
-            <button onclick="openModal('addLoan')" class="btn-primary">
-                <i data-lucide="plus" class="w-4 h-4"></i> Record Entry
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Loans &amp; Income</div>
+            </div>
+            <button onclick="openModal('addLoan')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Transaction
             </button>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Loading records…</p>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
+                <p class="text-gray-400 text-sm">Loading financial data…</p>
             </div>
         </div>
     </div>`;
@@ -33,10 +35,12 @@ window.renderLoansModule = function () {
 
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Loans &amp; Income</h2>
-                <button onclick="openModal('addLoan')" class="btn-primary">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Record Entry
+            <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Loans &amp; Income</div>
+                </div>
+                <button onclick="openModal('addLoan')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Transaction
                 </button>
             </div>
 
@@ -62,7 +66,7 @@ window.renderLoansModule = function () {
                     <p class="text-gray-400 text-sm">No loan or income records yet</p>
                     <button onclick="openModal('addLoan')" class="mt-4 btn-primary text-sm">Record First Entry</button>
                 </div>` : `
-                <table class="w-full">
+                <table class="w-full responsive-table">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
@@ -78,16 +82,16 @@ window.renderLoansModule = function () {
             const t = typeMap[rec.type] || typeMap.income;
             return `
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4" data-label="Type">
                                 <span class="badge ${t.bg} ${t.text}">${t.label}</span>
                             </td>
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900">${rec.party || '—'}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${rec.notes || '—'}</td>
-                            <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(rec.created_at)}</td>
-                            <td class="px-6 py-4 text-right font-bold ${t.isOut ? 'text-red-600' : 'text-emerald-600'}">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900" data-label="Party">${rec.party || '—'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" data-label="Notes">${rec.notes || '—'}</td>
+                            <td class="px-6 py-4 text-sm text-gray-400" data-label="Date">${fmt.date(rec.created_at)}</td>
+                            <td class="px-6 py-4 text-right font-bold ${t.isOut ? 'text-red-600' : 'text-emerald-600'}" data-label="Amount">
                                 ${t.isOut ? '-' : '+'}${fmt.currency(rec.amount)}
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-center" data-label="Actions">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="confirmDelete('loan', '${rec.id}', 'this record')" class="text-gray-400 hover:text-red-600 transition-colors" title="Delete">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>

@@ -5,12 +5,18 @@ window.renderBranchTasks = function () {
 
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">My Tasks</h2>
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Tasks</div>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400 mr-2">
+                <i data-lucide="clipboard-list" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                <span class="text-[10px] sm:text-xs font-medium">Assigned to you</span>
+            </div>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
                 <p class="text-sm">Loading tasks…</p>
             </div>
         </div>
@@ -20,13 +26,20 @@ window.renderBranchTasks = function () {
     dbTasks.fetchByBranch(state.branchId).then(tasks => {
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">My Tasks</h2>
-                <div class="flex flex-wrap gap-2 text-xs sm:text-sm">
-                    <span class="badge bg-gray-100 text-gray-700">${tasks.filter(t => t.status === 'pending').length} pending</span>
-                    <span class="badge bg-blue-100 text-blue-700">${tasks.filter(t => t.status === 'in_progress').length} in progress</span>
-                    <span class="badge bg-emerald-100 text-emerald-700">${tasks.filter(t => t.status === 'completed').length} done</span>
+            <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Tasks</div>
                 </div>
+                <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400 mr-2">
+                    <i data-lucide="clipboard-list" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                    <span class="text-[10px] sm:text-xs font-medium">Assigned to you</span>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 text-xs sm:text-sm">
+                <span class="badge bg-gray-100 text-gray-700">${tasks.filter(t => t.status === 'pending').length} pending</span>
+                <span class="badge bg-blue-100 text-blue-700">${tasks.filter(t => t.status === 'in_progress').length} in progress</span>
+                <span class="badge bg-emerald-100 text-emerald-700">${tasks.filter(t => t.status === 'completed').length} done</span>
             </div>
 
             ${tasks.length === 0 ? `

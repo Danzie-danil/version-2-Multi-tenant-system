@@ -5,16 +5,18 @@ window.renderSalesModule = function () {
     // Show loading state immediately
     container.innerHTML = `
     <div class="space-y-6 slide-in">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold text-gray-900">Sales</h2>
-            <button onclick="openAddSaleModal()" class="btn-primary btn-success">
-                <i data-lucide="plus" class="w-4 h-4"></i> New Sale
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Sales Register</div>
+            </div>
+            <button onclick="openAddSaleModal()" class="btn-primary btn-success text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> New Sale
             </button>
         </div>
         <div class="flex items-center justify-center py-20">
-            <div class="text-center text-gray-400">
-                <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                <p class="text-sm">Loading sales…</p>
+            <div class="text-center">
+                <span class="loader mx-auto mb-32"></span>
+                <p class="text-gray-400 text-sm">Loading sales data…</p>
             </div>
         </div>
     </div>`;
@@ -32,10 +34,12 @@ window.renderSalesModule = function () {
         const todayTotal = sales.reduce((s, r) => s + Number(r.amount), 0);
         container.innerHTML = `
         <div class="space-y-6 slide-in">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Sales</h2>
-                <button onclick="openAddSaleModal()" class="btn-primary btn-success">
-                    <i data-lucide="plus" class="w-4 h-4"></i> New Sale
+            <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Sales Register</div>
+                </div>
+                <button onclick="openAddSaleModal()" class="btn-primary btn-success text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> New Sale
                 </button>
             </div>
 
@@ -65,7 +69,7 @@ window.renderSalesModule = function () {
                     <p class="text-gray-400 text-sm">No sales recorded yet</p>
                     <button onclick="openModal('addSale')" class="mt-4 btn-primary btn-success text-sm">Record First Sale</button>
                 </div>` : `
-                <table class="w-full">
+                <table class="w-full responsive-table">
                     <thead class="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
@@ -79,12 +83,12 @@ window.renderSalesModule = function () {
                     <tbody class="divide-y divide-gray-50">
                         ${sales.map(sale => `
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-sm font-medium text-gray-900">${sale.customer}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">${sale.items || '—'}</td>
-                            <td class="px-6 py-4"><span class="badge bg-indigo-100 text-indigo-700">${sale.payment}</span></td>
-                            <td class="px-6 py-4 text-sm text-gray-400">${fmt.date(sale.created_at)}</td>
-                            <td class="px-6 py-4 text-right font-bold text-emerald-600">${fmt.currency(sale.amount)}</td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900" data-label="Customer">${sale.customer}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" data-label="Items">${sale.items || '—'}</td>
+                            <td class="px-6 py-4" data-label="Payment"><span class="badge bg-indigo-100 text-indigo-700">${sale.payment}</span></td>
+                            <td class="px-6 py-4 text-sm text-gray-400" data-label="Time">${fmt.date(sale.created_at)}</td>
+                            <td class="px-6 py-4 text-right font-bold text-emerald-600" data-label="Amount">${fmt.currency(sale.amount)}</td>
+                            <td class="px-6 py-4 text-center" data-label="Actions">
                                 <div class="flex items-center justify-center gap-2">
                                     <button onclick="openEditModal('editSale', '${sale.id}')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Edit">
                                         <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -96,12 +100,6 @@ window.renderSalesModule = function () {
                             </td>
                         </tr>`).join('')}
                     </tbody>
-                    <tfoot class="bg-gray-50 border-t border-gray-200">
-                        <tr>
-                            <td colspan="4" class="px-6 py-3 text-sm font-semibold text-gray-700">Total</td>
-                            <td class="px-6 py-3 text-right font-bold text-emerald-700 text-lg">${fmt.currency(todayTotal)}</td>
-                        </tr>
-                    </tfoot>
                 </table>`}
             </div>
         </div>`;
@@ -137,8 +135,12 @@ window.openAddSaleModal = async function () {
 
 window.refreshSaleProducts = async function () {
     try {
-        const btn = document.querySelector('button[onclick="refreshSaleProducts()"] i');
-        if (btn) btn.classList.add('animate-spin');
+        const btn = document.querySelector('button[onclick="refreshSaleProducts()"]');
+        const icon = btn ? btn.querySelector('i') : null;
+        const loader = btn ? btn.querySelector('.loader') : null;
+
+        if (icon) icon.classList.add('hidden');
+        if (loader) loader.classList.remove('hidden');
 
         const inventory = await dbInventory.fetchAll(state.branchId);
         const select = document.getElementById('saleProduct');
@@ -158,7 +160,8 @@ window.refreshSaleProducts = async function () {
             if (select) select.innerHTML = `<option value="" disabled selected>Select a product...</option>${options}`;
         }
 
-        if (btn) btn.classList.remove('animate-spin');
+        if (icon) icon.classList.remove('hidden');
+        if (loader) loader.classList.add('hidden');
     } catch (err) {
         showToast('Failed to refresh: ' + err.message, 'error');
     }
