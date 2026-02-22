@@ -4,8 +4,19 @@
 window.expensesSelection = new Set();
 window.expensesPageState = {
     page: 1,
-    pageSize: 10,
-    totalCount: 0
+    pageSize: 5,
+    totalCount: 0,
+    searchQuery: ''
+};
+
+let expensesSearchTimeout;
+window.handleSearchExpenses = function (e) {
+    clearTimeout(expensesSearchTimeout);
+    expensesSearchTimeout = setTimeout(() => {
+        window.expensesPageState.searchQuery = e.target.value;
+        window.expensesPageState.page = 1;
+        renderExpensesModule();
+    }, 400);
 };
 
 window.changeExpensesPage = function (delta) {
@@ -264,12 +275,11 @@ window.renderExpensesModule = function () {
                     </div>
                 </div>
                 
-                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-rose-500"></i>
                     </div>
-                    <input type="text" placeholder="Search expenses..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-indigo-500 transition-all">
+                    <input type="text" id="expensesSearch" value="${window.expensesPageState.searchQuery}" onkeyup="handleSearchExpenses(event)" placeholder="Search expenses by description, category or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-indigo-500 transition-all">
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -302,8 +312,9 @@ window.renderExpensesModule = function () {
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">${exp.description}</h4>
+                                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate max-w-[200px]">${exp.description}</h4>
+                                        ${tags.filter(t => t.expense_id === exp.id).map(t => `<span class="bg-rose-50 text-rose-700 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"># ${t.tag}</span>`).join('')}
                                         <span class="bg-gray-100 text-gray-600 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap hidden sm:inline-block">${exp.category}</span>
                                     </div>
                                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">

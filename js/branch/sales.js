@@ -321,8 +321,19 @@ window.showReceiptDialog = function (saleStr) {
 window.salesSelection = new Set();
 window.salesPageState = {
     page: 1,
-    pageSize: 10,
-    totalCount: 0
+    pageSize: 5,
+    totalCount: 0,
+    searchQuery: ''
+};
+
+let salesSearchTimeout;
+window.handleSearchSales = function (e) {
+    clearTimeout(salesSearchTimeout);
+    salesSearchTimeout = setTimeout(() => {
+        window.salesPageState.searchQuery = e.target.value;
+        window.salesPageState.page = 1;
+        renderSalesModule();
+    }, 400);
 };
 
 window.changeSalesPage = function (delta) {
@@ -618,12 +629,11 @@ window.renderSalesModule = function () {
                     </div>
                 </div>
                 
-                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
                     </div>
-                    <input type="text" placeholder="Search sales..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400">
+                    <input type="text" id="salesSearch" value="${window.salesPageState.searchQuery}" onkeyup="handleSearchSales(event)" placeholder="Search sales by item name, customer, payment method or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400">
                 </div>
 
                 <!-- Select All Action Bar -->
@@ -685,16 +695,14 @@ window.renderSalesModule = function () {
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start mb-1 gap-4">
-                                    <div class="flex flex-col">
-                                        <h4 class="font-bold text-gray-900 text-[15px] truncate">${itemTitle}</h4>
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            ${tags.filter(t => t.sale_id === sale.id).map(t => `
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 cursor-default group/tag" title="Click x to remove">
-                                                    # ${t.tag}
-                                                    <i data-lucide="x" onclick="event.stopPropagation(); removeSaleTag('${t.id}')" class="w-3 h-3 hover:text-red-600 cursor-pointer"></i>
-                                                </span>
-                                            `).join('')}
-                                        </div>
+                                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+                                        <h4 class="font-bold text-gray-900 text-[15px] truncate max-w-[200px]">${itemTitle}</h4>
+                                        ${tags.filter(t => t.sale_id === sale.id).map(t => `
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-indigo-50 text-indigo-700 whitespace-nowrap">
+                                                # ${t.tag}
+                                                <i data-lucide="x" onclick="event.stopPropagation(); removeSaleTag('${t.id}')" class="w-2.5 h-2.5 hover:text-red-600 cursor-pointer"></i>
+                                            </span>
+                                        `).join('')}
                                     </div>
                                     <div class="flex flex-col items-end gap-1 flex-shrink-0">
                                         <div class="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap">

@@ -4,8 +4,19 @@
 window.customersSelection = new Set();
 window.customersPageState = {
     page: 1,
-    pageSize: 10,
-    totalCount: 0
+    pageSize: 5,
+    totalCount: 0,
+    searchQuery: ''
+};
+
+let customersSearchTimeout;
+window.handleSearchCustomers = function (e) {
+    clearTimeout(customersSearchTimeout);
+    customersSearchTimeout = setTimeout(() => {
+        window.customersPageState.searchQuery = e.target.value;
+        window.customersPageState.page = 1;
+        renderCustomersModule();
+    }, 400);
 };
 
 window.changeCustomersPage = function (delta) {
@@ -248,12 +259,11 @@ window.renderCustomersModule = function () {
                     </div>
                 </div>
                 
-                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
                     </div>
-                    <input type="text" placeholder="Search customers..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                    <input type="text" id="customersSearch" value="${window.customersPageState.searchQuery}" onkeyup="handleSearchCustomers(event)" placeholder="Search customers by name, phone, email or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -286,11 +296,12 @@ window.renderCustomersModule = function () {
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                                         <div class="hidden sm:flex w-6 h-6 rounded-full bg-indigo-100 items-center justify-center flex-shrink-0">
                                             <span class="text-[10px] font-bold text-indigo-600">${c.name.charAt(0).toUpperCase()}</span>
                                         </div>
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">${c.name}</h4>
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate max-w-[150px]">${c.name}</h4>
+                                        ${tags.filter(t => t.customer_id === c.id).map(t => `<span class="bg-indigo-50 text-indigo-700 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"># ${t.tag}</span>`).join('')}
                                         <span class="bg-amber-50 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${c.loyalty_points} pts</span>
                                     </div>
                                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
