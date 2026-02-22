@@ -5,18 +5,7 @@ window.expensesSelection = new Set();
 window.expensesPageState = {
     page: 1,
     pageSize: 5,
-    totalCount: 0,
-    searchQuery: ''
-};
-
-let expensesSearchTimeout;
-window.handleSearchExpenses = function (e) {
-    clearTimeout(expensesSearchTimeout);
-    expensesSearchTimeout = setTimeout(() => {
-        window.expensesPageState.searchQuery = e.target.value;
-        window.expensesPageState.page = 1;
-        renderExpensesModule();
-    }, 400);
+    totalCount: 0
 };
 
 window.changeExpensesPage = function (delta) {
@@ -275,11 +264,12 @@ window.renderExpensesModule = function () {
                     </div>
                 </div>
                 
+                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-rose-500"></i>
                     </div>
-                    <input type="text" id="expensesSearch" value="${window.expensesPageState.searchQuery}" onkeyup="handleSearchExpenses(event)" placeholder="Search expenses by description, category or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-indigo-500 transition-all">
+                    <input type="text" placeholder="Search expenses..." oninput="filterList('expensesList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-indigo-500 transition-all">
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -298,24 +288,26 @@ window.renderExpensesModule = function () {
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-4" id="expensesList">
                     ${expenses.length === 0 ? `
                         <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
                             <i data-lucide="credit-card" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
                             <p class="text-gray-400 text-sm">No expenses history found for this page</p>
                         </div>
                     ` : expenses.map(exp => `
-                        <div class="bg-white border border-gray-200 border-l-[3px] border-l-rose-500 rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
+                        <div data-search="${exp.description.toLowerCase()} ${(exp.category || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[3px] border-l-rose-500 rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
                             <div class="pt-0.5">
                                 <input type="checkbox" value="${exp.id}" onchange="toggleExpenseSelection('${exp.id}')" class="expense-checkbox rounded w-4 h-4 text-rose-600 border-gray-300 focus:ring-rose-500 cursor-pointer" ${window.expensesSelection.has(exp.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate max-w-[200px]">${exp.description}</h4>
-                                        ${tags.filter(t => t.expense_id === exp.id).map(t => `<span class="bg-rose-50 text-rose-700 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"># ${t.tag}</span>`).join('')}
-                                        <span class="bg-gray-100 text-gray-600 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap hidden sm:inline-block">${exp.category}</span>
+                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate flex-shrink-0 max-w-[40%]">${exp.description}</h4>
+                                        <span class="bg-gray-100 text-gray-600 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0 hidden sm:inline-block">${exp.category}</span>
+                                        <div class="flex gap-1 overflow-hidden">
+                                            ${tags.filter(t => t.expense_id === exp.id).map(t => `<span class="bg-rose-50 text-rose-700 border border-rose-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                                         <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(exp.created_at)}</span>

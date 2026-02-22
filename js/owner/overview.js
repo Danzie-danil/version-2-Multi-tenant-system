@@ -107,7 +107,7 @@ window.renderOwnerOverview = function () {
 
         // ── Inventory Alerts (Across All Branches) ───────────────────────────
         Promise.all(branchIds.map(id => dbInventory.fetchAll(id))).then(results => {
-            const allItems = results.flat();
+            const allItems = results.map(r => r.items || []).flat();
             const lowStock = allItems.filter(i => i.quantity <= i.min_threshold);
             const alertContainer = document.getElementById('dashStockAlerts');
 

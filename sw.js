@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bms-v2';
+const CACHE_NAME = 'bms-v4';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -7,15 +7,18 @@ const ASSETS_TO_CACHE = [
     './js/state.js',
     './js/db.js',
     './js/utils.js',
+    './js/theme.js',
     './js/auth.js',
-    './js/simulation.js',
     './js/modals.js',
     './js/app.js',
+    './js/particles.js',
+    './js/simulation.js',
     './js/owner/overview.js',
     './js/owner/branches.js',
     './js/owner/tasks.js',
     './js/owner/analytics.js',
     './js/owner/security.js',
+    './js/owner/settings.js',
     './js/branch/dashboard.js',
     './js/branch/sales.js',
     './js/branch/expenses.js',
@@ -25,7 +28,13 @@ const ASSETS_TO_CACHE = [
     './js/branch/reports.js',
     './js/branch/notes.js',
     './js/branch/loans.js',
-    './logo.jpg'
+    './js/branch/settings.js',
+    './assets/logo.jpg',
+    './assets/logout.svg',
+    './logout.svg',
+    './manifest.json',
+    './logo.jpg',
+    './bg_logo.png'
 ];
 
 self.addEventListener('install', (event) => {

@@ -144,6 +144,13 @@ window.login = async function () {
         }));
     }
 
+    // Apply theme from profile/branch before showing app
+    const userTheme = state.role === 'owner' ? state.profile?.theme : state.branchProfile?.theme;
+    if (userTheme && typeof initTheme === 'function') {
+        console.log(`[Theme] Successfully fetched preference from Supabase: ${userTheme}`);
+        initTheme(userTheme);
+    }
+
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     setupDashboard();
@@ -495,6 +502,12 @@ window.initAuth = async function () {
             state.branches = [];
         }
 
+        // Apply theme preference before showing app
+        if (state.profile?.theme && typeof initTheme === 'function') {
+            console.log(`[Theme] Successfully fetched owner preference: ${state.profile.theme}`);
+            initTheme(state.profile.theme);
+        }
+
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         setupDashboard();
@@ -527,6 +540,12 @@ window.initAuth = async function () {
                 console.warn('Failed to rehydrate full branch profile', err);
                 state.enterpriseName = data.enterpriseName || 'BMS Enterprise';
                 state.profile = { currency: 'USD' };
+            }
+
+            // Apply theme preference before showing app
+            if (state.branchProfile?.theme && typeof initTheme === 'function') {
+                console.log(`[Theme] Successfully fetched branch preference: ${state.branchProfile.theme}`);
+                initTheme(state.branchProfile.theme);
             }
 
             document.getElementById('loginScreen').classList.add('hidden');

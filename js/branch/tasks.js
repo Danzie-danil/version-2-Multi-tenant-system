@@ -5,18 +5,7 @@ window.tasksSelection = new Set();
 window.tasksPageState = {
     page: 1,
     pageSize: 5,
-    totalCount: 0,
-    searchQuery: ''
-};
-
-let tasksSearchTimeout;
-window.handleSearchTasks = function (e) {
-    clearTimeout(tasksSearchTimeout);
-    tasksSearchTimeout = setTimeout(() => {
-        window.tasksPageState.searchQuery = e.target.value;
-        window.tasksPageState.page = 1;
-        renderTasksModule();
-    }, 400);
+    totalCount: 0
 };
 
 window.changeTasksPage = function (delta) {
@@ -245,11 +234,12 @@ window.renderBranchTasks = function () {
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 md:p-6 mb-20 md:mb-0">
                 <h3 class="text-xl font-bold text-gray-900 mb-5">Tasks List</h3>
                 
+                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
                     </div>
-                    <input type="text" id="tasksSearch" value="${window.tasksPageState.searchQuery}" onkeyup="handleSearchTasks(event)" placeholder="Search tasks by title, description, status or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                    <input type="text" placeholder="Search tasks..." oninput="filterList('tasksList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -268,26 +258,28 @@ window.renderBranchTasks = function () {
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-4" id="tasksList">
                     ${tasks.length === 0 ? `
                         <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
                             <i data-lucide="list-todo" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
                             <p class="text-gray-400 text-sm">No tasks history found for this page</p>
                         </div>
                     ` : tasks.map(task => `
-                        <div class="bg-white border border-gray-200 border-l-[3px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
+                        <div data-search="${task.title.toLowerCase()} ${(task.description || '').toLowerCase()} ${task.priority} ${task.status}" class="bg-white border border-gray-200 border-l-[3px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
                             <div class="pt-0.5">
                                 <input type="checkbox" value="${task.id}" onchange="toggleTaskSelection('${task.id}')" class="task-checkbox rounded w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.tasksSelection.has(task.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm ${task.status === 'completed' ? 'line-through text-gray-400' : ''} truncate flex-1 min-w-0 max-w-[200px]" title="${task.description || task.title}">${task.title} <span class="text-gray-400 font-normal hidden sm:inline">- ${task.description || ''}</span></h4>
-                                        ${tags.filter(t => t.task_id === task.id).map(t => `<span class="bg-indigo-50 text-indigo-700 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"># ${t.tag}</span>`).join('')}
-                                        <div class="flex items-center gap-1 flex-shrink-0 scale-90 origin-right ml-1">
+                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm ${task.status === 'completed' ? 'line-through text-gray-400' : ''} truncate flex-shrink-0 max-w-[40%]" title="${task.description || task.title}">${task.title} <span class="text-gray-400 font-normal hidden sm:inline">- ${task.description || ''}</span></h4>
+                                        <div class="flex items-center gap-1 flex-shrink-0 scale-90 origin-left">
                                             ${priorityBadge(task.priority)}
                                             ${statusBadge(task.status)}
+                                        </div>
+                                        <div class="flex gap-1 overflow-hidden">
+                                            ${tags.filter(t => t.task_id === task.id).map(t => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0">

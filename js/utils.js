@@ -1,13 +1,27 @@
 // ── Utility Helpers ───────────────────────────────────────────────────────
 
+/* ── Client-Side List Search ─────────────────────── */
+window.filterList = function (listId, query) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const q = query.trim().toLowerCase();
+    list.querySelectorAll('[data-search]').forEach(item => {
+        const text = item.getAttribute('data-search') || '';
+        item.style.display = q === '' || text.includes(q) ? '' : 'none';
+    });
+};
+
 /* ── Toast Notifications ────────────────────────── */
-window.showToast = function (message, type = 'info', duration = 3500) {
+window.showToast = function (message, type = 'info', duration = 2500) {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
+
+    // Clear existing toasts to prevent stacking
+    container.innerHTML = '';
 
     const icons = {
         success: 'check-circle',
@@ -23,6 +37,7 @@ window.showToast = function (message, type = 'info', duration = 3500) {
     lucide.createIcons();
 
     setTimeout(() => {
+        if (!toast.parentElement) return;
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(40px)';
         toast.style.transition = 'all 0.3s ease';

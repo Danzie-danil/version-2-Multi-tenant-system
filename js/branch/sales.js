@@ -322,18 +322,7 @@ window.salesSelection = new Set();
 window.salesPageState = {
     page: 1,
     pageSize: 5,
-    totalCount: 0,
-    searchQuery: ''
-};
-
-let salesSearchTimeout;
-window.handleSearchSales = function (e) {
-    clearTimeout(salesSearchTimeout);
-    salesSearchTimeout = setTimeout(() => {
-        window.salesPageState.searchQuery = e.target.value;
-        window.salesPageState.page = 1;
-        renderSalesModule();
-    }, 400);
+    totalCount: 0
 };
 
 window.changeSalesPage = function (delta) {
@@ -629,11 +618,12 @@ window.renderSalesModule = function () {
                     </div>
                 </div>
                 
+                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
                     </div>
-                    <input type="text" id="salesSearch" value="${window.salesPageState.searchQuery}" onkeyup="handleSearchSales(event)" placeholder="Search sales by item name, customer, payment method or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400">
+                    <input type="text" placeholder="Search sales..." oninput="filterList('salesList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-400">
                 </div>
 
                 <!-- Select All Action Bar -->
@@ -653,7 +643,7 @@ window.renderSalesModule = function () {
                 </div>
 
                 <!-- Sales List -->
-                <div class="space-y-3.5">
+                <div class="space-y-3.5" id="salesList">
                     ${sales.length === 0 ? `
                         <div class="py-12 text-center border-2 border-dashed border-gray-100 rounded-2xl">
                             <i data-lucide="shopping-cart" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
@@ -687,32 +677,31 @@ window.renderSalesModule = function () {
             const profitVal = (unitPrice - costPrice) * parseInt(itemQty);
 
             return `
-                        <div class="bg-white border border-gray-200 border-l-[3px] ${outlineColor} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
+                        <div data-search="${itemTitle.toLowerCase()} ${(sale.customer || 'walk-in').toLowerCase()} ${sale.payment.toLowerCase()} ${(sale.receipt_number || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[3px] ${outlineColor} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
                             
                             <div class="pt-0.5 pl-1.5">
                                 <input type="checkbox" value="${sale.id}" onchange="toggleSaleSelection('${sale.id}')" class="sale-checkbox rounded w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer transition-colors" ${window.salesSelection.has(sale.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-start mb-1 gap-4">
-                                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                                        <h4 class="font-bold text-gray-900 text-[15px] truncate max-w-[200px]">${itemTitle}</h4>
-                                        ${tags.filter(t => t.sale_id === sale.id).map(t => `
-                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-indigo-50 text-indigo-700 whitespace-nowrap">
-                                                # ${t.tag}
-                                                <i data-lucide="x" onclick="event.stopPropagation(); removeSaleTag('${t.id}')" class="w-2.5 h-2.5 hover:text-red-600 cursor-pointer"></i>
-                                            </span>
-                                        `).join('')}
-                                    </div>
-                                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                                        <div class="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap">
-                                            Total: ${fmt.currency(sale.amount)}
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate flex-shrink-0 max-w-[30%]">${itemTitle}</h4>
+                                        <span class="text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0 hidden sm:inline-block">${itemQty} × ${fmt.currency(unitPrice)} · ${sale.payment}</span>
+                                        <div class="flex items-center gap-1 overflow-hidden">
+                                            ${tags.filter(t => t.sale_id === sale.id).map(t => `
+                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 whitespace-nowrap flex-shrink-0 cursor-default group/tag" title="Click x to remove">
+                                                    # ${t.tag}
+                                                    <i data-lucide="x" onclick="event.stopPropagation(); removeSaleTag('${t.id}')" class="w-2.5 h-2.5 hover:text-red-600 cursor-pointer ml-0.5"></i>
+                                                </span>
+                                            `).join('')}
                                         </div>
                                     </div>
+                                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                                        <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(sale.created_at)}</span>
+                                        <span class="text-xs sm:text-sm font-black text-emerald-600 whitespace-nowrap">${fmt.currency(sale.amount)}</span>
+                                    </div>
                                 </div>
-                                <p class="text-[11px] md:text-xs text-gray-500 mb-3.5 truncate">
-                                    ${itemQty} × ${fmt.currency(unitPrice)} · ${sale.payment} · ${sale.customer || 'Walk-in'} · ${fmt.date(sale.created_at)}
-                                </p>
                                 
                                 <div class="grid grid-cols-5 gap-1 sm:gap-1.5 w-full mt-2">
                                     <button onclick="openEditModal('editSale', '${sale.id}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[9px] min-[360px]:text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">

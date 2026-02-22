@@ -5,18 +5,7 @@ window.loansSelection = new Set();
 window.loansPageState = {
     page: 1,
     pageSize: 5,
-    totalCount: 0,
-    searchQuery: ''
-};
-
-let loansSearchTimeout;
-window.handleSearchLoans = function (e) {
-    clearTimeout(loansSearchTimeout);
-    loansSearchTimeout = setTimeout(() => {
-        window.loansPageState.searchQuery = e.target.value;
-        window.loansPageState.page = 1;
-        renderLoansModule();
-    }, 400);
+    totalCount: 0
 };
 
 window.changeLoansPage = function (delta) {
@@ -273,11 +262,12 @@ window.renderLoansModule = function () {
                     </div>
                 </div>
                 
+                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
                     </div>
-                    <input type="text" id="loansSearch" value="${window.loansPageState.searchQuery}" onkeyup="handleSearchLoans(event)" placeholder="Search records by party, notes, type or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                    <input type="text" placeholder="Search records..." oninput="filterList('loansList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -296,7 +286,7 @@ window.renderLoansModule = function () {
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-4" id="loansList">
                     ${records.length === 0 ? `
                         <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
                             <i data-lucide="banknote" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
@@ -305,18 +295,20 @@ window.renderLoansModule = function () {
                     ` : records.map(rec => {
             const t = typeMap[rec.type] || typeMap.income;
             return `
-                        <div class="bg-white border border-gray-200 border-l-[3px] ${t.isOut ? 'border-l-red-500 bg-red-50/10' : 'border-l-emerald-500 bg-emerald-50/10'} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
+                        <div data-search="${(rec.party || '').toLowerCase()} ${rec.type} ${(rec.notes || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[3px] ${t.isOut ? 'border-l-red-500 bg-red-50/10' : 'border-l-emerald-500 bg-emerald-50/10'} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
                             <div class="pt-0.5">
                                 <input type="checkbox" value="${rec.id}" onchange="toggleLoanSelection('${rec.id}')" class="loan-checkbox rounded w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.loansSelection.has(rec.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate max-w-[150px]">${rec.party || 'No Party Listed'}</h4>
-                                        ${tags.filter(t => t.loan_id === rec.id).map(t => `<span class="bg-indigo-50 text-indigo-700 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"># ${t.tag}</span>`).join('')}
-                                        <span class="${t.bg} ${t.text} text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap hidden sm:inline-block">${t.label}</span>
-                                        <span class="text-[10px] text-gray-500 truncate hidden md:inline-block">- ${rec.notes || ''}</span>
+                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate flex-shrink-0 max-w-[35%]">${rec.party || 'No Party Listed'}</h4>
+                                        <span class="${t.bg} ${t.text} text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap flex-shrink-0 hidden sm:inline-block">${t.label}</span>
+                                        <span class="text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0 hidden md:inline-block">- ${rec.notes || ''}</span>
+                                        <div class="flex gap-1 overflow-hidden">
+                                            ${tags.filter(tg => tg.loan_id === rec.id).map(tg => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${tg.tag}</span>`).join('')}
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                                         <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(rec.created_at)}</span>

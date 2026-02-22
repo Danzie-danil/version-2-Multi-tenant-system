@@ -5,18 +5,7 @@ window.notesSelection = new Set();
 window.notesPageState = {
     page: 1,
     pageSize: 5,
-    totalCount: 0,
-    searchQuery: ''
-};
-
-let notesSearchTimeout;
-window.handleSearchNotes = function (e) {
-    clearTimeout(notesSearchTimeout);
-    notesSearchTimeout = setTimeout(() => {
-        window.notesPageState.searchQuery = e.target.value;
-        window.notesPageState.page = 1;
-        renderNotesModule();
-    }, 400);
+    totalCount: 0
 };
 
 window.changeNotesPage = function (delta) {
@@ -249,11 +238,12 @@ window.renderNotesModule = function () {
                     </div>
                 </div>
                 
+                <!-- Search & Filters -->
                 <div class="relative mb-4">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i data-lucide="search" class="w-4 h-4 text-amber-500"></i>
                     </div>
-                    <input type="text" id="notesSearch" value="${window.notesPageState.searchQuery}" onkeyup="handleSearchNotes(event)" placeholder="Search notes by title, details or tags..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-indigo-500 transition-all">
+                    <input type="text" placeholder="Search notes..." oninput="filterList('notesList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-indigo-500 transition-all">
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -272,24 +262,26 @@ window.renderNotesModule = function () {
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-4" id="notesList">
                     ${notes.length === 0 ? `
                         <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
                             <i data-lucide="file-text" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
                             <p class="text-gray-400 text-sm">No notes history found for this page</p>
                         </div>
                     ` : notes.map(note => `
-                        <div class="bg-white border border-gray-200 border-l-[3px] border-l-amber-500 rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
+                        <div data-search="${note.title.toLowerCase()} ${(note.details || note.content || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[3px] border-l-amber-500 rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
                             <div class="pt-0.5">
                                 <input type="checkbox" value="${note.id}" onchange="toggleNoteSelection('${note.id}')" class="note-checkbox rounded w-4 h-4 text-amber-600 border-gray-300 focus:ring-amber-500 cursor-pointer" ${window.notesSelection.has(note.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate max-w-[200px]">${note.title}</h4>
-                                        ${tags.filter(t => t.note_id === note.id).map(t => `<span class="bg-amber-50 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"># ${t.tag}</span>`).join('')}
-                                        <span class="text-[10px] text-gray-500 truncate hidden sm:inline-block">- ${note.details || ''}</span>
+                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate flex-shrink-0 max-w-[40%]">${note.title}</h4>
+                                        <span class="text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0 hidden sm:inline-block">- ${note.details || ''}</span>
+                                        <div class="flex gap-1 overflow-hidden">
+                                            ${tags.filter(t => t.note_id === note.id).map(t => `<span class="bg-amber-50 text-amber-700 border border-amber-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
+                                        </div>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0">
                                         <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(note.created_at)}</span>

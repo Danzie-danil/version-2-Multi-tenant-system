@@ -1,5 +1,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+:root {
+    /* ── Light Theme Variables ────────────────── */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-header: #ffffff;
+    --bg-input: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.95);
+
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+
+    --border-color: #e5e7eb;
+    --border-light: #f1f5f9;
+}
+
+.dark {
+    /* ── Dark Theme Variables ─────────────────── */
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #1e293b;
+    --bg-header: #1e293b;
+    --bg-input: #0f172a;
+    --bg-glass: rgba(15, 23, 42, 0.95);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+
+    --border-color: #334155;
+    --border-light: #1e293b;
+}
+
 /* ── Base ─────────────────────────────────────── */
 *,
 *::before,
@@ -9,32 +43,355 @@
 
 body {
     font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ── Glassmorphism ────────────────────────────── */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-glass);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-color);
 }
 
 .login-glass {
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--bg-glass);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+header {
+    background-color: var(--bg-header) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.theme-control {
+    background-color: var(--bg-header) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark .text-gray-900 {
+    color: var(--text-primary) !important;
+}
+
+.dark .text-gray-800 {
+    color: var(--text-primary) !important;
+}
+
+.dark .text-gray-700 {
+    color: var(--text-secondary) !important;
+}
+
+.dark .text-gray-600 {
+    color: var(--text-secondary) !important;
+}
+
+.dark .text-gray-500 {
+    color: var(--text-muted) !important;
+}
+
+.dark .text-gray-400 {
+    color: var(--text-muted) !important;
+}
+
+.dark .text-gray-300 {
+    color: var(--text-muted) !important;
+}
+
+.dark .text-slate-900 {
+    color: var(--text-primary) !important;
+}
+
+.dark .text-slate-800 {
+    color: var(--text-primary) !important;
+}
+
+.dark .text-slate-700 {
+    color: var(--text-secondary) !important;
+}
+
+.dark .text-slate-600 {
+    color: var(--text-secondary) !important;
+}
+
+/* ── Background Overrides ─────────────────────── */
+.dark .bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+.dark .bg-gray-50 {
+    background-color: var(--bg-main) !important;
+}
+
+.dark .bg-gray-100 {
+    background-color: var(--border-light) !important;
+}
+
+.dark .bg-gray-200 {
+    background-color: var(--border-color) !important;
+}
+
+.dark .bg-slate-50 {
+    background-color: var(--bg-main) !important;
+}
+
+.dark .border-slate-100 {
+    border-color: var(--border-light) !important;
+}
+
+.dark .border-slate-200 {
+    border-color: var(--border-color) !important;
+}
+
+/* ── Hover/Active State Tint Overrides ────────── */
+/* Prevents the "white shade" on buttons in dark mode */
+.dark .hover\:bg-gray-50:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .hover\:bg-indigo-50:hover {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+.dark .hover\:bg-emerald-50:hover {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.dark .hover\:bg-red-50:hover {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.dark .hover\:bg-violet-50:hover {
+    background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+.dark .hover\:bg-amber-50:hover {
+    background-color: rgba(245, 158, 11, 0.1) !important;
+}
+
+.dark .hover\:bg-blue-50:hover {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Static Background Tints */
+.dark .bg-gray-50 {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.dark .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.08) !important;
+}
+
+.dark .bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+.dark .bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.dark .bg-violet-50 {
+    background-color: rgba(139, 92, 246, 0.08) !important;
+}
+
+.dark .bg-amber-50 {
+    background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+/* Border tweaks for high-contrast hover */
+.dark .group:hover .hover\:border-indigo-400 {
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+.dark .group:hover .hover\:border-emerald-400 {
+    border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark .group:hover .hover\:border-blue-400 {
+    border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.dark .group:hover .hover\:border-red-400 {
+    border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+.dark .group:hover .hover\:border-violet-400 {
+    border-color: rgba(139, 92, 246, 0.4) !important;
+}
+
+.dark .group:hover .hover\:border-amber-400 {
+    border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.dark .text-gray-200 {
+    color: var(--text-secondary) !important;
+}
+
+/* ── Colored Text Contrast Overrides ─────────── */
+/* Makes red, emerald, and amber text brighter in dark mode for better visibility */
+.dark .text-red-500,
+.dark .text-red-600 {
+    color: #fca5a5 !important;
+}
+
+/* Bright red (Tailwind red-300) */
+.dark .text-emerald-500,
+.dark .text-emerald-600 {
+    color: #6ee7b7 !important;
+}
+
+/* Bright emerald (Tailwind emerald-300) */
+.dark .text-amber-500,
+.dark .text-amber-600 {
+    color: #fcd34d !important;
+}
+
+/* Bright amber (Tailwind amber-300) */
+.dark .text-red-700 {
+    color: #f87171 !important;
+}
+
+/* Tailwind red-400 */
+.dark .text-emerald-700 {
+    color: #34d399 !important;
+}
+
+/* Tailwind emerald-400 */
+.dark .text-amber-700 {
+    color: #fbbf24 !important;
+}
+
+/* Tailwind amber-400 */
+
+.dark .bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+.dark .bg-gray-50 {
+    background-color: var(--bg-main) !important;
+}
+
+.dark .bg-gray-50\/10 {
+    background-color: rgba(30, 41, 59, 0.4) !important;
+}
+
+.dark .bg-gray-50\/20 {
+    background-color: rgba(30, 41, 59, 0.5) !important;
+}
+
+.dark .bg-gray-50\/30 {
+    background-color: rgba(30, 41, 59, 0.6) !important;
+}
+
+.dark .bg-gray-50\/50 {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+.dark .bg-gray-50\/70 {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+.dark .bg-gray-100 {
+    background-color: var(--border-light) !important;
+}
+
+.dark .bg-gray-200 {
+    background-color: var(--border-color) !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .hover\:bg-gray-50\/30:hover {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .border-gray-50 {
+    border-color: var(--border-light) !important;
+}
+
+.dark .border-gray-100 {
+    border-color: var(--border-color) !important;
+}
+
+.dark .border-gray-200 {
+    border-color: var(--border-color) !important;
+}
+
+.dark .border-gray-300 {
+    border-color: var(--border-color) !important;
+}
+
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Read-only / Disabled inputs in dark mode */
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled {
+    background-color: var(--bg-input) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border-color) !important;
+}
+
+
+/* Special cases for inputs and buttons inside cards */
+.dark .stat-card p.text-gray-500 {
+    color: var(--text-muted) !important;
+}
+
+.dark .form-input,
+.dark input[type="text"],
+.dark input[type="password"],
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="time"],
+.dark textarea {
+    background-color: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+
+.dark .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.dark .text-indigo-600 {
+    color: #818cf8 !important;
+}
+
+.dark .text-indigo-700 {
+    color: #a5b4fc !important;
 }
 
 .auth-input {
-    background-color: #f8fafc;
-    border: 1.5px solid transparent;
+    background-color: var(--bg-input);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-primary);
     transition: all 0.2s ease;
 }
 
 .auth-input:focus {
-    background-color: #ffffff;
+    background-color: var(--bg-card);
     border-color: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
 }
 
 .role-slider-active {
@@ -58,6 +415,11 @@ body {
     z-index: 0;
     /* Light theme gradient base */
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    transition: opacity 0.5s ease;
+}
+
+.dark #bg-canvas {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 /* Ensure login card is above canvas */
@@ -71,8 +433,14 @@ body {
 }
 
 /* ── Sidebar ──────────────────────────────────── */
+aside {
+    background-color: var(--bg-sidebar) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
 .sidebar-item {
     transition: all 0.25s ease;
+    color: var(--text-secondary) !important;
 }
 
 .sidebar-item:hover {
@@ -83,6 +451,20 @@ body {
 .sidebar-item.active {
     background: rgba(99, 102, 241, 0.12);
     color: #4f46e5 !important;
+}
+
+.dark .sidebar-item {
+    color: var(--text-secondary) !important;
+}
+
+.dark .sidebar-item:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.dark .sidebar-item.active {
+    background: rgba(99, 102, 241, 0.25);
+    color: #818cf8 !important;
+    /* brighter indigo for dark mode */
 }
 
 
@@ -169,6 +551,16 @@ body {
     }
 }
 
+.form-input::placeholder {
+    color: var(--text-muted);
+}
+
+.dark .form-input::placeholder {
+    color: #64748b;
+    /* slate-500 */
+}
+
+
 /* ── Progress Bars ───────────────────────────── */
 .progress-bar {
     transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -180,7 +572,9 @@ body {
 .dashboard-card {
     /* generic fallback */
     container-type: inline-size;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
 }
 
 .stat-card:hover {
@@ -333,12 +727,14 @@ tbody tr {
 .form-input {
     width: 100%;
     padding: 0.6rem 1rem;
-    border: 1.5px solid #e5e7eb;
+    border: 1.5px solid var(--border-color);
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
     outline: none;
     font-family: inherit;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
 }
 
 .form-input:focus {
@@ -410,23 +806,25 @@ select.form-input {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-color: #fff;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
     /* Ensure it matches text inputs */
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
     background-position: right 0.75rem center;
     background-repeat: no-repeat;
     background-size: 1rem 1rem;
-    /* Slightly smaller chevron */
     padding-right: 2.5rem;
     cursor: pointer;
     line-height: 1.5;
-    /* Ensure consistent height with text inputs */
-    color: #111827;
-    /* Tailwind gray-900 */
+    border: 1.5px solid var(--border-color);
+}
+
+.dark select.form-input {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
 }
 
 select.form-input:disabled {
-    background-color: #f3f4f6;
+    background-color: var(--border-light);
     cursor: not-allowed;
     opacity: 0.7;
 }

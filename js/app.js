@@ -155,7 +155,7 @@ window.checkNotifications = async function () {
         ]);
 
         const pendingTasks = tasksRes.count || 0;
-        const lowStock = stockRes.filter(i => i.quantity <= i.min_threshold).length;
+        const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold).length;
 
         if (pendingTasks > 0 || lowStock > 0) {
             document.getElementById('notifBadge')?.classList.remove('hidden');
@@ -249,7 +249,7 @@ window.showNotifications = async function () {
             ]);
 
             const tasks = tasksRes.data || [];
-            const lowStock = stockRes.filter(i => i.quantity <= i.min_threshold);
+            const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold);
             const notes = notesRes.data || [];
 
             // 1. Stock Alerts (Urgent)

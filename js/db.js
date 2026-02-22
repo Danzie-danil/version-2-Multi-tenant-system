@@ -69,6 +69,15 @@ window.dbProfile = {
 
         if (res.error) console.error('[DEBUG] Upsert Error:', res.error);
         return _check(res, 'upsertProfile');
+    },
+
+    /** Specific helper for theme sync */
+    updateTheme: async (ownerId, theme) => {
+        const res = await _db
+            .from('profiles')
+            .update({ theme })
+            .eq('id', ownerId);
+        return _check(res, 'updateProfileTheme');
     }
 };
 
@@ -204,6 +213,15 @@ window.dbBranches = {
         return _check(res, 'updateBranchStatus');
     },
 
+    /** Specific helper for branch theme sync */
+    updateTheme: async (branchId, theme) => {
+        const res = await _db
+            .from('branches')
+            .update({ theme })
+            .eq('id', branchId);
+        return _check(res, 'updateBranchTheme');
+    },
+
     /** Delete a branch */
     delete: async (branchId) => {
         const res = await _db
@@ -220,7 +238,7 @@ window.dbBranches = {
 
 window.dbSales = {
     /** Fetch paginated sales for a branch */
-    fetchAll: async (branchId, { page = 1, pageSize = 10, dateFilter = null, searchQuery = '' } = {}) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10, dateFilter = null } = {}) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
@@ -231,20 +249,6 @@ window.dbSales = {
 
         if (dateFilter) {
             query = query.gte('created_at', dateFilter instanceof Date ? dateFilter.toISOString() : dateFilter);
-        }
-
-        if (searchQuery) {
-            const safeSearch = searchQuery.replace(/[%,()='"]/g, '');
-            if (safeSearch) {
-                const tagRes = await _db.from('sale_tags').select('sale_id').eq('branch_id', branchId).ilike('tag', `%${safeSearch}%`);
-                const matchedIds = (tagRes.data || []).map(t => t.sale_id);
-
-                let orStr = `customer.ilike.%${safeSearch}%,items.ilike.%${safeSearch}%,payment.ilike.%${safeSearch}%`;
-                if (matchedIds.length > 0) {
-                    orStr += `,id.in.(${matchedIds.join(',')})`;
-                }
-                query = query.or(orStr);
-            }
         }
 
         const res = await query.order('created_at', { ascending: false }).range(from, to);
@@ -384,30 +388,14 @@ window.dbSaleTags = {
 
 window.dbExpenses = {
     /** Fetch paginated expenses for a branch */
-    fetchAll: async (branchId, { page = 1, pageSize = 10, searchQuery = '' } = {}) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = _db
+        const res = await _db
             .from('expenses')
             .select('*', { count: 'exact' })
-            .eq('branch_id', branchId);
-
-        if (searchQuery) {
-            const safeSearch = searchQuery.replace(/[%,()='"]/g, '');
-            if (safeSearch) {
-                const tagRes = await _db.from('expense_tags').select('expense_id').eq('branch_id', branchId).ilike('tag', `%${safeSearch}%`);
-                const matchedIds = (tagRes.data || []).map(t => t.expense_id);
-
-                let orStr = `description.ilike.%${safeSearch}%,category.ilike.%${safeSearch}%`;
-                if (matchedIds.length > 0) {
-                    orStr += `,id.in.(${matchedIds.join(',')})`;
-                }
-                query = query.or(orStr);
-            }
-        }
-
-        const res = await query
+            .eq('branch_id', branchId)
             .order('created_at', { ascending: false })
             .range(from, to);
         const data = _check(res, 'fetchExpenses');
@@ -468,31 +456,15 @@ window.dbExpenseTags = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbCustomers = {
-    fetchAll: async (branchId, { page = 1, pageSize = 10, searchQuery = '' } = {}) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = _db
+        const res = await _db
             .from('customers')
             .select('*', { count: 'exact' })
-            .eq('branch_id', branchId);
-
-        if (searchQuery) {
-            const safeSearch = searchQuery.replace(/[%,()='"]/g, '');
-            if (safeSearch) {
-                const tagRes = await _db.from('customer_tags').select('customer_id').eq('branch_id', branchId).ilike('tag', `%${safeSearch}%`);
-                const matchedIds = (tagRes.data || []).map(t => t.customer_id);
-
-                let orStr = `name.ilike.%${safeSearch}%,phone.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%,address.ilike.%${safeSearch}%`;
-                if (matchedIds.length > 0) {
-                    orStr += `,id.in.(${matchedIds.join(',')})`;
-                }
-                query = query.or(orStr);
-            }
-        }
-
-        const res = await query
-            .order('name', { ascending: true })
+            .eq('branch_id', branchId)
+            .order('created_at', { ascending: false })
             .range(from, to);
         const data = _check(res, 'fetchCustomers');
         return { items: data, count: res.count || 0 };
@@ -550,30 +522,14 @@ window.dbCustomerTags = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbInventory = {
-    fetchAll: async (branchId, { page = 1, pageSize = 10, searchQuery = '' } = {}) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = _db
+        const res = await _db
             .from('inventory')
             .select('*', { count: 'exact' })
-            .eq('branch_id', branchId);
-
-        if (searchQuery) {
-            const safeSearch = searchQuery.replace(/[%,()='"]/g, '');
-            if (safeSearch) {
-                const tagRes = await _db.from('inventory_tags').select('inventory_id').eq('branch_id', branchId).ilike('tag', `%${safeSearch}%`);
-                const matchedIds = (tagRes.data || []).map(t => t.inventory_id);
-
-                let orStr = `name.ilike.%${safeSearch}%,sku.ilike.%${safeSearch}%,category.ilike.%${safeSearch}%`;
-                if (matchedIds.length > 0) {
-                    orStr += `,id.in.(${matchedIds.join(',')})`;
-                }
-                query = query.or(orStr);
-            }
-        }
-
-        const res = await query
+            .eq('branch_id', branchId)
             .order('name', { ascending: true })
             .range(from, to);
         const data = _check(res, 'fetchInventory');
@@ -651,30 +607,14 @@ window.dbTasks = {
     },
 
     /** Branch: fetch tasks for this branch */
-    fetchAll: async (branchId, { page = 1, pageSize = 10, searchQuery = '' } = {}) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = _db
+        const res = await _db
             .from('tasks')
             .select('*', { count: 'exact' })
-            .eq('branch_id', branchId);
-
-        if (searchQuery) {
-            const safeSearch = searchQuery.replace(/[%,()='"]/g, '');
-            if (safeSearch) {
-                const tagRes = await _db.from('task_tags').select('task_id').eq('branch_id', branchId).ilike('tag', `%${safeSearch}%`);
-                const matchedIds = (tagRes.data || []).map(t => t.task_id);
-
-                let orStr = `title.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%,status.ilike.%${safeSearch}%`;
-                if (matchedIds.length > 0) {
-                    orStr += `,id.in.(${matchedIds.join(',')})`;
-                }
-                query = query.or(orStr);
-            }
-        }
-
-        const res = await query
+            .eq('branch_id', branchId)
             .order('created_at', { ascending: false })
             .range(from, to);
         const data = _check(res, 'fetchTasks');
@@ -723,30 +663,14 @@ window.dbTaskTags = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbNotes = {
-    fetchAll: async (branchId, { page = 1, pageSize = 10, searchQuery = '' } = {}) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = _db
+        const res = await _db
             .from('notes')
             .select('*', { count: 'exact' })
-            .eq('branch_id', branchId);
-
-        if (searchQuery) {
-            const safeSearch = searchQuery.replace(/[%,()='"]/g, '');
-            if (safeSearch) {
-                const tagRes = await _db.from('note_tags').select('note_id').eq('branch_id', branchId).ilike('tag', `%${safeSearch}%`);
-                const matchedIds = (tagRes.data || []).map(t => t.note_id);
-
-                let orStr = `title.ilike.%${safeSearch}%,details.ilike.%${safeSearch}%`;
-                if (matchedIds.length > 0) {
-                    orStr += `,id.in.(${matchedIds.join(',')})`;
-                }
-                query = query.or(orStr);
-            }
-        }
-
-        const res = await query
+            .eq('branch_id', branchId)
             .order('created_at', { ascending: false })
             .range(from, to);
         const data = _check(res, 'fetchNotes');
@@ -844,6 +768,21 @@ window.dbLoans = {
     bulkDelete: async (ids) => {
         const res = await _db.from('loans').delete().in('id', ids);
         return _check(res, 'bulkDeleteLoans');
+    }
+};
+
+window.dbLoanTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('loan_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchLoanTags');
+    },
+    add: async (branchId, loanId, tag) => {
+        const res = await _db.from('loan_tags').insert([{ branch_id: branchId, loan_id: loanId, tag }]);
+        return _check(res, 'addLoanTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('loan_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteLoanTag');
     }
 };
 

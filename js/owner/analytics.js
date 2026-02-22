@@ -21,7 +21,7 @@ window.renderAnalytics = async function () {
         }));
 
         // Fetch all expenses and tasks if needed for aggregate stats
-        const allExpenses = (await Promise.all(branches.map(b => dbExpenses.fetchAll(b.id)))).flat();
+        const allExpenses = (await Promise.all(branches.map(b => dbExpenses.fetchAll(b.id)))).map(r => r.items || []).flat();
         state.expenses = allExpenses;
 
         // Fetch global tasks for Tasks Completion metrics

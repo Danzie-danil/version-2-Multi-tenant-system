@@ -65,16 +65,20 @@ window.renderBranchDashboard = function () {
     </div>`;
     lucide.createIcons();
 
-    // Fetch data in parallel
+    // Fetch data in parallel — all paginated APIs return { items, count }
     Promise.all([
-        dbSales.fetchAll(state.branchId),
-        dbExpenses.fetchAll(state.branchId),
-        dbTasks.fetchByBranch(state.branchId),
-        dbInventory.fetchAll(state.branchId)
-    ]).then(([sales, expenses, tasks, items]) => {
+        dbSales.fetchAll(state.branchId, { pageSize: 1000 }),
+        dbExpenses.fetchAll(state.branchId, { pageSize: 1000 }),
+        dbTasks.fetchAll(state.branchId, { pageSize: 1000 }),
+        dbInventory.fetchAll(state.branchId, { pageSize: 1000 })
+    ]).then(([salesRes, expensesRes, tasksRes, inventoryRes]) => {
+        const sales = salesRes.items || [];
+        const expenses = expensesRes.items || [];
+        const tasks = tasksRes.items || [];
+        const items = inventoryRes.items || [];
+
         const todaySalesTotal = sales.reduce((s, r) => s + Number(r.amount), 0);
         const todayExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
-        const progress = fmt.percent(todaySalesTotal, branch.target);
 
         document.getElementById('dashKPIs').innerHTML = `
         <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 md:p-5 rounded-2xl text-white shadow-sm stat-card min-w-0">

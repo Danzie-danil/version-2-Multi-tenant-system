@@ -9,6 +9,25 @@
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Custom colors if needed
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+            // Immediate theme initialization to avoid flash
+            (function () {
+                const theme = localStorage.getItem('bms-theme') || 'light';
+                if (theme === 'dark') document.documentElement.classList.add('dark');
+            })();
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
@@ -332,7 +351,16 @@
                     </div>
 
                     <!-- Grouped Controls -->
-                    <div class="flex items-center bg-white border border-gray-200 rounded-xl p-0.5 shadow-sm">
+                    <div
+                        class="flex items-center bg-white border border-gray-200 rounded-xl p-0.5 shadow-sm theme-control">
+                        <button onclick="toggleTheme()" id="themeToggle" title="Toggle Theme"
+                            class="p-2 text-gray-500 hover:bg-gray-50 rounded-lg transition-colors group">
+                            <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                            <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        </button>
+
+                        <div class="w-px h-4 bg-gray-100 mx-1"></div>
+
                         <button onclick="showNotifications()"
                             class="relative p-2 text-gray-500 hover:bg-gray-50 rounded-lg transition-colors group">
                             <i data-lucide="bell" class="w-5 h-5 group-hover:text-indigo-600"></i>
@@ -506,6 +534,7 @@
     <script src="js/db.js"></script>
 
     <!-- 4. Core Utilities -->
+    <script src="js/theme.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/modals.js"></script>
