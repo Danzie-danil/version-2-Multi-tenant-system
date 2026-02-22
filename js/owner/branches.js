@@ -15,7 +15,6 @@ window.renderBranchesManagement = function () {
         </div>
         <div class="flex items-center justify-center py-20">
             <div class="text-center">
-                <span class="loader mx-auto mb-32"></span>
                 <p class="text-gray-400 text-sm">Loading branches…</p>
             </div>
         </div>

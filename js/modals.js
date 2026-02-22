@@ -83,7 +83,6 @@ window.getModalHTML = function (type, data) {
                             </select>
                             <button type="button" onclick="refreshSaleProducts()" class="p-2 text-gray-500 hover:text-indigo-600 border border-gray-300 rounded-lg flex items-center justify-center min-w-[38px] min-h-[38px]" title="Refresh Products">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                                <span class="loader loader-inline hidden"></span>
                             </button>
                         </div>
                     </div>
@@ -257,7 +256,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label for="branchOwnerEmail" class="block text-sm font-medium text-gray-700 mb-1">Admin Owner Email (for App Login)</label>
-                    <input type="email" id="branchOwnerEmail" required class="form-input" placeholder="admin@example.com">
+                    <input type="email" id="branchOwnerEmail" required class="form-input" placeholder="admin@example.com" autocomplete="email">
                     <p class="text-xs text-gray-400 mt-1">Branch will use this email alongside their Name & PIN to log in.</p>
                 </div>
                 <div>
@@ -766,22 +765,19 @@ window.handleAddSale = async function (e) {
         const productSelect = document.getElementById('saleProduct');
         const qty = document.getElementById('saleQty').value;
         let items = '';
+        let productId = null;
 
         if (productSelect && productSelect.selectedIndex > 0) {
             const option = productSelect.options[productSelect.selectedIndex];
             const name = option.getAttribute('data-name');
             items = `${qty}x ${name}`;
-
-            // Deduct stock (optional but recommended)
-            const productId = productSelect.value;
-            // Note: In a real app we'd handle atomic decrements. For now we assume db update.
-            // We could call dbInventory.updateQty here if we wanted to decrement stock immediately.
+            productId = productSelect.value;
         } else {
             // Fallback if they didn't select (shouldn't happen with required)
             items = 'Custom Item';
         }
 
-        await dbSales.add(state.branchId, { customer, items, amount, payment });
+        await dbSales.add(state.branchId, { customer, items, amount, payment, productId, qty });
         closeModal();
         const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
         addActivity('sale', `New sale to ${customer}`, branch.name, amount);

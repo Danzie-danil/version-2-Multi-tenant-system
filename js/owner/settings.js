@@ -199,24 +199,26 @@ window.renderSettings = function () {
                             </div>
                         </div>
 
-                        <div class="mt-8">
-                            <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">System Utilities</h4>
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 gap-4">
-                                <div>
-                                    <p class="font-medium text-sm text-gray-900">Fetch New Code Changes</p>
-                                    <p class="text-xs text-gray-500 mt-1">Force the application to reload and download the latest updates.</p>
-                                </div>
-                                <button type="button" onclick="confirmUpdateApp()" class="flex items-center justify-center gap-3 px-4 py-2 bg-[#0f172a] border border-gray-700/50 rounded-full hover:bg-[#1e293b] transition-colors w-full sm:w-auto shadow-sm group">
-                                    <div class="w-6 h-6 rounded bg-gradient-to-b from-blue-400 to-blue-500 flex items-center justify-center shadow-sm">
-                                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
-                                    </div>
-                                    <span class="text-gray-300 font-medium text-sm pr-1">Check for Updates</span>
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                 </form>
+                
+                <!-- Always Visible System Utilities -->
+                <div class="p-8 border-t border-gray-100 bg-gray-50/30">
+                    <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">System Utilities</h4>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white rounded-xl border border-gray-100 gap-4">
+                        <div>
+                            <p class="font-medium text-sm text-gray-900">Fetch New Code Changes</p>
+                            <p class="text-xs text-gray-500 mt-1">Force the application to reload and download the latest updates.</p>
+                        </div>
+                        <button type="button" onclick="confirmUpdateApp()" class="flex items-center justify-center gap-3 px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-full hover:bg-emerald-700 transition-colors w-full sm:w-auto shadow-sm group">
+                            <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center shadow-sm">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
+                            </div>
+                            <span class="text-white font-medium text-sm pr-1">Check for Updates</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>`;
@@ -268,7 +270,7 @@ window.switchSettingsTab = function (tabName) {
 window.saveSettings = async function () {
     const notifyBtn = document.querySelector('button[onclick="saveSettings()"]');
     const originalText = notifyBtn.innerHTML;
-    notifyBtn.innerHTML = '<span class="loader loader-inline"></span> Saving...';
+    notifyBtn.innerHTML = 'Saving...';
     notifyBtn.disabled = true;
 
     // Gather Personal Data

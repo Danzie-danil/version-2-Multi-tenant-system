@@ -219,14 +219,42 @@ window.dbBranches = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbSales = {
-    /** Fetch all sales for a branch */
-    fetchAll: async (branchId) => {
-        const res = await _db
+    /** Fetch paginated sales for a branch */
+    fetchAll: async (branchId, { page = 1, pageSize = 10, dateFilter = null } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
+        let query = _db
             .from('sales')
-            .select('*')
-            .eq('branch_id', branchId)
-            .order('created_at', { ascending: false });
-        return _check(res, 'fetchSales');
+            .select('*', { count: 'exact' })
+            .eq('branch_id', branchId);
+
+        if (dateFilter) {
+            query = query.gte('created_at', dateFilter instanceof Date ? dateFilter.toISOString() : dateFilter);
+        }
+
+        const res = await query.order('created_at', { ascending: false }).range(from, to);
+        const data = _check(res, 'fetchSales');
+        return { items: data, count: res.count || 0 };
+    },
+
+    /** Fetch branch sales summary (Today's stats) */
+    fetchSummary: async (branchId) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const res = await _db.rpc('get_branch_sales_summary', {
+            p_branch_id: branchId,
+            p_today_start: today.toISOString()
+        });
+        const data = _check(res, 'fetchSalesSummary');
+        return data[0] || { today_total: 0, transaction_count: 0, avg_sale: 0 };
+    },
+
+    /** Fetch gross profit stats */
+    fetchProfit: async (branchId) => {
+        const res = await _db.rpc('get_branch_profit_stats', { p_branch_id: branchId });
+        const data = _check(res, 'fetchProfitStats');
+        return data[0] || { gross_profit: 0 };
     },
 
     fetchOne: async (id) => {
@@ -246,14 +274,40 @@ window.dbSales = {
         return data.reduce((s, r) => s + Number(r.amount), 0);
     },
 
-    /** Record a new sale */
-    add: async (branchId, { customer, items, amount, payment }) => {
+    /** Record a new sale and deduct inventory */
+    add: async (branchId, sale) => {
+        const { customer, items, amount, payment, productId, qty } = sale;
+
         const res = await _db
             .from('sales')
-            .insert({ branch_id: branchId, customer, items, amount, payment })
+            .insert([{
+                branch_id: branchId,
+                customer,
+                items,
+                amount,
+                payment,
+                product_id: productId, // Track specific item
+                quantity: qty         // Track specific qty
+            }])
             .select()
             .single();
-        return _check(res, 'addSale');
+
+        const addedSale = _check(res, 'addSale');
+
+        // Inventory Reduction Logic (already implemented in previous sessions)
+        if (productId && qty) {
+            try {
+                const { data: item } = await _db.from('inventory').select('quantity').eq('id', productId).single();
+                if (item) {
+                    const newQty = Math.max(0, item.quantity - parseInt(qty));
+                    await _db.from('inventory').update({ quantity: newQty }).eq('id', productId);
+                }
+            } catch (err) {
+                console.warn('[DB] Inventory reduction failed:', err.message);
+            }
+        }
+
+        return addedSale;
     },
 
     update: async (id, { customer, items, amount, payment }) => {
@@ -267,6 +321,12 @@ window.dbSales = {
     delete: async (id) => {
         const res = await _db.from('sales').delete().eq('id', id);
         return _check(res, 'deleteSale');
+    },
+
+    /** Bulk Delete Sales */
+    bulkDelete: async (ids) => {
+        const res = await _db.from('sales').delete().in('id', ids);
+        return _check(res, 'bulkDeleteSales');
     },
 
     /** Fetch historical sales for trend analysis */
@@ -285,18 +345,43 @@ window.dbSales = {
     }
 };
 
+window.dbSaleTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('sale_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchSaleTags');
+    },
+    add: async (branchId, saleId, tag) => {
+        const res = await _db.from('sale_tags').insert([{ branch_id: branchId, sale_id: saleId, tag }]);
+        return _check(res, 'addSaleTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('sale_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteSaleTag');
+    },
+    deleteBySale: async (saleId) => {
+        const res = await _db.from('sale_tags').delete().eq('sale_id', saleId);
+        return _check(res, 'deleteSaleTagsBySale');
+    }
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // EXPENSES
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbExpenses = {
-    fetchAll: async (branchId) => {
+    /** Fetch paginated expenses for a branch */
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const res = await _db
             .from('expenses')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('branch_id', branchId)
-            .order('created_at', { ascending: false });
-        return _check(res, 'fetchExpenses');
+            .order('created_at', { ascending: false })
+            .range(from, to);
+        const data = _check(res, 'fetchExpenses');
+        return { items: data, count: res.count || 0 };
     },
 
     fetchOne: async (id) => {
@@ -324,21 +409,47 @@ window.dbExpenses = {
     delete: async (id) => {
         const res = await _db.from('expenses').delete().eq('id', id);
         return _check(res, 'deleteExpense');
+    },
+    bulkDelete: async (ids) => {
+        const res = await _db.from('expenses').delete().in('id', ids);
+        return _check(res, 'bulkDeleteExpenses');
     }
 };
+
+window.dbExpenseTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('expense_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchExpenseTags');
+    },
+    add: async (branchId, expenseId, tag) => {
+        const res = await _db.from('expense_tags').insert([{ branch_id: branchId, expense_id: expenseId, tag }]);
+        return _check(res, 'addExpenseTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('expense_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteExpenseTag');
+    }
+};
+
+// INCOME (Redundant - Income records are stored in the loans table)
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CUSTOMERS
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbCustomers = {
-    fetchAll: async (branchId) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const res = await _db
             .from('customers')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('branch_id', branchId)
-            .order('created_at', { ascending: false });
-        return _check(res, 'fetchCustomers');
+            .order('created_at', { ascending: false })
+            .range(from, to);
+        const data = _check(res, 'fetchCustomers');
+        return { items: data, count: res.count || 0 };
     },
 
     fetchOne: async (id) => {
@@ -366,6 +477,25 @@ window.dbCustomers = {
     delete: async (id) => {
         const res = await _db.from('customers').delete().eq('id', id);
         return _check(res, 'deleteCustomer');
+    },
+    bulkDelete: async (ids) => {
+        const res = await _db.from('customers').delete().in('id', ids);
+        return _check(res, 'bulkDeleteCustomers');
+    }
+};
+
+window.dbCustomerTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('customer_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchCustomerTags');
+    },
+    add: async (branchId, customerId, tag) => {
+        const res = await _db.from('customer_tags').insert([{ branch_id: branchId, customer_id: customerId, tag }]);
+        return _check(res, 'addCustomerTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('customer_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteCustomerTag');
     }
 };
 
@@ -374,13 +504,18 @@ window.dbCustomers = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbInventory = {
-    fetchAll: async (branchId) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const res = await _db
             .from('inventory')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('branch_id', branchId)
-            .order('name', { ascending: true });
-        return _check(res, 'fetchInventory');
+            .order('name', { ascending: true })
+            .range(from, to);
+        const data = _check(res, 'fetchInventory');
+        return { items: data, count: res.count || 0 };
     },
 
     fetchOne: async (id) => {
@@ -416,6 +551,25 @@ window.dbInventory = {
     delete: async (id) => {
         const res = await _db.from('inventory').delete().eq('id', id);
         return _check(res, 'deleteInventory');
+    },
+    bulkDelete: async (ids) => {
+        const res = await _db.from('inventory').delete().in('id', ids);
+        return _check(res, 'bulkDeleteInventory');
+    }
+};
+
+window.dbInventoryTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('inventory_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchInventoryTags');
+    },
+    add: async (branchId, inventoryId, tag) => {
+        const res = await _db.from('inventory_tags').insert([{ branch_id: branchId, inventory_id: inventoryId, tag }]);
+        return _check(res, 'addInventoryTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('inventory_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteInventoryTag');
     }
 };
 
@@ -435,13 +589,18 @@ window.dbTasks = {
     },
 
     /** Branch: fetch tasks for this branch */
-    fetchByBranch: async (branchId) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const res = await _db
             .from('tasks')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('branch_id', branchId)
-            .order('deadline', { ascending: true });
-        return _check(res, 'fetchTasksByBranch');
+            .order('created_at', { ascending: false })
+            .range(from, to);
+        const data = _check(res, 'fetchTasks');
+        return { items: data, count: res.count || 0 };
     },
 
     add: async (branchId, { title, description, priority, deadline }) => {
@@ -459,6 +618,25 @@ window.dbTasks = {
             .update({ status })
             .eq('id', taskId);
         return _check(res, 'updateTaskStatus');
+    },
+    bulkDelete: async (ids) => {
+        const res = await _db.from('tasks').delete().in('id', ids);
+        return _check(res, 'bulkDeleteTasks');
+    }
+};
+
+window.dbTaskTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('task_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchTaskTags');
+    },
+    add: async (branchId, taskId, tag) => {
+        const res = await _db.from('task_tags').insert([{ branch_id: branchId, task_id: taskId, tag }]);
+        return _check(res, 'addTaskTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('task_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteTaskTag');
     }
 };
 
@@ -467,13 +645,18 @@ window.dbTasks = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbNotes = {
-    fetchAll: async (branchId) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const res = await _db
             .from('notes')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('branch_id', branchId)
-            .order('created_at', { ascending: false });
-        return _check(res, 'fetchNotes');
+            .order('created_at', { ascending: false })
+            .range(from, to);
+        const data = _check(res, 'fetchNotes');
+        return { items: data, count: res.count || 0 };
     },
 
     fetchOne: async (id) => {
@@ -501,6 +684,25 @@ window.dbNotes = {
             .update({ title, content, tag })
             .eq('id', id);
         return _check(res, 'updateNote');
+    },
+    bulkDelete: async (ids) => {
+        const res = await _db.from('notes').delete().in('id', ids);
+        return _check(res, 'bulkDeleteNotes');
+    }
+};
+
+window.dbNoteTags = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('note_tags').select('*').eq('branch_id', branchId);
+        return _check(res, 'fetchNoteTags');
+    },
+    add: async (branchId, noteId, tag) => {
+        const res = await _db.from('note_tags').insert([{ branch_id: branchId, note_id: noteId, tag }]);
+        return _check(res, 'addNoteTag');
+    },
+    delete: async (tagId) => {
+        const res = await _db.from('note_tags').delete().eq('id', tagId);
+        return _check(res, 'deleteNoteTag');
     }
 };
 
@@ -509,13 +711,18 @@ window.dbNotes = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.dbLoans = {
-    fetchAll: async (branchId) => {
+    fetchAll: async (branchId, { page = 1, pageSize = 10 } = {}) => {
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
         const res = await _db
             .from('loans')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('branch_id', branchId)
-            .order('created_at', { ascending: false });
-        return _check(res, 'fetchLoans');
+            .order('created_at', { ascending: false })
+            .range(from, to);
+        const data = _check(res, 'fetchLoans');
+        return { items: data, count: res.count || 0 };
     },
 
     fetchOne: async (id) => {
@@ -533,16 +740,16 @@ window.dbLoans = {
     },
 
     update: async (id, { type, party, amount, notes }) => {
-        const res = await _db
-            .from('loans')
-            .update({ type, party, amount, notes })
-            .eq('id', id);
+        const res = await _db.from('loans').update({ type, party, amount, notes }).eq('id', id);
         return _check(res, 'updateLoan');
     },
-
     delete: async (id) => {
         const res = await _db.from('loans').delete().eq('id', id);
         return _check(res, 'deleteLoan');
+    },
+    bulkDelete: async (ids) => {
+        const res = await _db.from('loans').delete().in('id', ids);
+        return _check(res, 'bulkDeleteLoans');
     }
 };
 

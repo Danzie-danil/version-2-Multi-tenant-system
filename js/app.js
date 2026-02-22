@@ -179,7 +179,6 @@ window.showNotifications = async function () {
 
     content.innerHTML = `
         <div class="py-10 text-center text-gray-500 flex flex-col items-center">
-            <span class="loader scale-[0.6] mb-20"></span>
             <span class="text-sm">Loading notifications...</span>
         </div>`;
     lucide.createIcons();
