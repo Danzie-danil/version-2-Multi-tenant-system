@@ -301,31 +301,23 @@ window.renderLoansModule = function () {
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-start mb-1 gap-4">
-                                    <div class="flex flex-col">
-                                        <h4 class="font-bold text-gray-900 text-[15px] truncate">${rec.party || 'No Party Listed'}</h4>
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            <span class="badge ${t.bg} ${t.text} text-[10px] py-0 px-2">${t.label}</span>
-                                            ${tags.filter(tg => tg.loan_id === rec.id).map(tg => `
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                    # ${tg.tag}
-                                                </span>
-                                            `).join('')}
-                                        </div>
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <div class="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">${rec.party || 'No Party Listed'}</h4>
+                                        <span class="${t.bg} ${t.text} text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap hidden sm:inline-block">${t.label}</span>
+                                        <span class="text-[10px] text-gray-500 truncate hidden md:inline-block">- ${rec.notes || ''}</span>
                                     </div>
-                                    <div class="text-right">
-                                        <p class="text-lg font-black ${t.isOut ? 'text-red-600' : 'text-emerald-600'}">${t.isOut ? '-' : '+'}${fmt.currency(rec.amount)}</p>
-                                        <p class="text-[10px] text-gray-400">${fmt.date(rec.created_at)}</p>
+                                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                                        <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(rec.created_at)}</span>
+                                        <span class="text-xs sm:text-sm font-black ${t.isOut ? 'text-red-600' : 'text-emerald-600'} whitespace-nowrap">${t.isOut ? '-' : '+'}${fmt.currency(rec.amount)}</span>
                                     </div>
                                 </div>
-                                <p class="text-sm text-gray-600 leading-relaxed mt-2 line-clamp-2">${rec.notes || 'No notes provided'}</p>
-                                <div class="flex gap-2 mt-4 pt-4 border-t border-gray-50">
-                                    <div class="flex-1"></div>
-                                    <button onclick="openLoansTagModal('${rec.id}', false)" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5"></i> Tag
+                                <div class="grid grid-cols-2 gap-1 sm:gap-1.5 w-full mt-2">
+                                    <button onclick="openLoansTagModal('${rec.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
                                     </button>
-                                    <button onclick="confirmDelete('loan', '${rec.id}', 'this record')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 text-gray-300"></i> Delete
+                                    <button onclick="confirmDelete('loan', '${rec.id}', 'this record')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
                                     </button>
                                 </div>
                             </div>

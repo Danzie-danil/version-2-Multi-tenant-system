@@ -275,32 +275,24 @@ window.renderNotesModule = function () {
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-start mb-1 gap-4">
-                                    <div class="flex flex-col">
-                                        <h4 class="font-bold text-gray-900 text-[15px] truncate">${note.title}</h4>
-                                        <div class="flex flex-wrap gap-1 mt-1">
-                                            ${tags.filter(t => t.note_id === note.id).map(t => `
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                                                    # ${t.tag}
-                                                </span>
-                                            `).join('')}
-                                        </div>
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">${note.title}</h4>
+                                        <span class="text-[10px] text-gray-500 truncate hidden sm:inline-block">- ${note.details || ''}</span>
                                     </div>
-                                    <div class="text-right whitespace-nowrap">
-                                        <p class="text-[10px] text-gray-400">${fmt.date(note.created_at)}</p>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(note.created_at)}</span>
                                     </div>
                                 </div>
-                                <p class="text-sm text-gray-600 leading-relaxed mt-2 line-clamp-3">${note.details || ''}</p>
-                                <div class="flex gap-2 mt-4 pt-4 border-t border-gray-50">
-                                    <button onclick="openEditModal('editNote', '${note.id}')" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+                                <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full mt-2">
+                                    <button onclick="openEditModal('editNote', '${note.id}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="edit-3" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Edit</span>
                                     </button>
-                                    <button onclick="openNotesTagModal('${note.id}', false)" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-amber-600 transition-colors">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5"></i> Tag
+                                    <button onclick="openNotesTagModal('${note.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
                                     </button>
-                                    <div class="flex-1"></div>
-                                    <button onclick="confirmDelete('note', '${note.id}', '${note.title}')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 text-gray-300"></i> Delete
+                                    <button onclick="confirmDelete('note', '${note.id}', '${note.title}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
                                     </button>
                                 </div>
                             </div>

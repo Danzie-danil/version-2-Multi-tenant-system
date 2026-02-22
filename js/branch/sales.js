@@ -5,8 +5,28 @@ window.generateReceipt = function (sale, format) {
     console.log(`[Receipt] Generating ${format} for sale:`, sale);
     try {
         const prof = state.profile || state.currentProfile || {};
-        const branchName = prof.branchName || prof.branch_name || prof.full_name || 'Business';
-        const biz = { address: prof.address || '', phone: prof.phone || '', email: prof.email || '' };
+
+        // 1. Enterprise Name
+        const entName = prof.business_name || prof.full_name || 'Business';
+
+        // 2. Branch Name
+        let branchName = state.currentUser || 'Branch';
+        if (state.role === 'owner' && state.branches && state.branches.length > 0) {
+            if (sale.branches && sale.branches.name) {
+                branchName = sale.branches.name;
+            } else if (state.branches.find(b => b.id === sale.branch_id)) {
+                branchName = state.branches.find(b => b.id === sale.branch_id).name;
+            }
+        }
+
+        // 3. Contact Details
+        const phone = prof.mobile_number || prof.phone || '';
+        const address = prof.address || '';
+        const email = prof.email || '';
+
+        // 4. Legal & Tax Identification
+        const taxId = prof.tax_id || '';
+
         const dateObj = new Date(sale.created_at || Date.now());
         const dateStr = dateObj.toISOString().slice(0, 10);
         const timeStr = dateObj.toLocaleTimeString();
@@ -39,10 +59,18 @@ window.generateReceipt = function (sale, format) {
     </div>
     <div style="padding:16px 20px 8px;">
         <div style="text-align:center;margin-bottom:8px;">
-            <div style="font-size:17px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">${branchName}</div>
-            ${biz.address ? `<div style="font-size:11px;margin-top:4px;">${biz.address}</div>` : ''}
-            ${biz.phone ? `<div style="font-size:11px;">Tel: ${biz.phone}</div>` : ''}
-            ${biz.email ? `<div style="font-size:11px;">Email: ${biz.email}</div>` : ''}
+            <div style="font-size:17px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">${entName}</div>
+            <div style="font-size:14px;font-weight:bold;margin-top:2px;text-transform:uppercase;">${branchName}</div>
+            ${(phone || address || email) ? `
+            <div style="font-size:11px;margin-top:6px;line-height:1.4;">
+                ${address ? `<div>${address}</div>` : ''}
+                ${phone ? `<div>Tel: ${phone}</div>` : ''}
+                ${email ? `<div>Email: ${email}</div>` : ''}
+            </div>
+            ` : ''}
+            ${taxId ? `
+            <div style="font-size:11px;margin-top:4px;font-weight:bold;">Tax ID: ${taxId}</div>
+            ` : ''}
         </div>
         <div style="border-top:2px solid #000;margin:10px 0;"></div>
         <div style="text-align:center;font-size:15px;font-weight:bold;margin:8px 0;">SALES RECEIPT</div>
@@ -672,32 +700,27 @@ window.renderSalesModule = function () {
                                         <div class="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap">
                                             Total: ${fmt.currency(sale.amount)}
                                         </div>
-                                        ${profitVal > 0 ? `
-                                            <div class="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap">
-                                                Profit: +${fmt.currency(profitVal)}
-                                            </div>
-                                        ` : ''}
                                     </div>
                                 </div>
                                 <p class="text-[11px] md:text-xs text-gray-500 mb-3.5 truncate">
                                     ${itemQty} × ${fmt.currency(unitPrice)} · ${sale.payment} · ${sale.customer || 'Walk-in'} · ${fmt.date(sale.created_at)}
                                 </p>
                                 
-                                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                    <button onclick="openEditModal('editSale', '${sale.id}')" class="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors group-hover:border-gray-300">
-                                        <i data-lucide="edit-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> Edit
+                                <div class="grid grid-cols-5 gap-1 sm:gap-1.5 w-full mt-2">
+                                    <button onclick="openEditModal('editSale', '${sale.id}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[9px] min-[360px]:text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="edit-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Edit</span>
                                     </button>
-                                    <button onclick="confirmDelete('sale', '${sale.id}')" class="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors group-hover:border-gray-300">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> Delete
+                                    <button onclick="confirmDelete('sale', '${sale.id}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[9px] min-[360px]:text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
                                     </button>
-                                    <button onclick="showReceiptDialog('${encodeURIComponent(JSON.stringify(sale))}')" class="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors group-hover:border-gray-300">
-                                        <i data-lucide="download" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> Receipt
+                                    <button onclick="showReceiptDialog('${encodeURIComponent(JSON.stringify(sale))}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[9px] min-[360px]:text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="download" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Receipt</span>
                                     </button>
-                                    <button onclick="copySale('${encodeURIComponent(JSON.stringify(sale))}')" class="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors group-hover:border-gray-300">
-                                        <i data-lucide="copy" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> Copy
+                                    <button onclick="copySale('${encodeURIComponent(JSON.stringify(sale))}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[9px] min-[360px]:text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Copy</span>
                                     </button>
-                                    <button onclick="openSalesTagModal('${sale.id}', false)" class="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-[11px] md:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-rose-500 transition-colors group-hover:border-gray-300">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> Tag
+                                    <button onclick="openSalesTagModal('${sale.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[9px] min-[360px]:text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-rose-500 transition-colors">
+                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
                                     </button>
                                 </div>
                             </div>
@@ -739,8 +762,9 @@ window.renderSalesModule = function () {
 window.openAddSaleModal = async function () {
     try {
         console.log(`[Sales] Fetching inventory for branch: ${state.branchId}`);
-        // Show loading state on button if possible, or just wait
-        const inventory = await dbInventory.fetchAll(state.branchId);
+        // Support up to 1000 items in the dropdown
+        const res = await dbInventory.fetchAll(state.branchId, { pageSize: 1000 });
+        const inventory = res.items || [];
         console.log('[Sales] Inventory fetched:', inventory);
 
         if (!inventory || inventory.length === 0) {
@@ -762,7 +786,8 @@ window.refreshSaleProducts = async function () {
 
         if (icon) icon.classList.add('hidden');
 
-        const inventory = await dbInventory.fetchAll(state.branchId);
+        const res = await dbInventory.fetchAll(state.branchId, { pageSize: 1000 });
+        const inventory = res.items || [];
         const select = document.getElementById('saleProduct');
 
         if (!inventory || inventory.length === 0) {

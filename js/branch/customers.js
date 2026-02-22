@@ -285,38 +285,28 @@ window.renderCustomersModule = function () {
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-start mb-1 gap-4">
-                                    <div class="flex flex-col">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                                <span class="text-sm font-bold text-indigo-600">${c.name.charAt(0).toUpperCase()}</span>
-                                            </div>
-                                            <h4 class="font-bold text-gray-900 text-[15px] truncate">${c.name}</h4>
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                                        <div class="hidden sm:flex w-6 h-6 rounded-full bg-indigo-100 items-center justify-center flex-shrink-0">
+                                            <span class="text-[10px] font-bold text-indigo-600">${c.name.charAt(0).toUpperCase()}</span>
                                         </div>
-                                        <div class="flex flex-wrap gap-1 mt-2">
-                                            <span class="badge bg-amber-100 text-amber-700 text-[10px] py-0 px-2">${c.loyalty_points} pts</span>
-                                            ${tags.filter(t => t.customer_id === c.id).map(t => `
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                    # ${t.tag}
-                                                </span>
-                                            `).join('')}
-                                        </div>
+                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate">${c.name}</h4>
+                                        <span class="bg-amber-50 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap">${c.loyalty_points} pts</span>
                                     </div>
-                                    <div class="text-right">
-                                        <p class="text-sm font-bold text-gray-900">${c.phone || 'No phone'}</p>
-                                        <p class="text-[10px] text-gray-400">${fmt.date(c.created_at)}</p>
+                                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                                        <span class="text-[10px] text-gray-500 whitespace-nowrap">${c.phone || ''}</span>
+                                        <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap hidden sm:inline-block">${fmt.date(c.created_at)}</span>
                                     </div>
                                 </div>
-                                <div class="flex gap-2 mt-4 pt-4 border-t border-gray-50">
-                                    <button onclick="openEditModal('editCustomer', '${c.id}')" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="edit-2" class="w-3.5 h-3.5"></i> Edit
+                                <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full mt-2">
+                                    <button onclick="openEditModal('editCustomer', '${c.id}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="edit-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Edit</span>
                                     </button>
-                                    <button onclick="openCustomerTagModal('${c.id}', false)" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5"></i> Tag
+                                    <button onclick="openCustomerTagModal('${c.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
                                     </button>
-                                    <div class="flex-1"></div>
-                                    <button onclick="confirmDelete('customer', '${c.id}', '${c.name}')" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 text-gray-300"></i> Delete
+                                    <button onclick="confirmDelete('customer', '${c.id}', '${c.name}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
                                     </button>
                                 </div>
                             </div>
