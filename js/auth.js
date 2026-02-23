@@ -363,6 +363,8 @@ window.register = async function () {
 };
 
 window.logout = async function () {
+    // Tear down live WebSocket before session ends
+    window.destroyRealtimeSync?.();
     if (state.role === 'owner') {
         await dbAuth.signOut();
     }
@@ -397,6 +399,9 @@ window.setupDashboard = function () {
         switchView(lastView);
     }
     lucide.createIcons();
+
+    // Start the live WebSocket sync after the dashboard is fully ready
+    setTimeout(() => window.initRealtimeSync?.(), 300);
 };
 
 /* ── Role Toggle Logic ────────────────────────────────────────────────── */

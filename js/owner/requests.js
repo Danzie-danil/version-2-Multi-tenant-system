@@ -139,9 +139,9 @@ window.handleRequestAction = async function (id, status) {
                     branch_id: req.branch_id,
                     inventory_id: addedItem.id,
                     request_id: req.id,
-                    supplier: supplier || 'Unknown',
+                    supplier_info: supplier || 'Unknown',
                     quantity: quantity,
-                    unit_cost: cost_price || 0,
+                    cost_price: cost_price || 0,
                     purchase_date: new Date().toISOString().split('T')[0]
                 });
             } else if (req.type === 'inventory_update' && req.metadata) {
@@ -157,9 +157,9 @@ window.handleRequestAction = async function (id, status) {
                         branch_id: req.branch_id,
                         inventory_id: inventory_id,
                         request_id: req.id,
-                        supplier: supplier || 'Unknown',
+                        supplier_info: supplier || 'Unknown',
                         quantity: quantity,
-                        unit_cost: cost_price || 0,
+                        cost_price: cost_price || 0,
                         purchase_date: new Date().toISOString().split('T')[0]
                     });
                 }
