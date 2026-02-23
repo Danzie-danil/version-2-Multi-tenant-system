@@ -54,32 +54,34 @@ window.renderTasksManagement = function () {
                     </div>`).join('')}
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full responsive-table">
-                        <thead class="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Task</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Branch</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Deadline</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Priority</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            ${myTasks.length === 0 ? `
-                            <tr><td colspan="5" class="px-6 py-10 text-center text-gray-400 text-sm">No tasks yet. Assign one from the button above.</td></tr>
-                            ` : myTasks.map(task => `
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4" data-label="Task">
-                                    <p class="text-sm sm:text-base font-medium text-gray-900">${task.title}</p>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-600" data-label="Branch">${task.branch?.name || '—'}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600" data-label="Deadline">${task.deadline ? fmt.date(task.deadline) : '—'}</td>
-                                <td class="px-6 py-4" data-label="Priority">${priorityBadge(task.priority)}</td>
-                                <td class="px-6 py-4" data-label="Status">${statusBadge(task.status)}</td>
-                            </tr>`).join('')}
-                        </tbody>
-                    </table>
+                <div class="space-y-4">
+                    ${myTasks.length === 0 ? `
+                    <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
+                        <i data-lucide="clipboard-list" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
+                        <p class="text-gray-400 text-sm">No tasks assigned yet. Assign one above.</p>
+                    </div>
+                    ` : myTasks.map(task => `
+                    <div onclick="openDetailsModal('task', '${task.id}')" class="bg-white border border-gray-200 border-l-[4px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                                    <h4 class="font-bold text-gray-900 text-sm sm:text-base ${task.status === 'completed' ? 'line-through text-gray-400' : ''} truncate">${task.title}</h4>
+                                    <span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg font-bold whitespace-nowrap">${task.branch?.name || '—'}</span>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0 scale-95 origin-right">
+                                    ${priorityBadge(task.priority)}
+                                    ${statusBadge(task.status)}
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between text-xs text-gray-500">
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                                    <span>${task.deadline ? fmt.date(task.deadline) : 'No deadline'}</span>
+                                </div>
+                                <span class="group-hover:text-indigo-600 font-bold transition-colors">View Details <i data-lucide="chevron-right" class="w-3.5 h-3.5 inline"></i></span>
+                            </div>
+                        </div>
+                    </div>`).join('')}
                 </div>
             </div>`;
             lucide.createIcons();

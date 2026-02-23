@@ -80,6 +80,39 @@ window.openEditModal = async function (type, id) {
     }
 };
 
+window.openDetailsModal = async function (type, id) {
+    try {
+        let data = null;
+        // Fetch data based on type
+        switch (type) {
+            case 'sale':
+                data = await dbSales.fetchOne(id);
+                // Augment with profit info if possible
+                if (data && data.product_id) {
+                    try {
+                        const product = await dbInventory.fetchOne(data.product_id);
+                        if (product) {
+                            const qty = parseInt(data.quantity || (data.items?.match(/^(\d+)x/)?.[1] || 1));
+                            data.cost_price = product.cost_price || 0;
+                            data.profit = parseFloat(data.amount) - (data.cost_price * qty);
+                        }
+                    } catch (e) { console.warn("Failed to fetch product for profit calc", e); }
+                }
+                break;
+            case 'expense': data = await dbExpenses.fetchOne(id); break;
+            case 'inventory': data = await dbInventory.fetchOne(id); break;
+            case 'note': data = await dbNotes.fetchOne(id); break;
+            case 'customer': data = await dbCustomers.fetchOne(id); break;
+            case 'loan': data = await dbLoans.fetchOne(id); break;
+            case 'task': data = await dbTasks.fetchOne ? await dbTasks.fetchOne(id) : (state.tasks ? state.tasks.find(t => t.id === id) : null); break;
+            case 'branch': data = state.branches ? state.branches.find(b => b.id === id) : await dbBranches.fetchOne(id); break;
+        }
+        if (data) openModal(type + 'Details', data);
+    } catch (err) {
+        showToast('Failed to load details: ' + err.message, 'error');
+    }
+};
+
 /* ── Custom Modal Confirm ────────────────────────── */
 window.confirmModal = function (title, message, confirmText = 'Confirm', cancelText = 'Cancel', confirmClass = 'bg-red-600 hover:bg-red-700', requireText = null) {
     return new Promise((resolve) => {
@@ -265,6 +298,7 @@ window.fmt = {
     },
     time: () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     date: (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    dateTime: (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
     percent: (a, b) => b ? Math.round((a / b) * 100) : 0
 };
 

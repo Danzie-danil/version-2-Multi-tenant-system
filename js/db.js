@@ -834,3 +834,70 @@ window.dbActivities = {
         return all.slice(0, limit);
     }
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REQUESTS & COMMUNICATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+window.dbRequests = {
+    /** Fetch all requests for owner (Approval Queue) */
+    fetchAll: async (ownerId) => {
+        const res = await _db
+            .from('requests')
+            .select('*, branches(name)')
+            .eq('owner_id', ownerId)
+            .order('created_at', { ascending: false });
+        return _check(res, 'fetchRequestsAll');
+    },
+
+    /** Fetch requests for a specific branch */
+    fetchByBranch: async (branchId) => {
+        const res = await _db
+            .from('requests')
+            .select('*')
+            .eq('branch_id', branchId)
+            .order('created_at', { ascending: false });
+        return _check(res, 'fetchRequestsByBranch');
+    },
+
+    /** Create a new request */
+    add: async (payload) => {
+        const res = await _db
+            .from('requests')
+            .insert([payload])
+            .select()
+            .single();
+        return _check(res, 'addRequest');
+    },
+
+    /** Update request (Admin response or status change) */
+    update: async (id, data) => {
+        const res = await _db
+            .from('requests')
+            .update({ ...data, updated_at: new Date().toISOString() })
+            .eq('id', id);
+        return _check(res, 'updateRequest');
+    }
+};
+
+window.dbInventoryPurchases = {
+    /** Log a new inventory purchase */
+    add: async (payload) => {
+        const res = await _db
+            .from('inventory_purchases')
+            .insert([payload])
+            .select()
+            .single();
+        return _check(res, 'addInventoryPurchase');
+    },
+
+    /** Fetch purchase history for branch */
+    fetchByBranch: async (branchId) => {
+        const res = await _db
+            .from('inventory_purchases')
+            .select('*, inventory(name)')
+            .eq('branch_id', branchId)
+            .order('purchase_date', { ascending: false });
+        return _check(res, 'fetchPurchases');
+    }
+};

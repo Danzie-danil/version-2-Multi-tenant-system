@@ -119,7 +119,7 @@ window.openTaskTagModal = async function (taskId, isBulk = false) {
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Suggestions</p>
                 <div class="flex flex-wrap gap-2">
                     ${['Operations', 'Sales', 'Admin', 'Maintenance', 'Urgent'].map(t => `
-                        <button onclick="quickAddTaskTag('${t}', '${taskId}', ${isBulk})" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-indigo-500 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all">
+                        <button onclick="quickAddTaskTag('${t}', '${taskId}', ${isBulk})" class="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:border-indigo-500 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all uppercase tracking-tight">
                             + ${t}
                         </button>
                     `).join('')}
@@ -265,43 +265,26 @@ window.renderBranchTasks = function () {
                             <p class="text-gray-400 text-sm">No tasks history found for this page</p>
                         </div>
                     ` : tasks.map(task => `
-                        <div data-search="${task.title.toLowerCase()} ${(task.description || '').toLowerCase()} ${task.priority} ${task.status}" class="bg-white border border-gray-200 border-l-[3px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
-                            <div class="pt-0.5">
-                                <input type="checkbox" value="${task.id}" onchange="toggleTaskSelection('${task.id}')" class="task-checkbox rounded w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.tasksSelection.has(task.id) ? 'checked' : ''}>
+                        <div onclick="openDetailsModal('task', '${task.id}')" data-search="${task.title.toLowerCase()} ${(task.description || '').toLowerCase()} ${task.priority} ${task.status}" class="bg-white border border-gray-200 border-l-[4px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                            <div class="pt-1" onclick="event.stopPropagation()">
+                                <input type="checkbox" value="${task.id}" onchange="toggleTaskSelection('${task.id}')" class="task-checkbox rounded w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.tasksSelection.has(task.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm ${task.status === 'completed' ? 'line-through text-gray-400' : ''} truncate flex-shrink-0 max-w-[40%]" title="${task.description || task.title}">${task.title} <span class="text-gray-400 font-normal hidden sm:inline">- ${task.description || ''}</span></h4>
-                                        <div class="flex items-center gap-1 flex-shrink-0 scale-90 origin-left">
+                                <div class="flex items-start justify-between gap-3 mb-1">
+                                    <h4 class="font-bold text-gray-900 text-sm sm:text-base ${task.status === 'completed' ? 'line-through text-gray-400' : ''} truncate max-w-[70%]" title="${task.description || task.title}">${task.title}</h4>
+                                    <div class="text-right">
+                                        <p class="text-[10px] uppercase font-bold text-gray-400 leading-none">${task.deadline ? fmt.dateTime(task.deadline) : 'No deadline'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-end justify-between gap-3">
+                                    <div class="flex flex-wrap gap-1.5 overflow-hidden pt-1">
+                                        <div class="flex items-center gap-1.5 flex-shrink-0 scale-95 origin-left">
                                             ${priorityBadge(task.priority)}
                                             ${statusBadge(task.status)}
                                         </div>
-                                        <div class="flex gap-1 overflow-hidden">
-                                            ${tags.filter(t => t.task_id === task.id).map(t => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
-                                        </div>
+                                        ${tags.filter(t => t.task_id === task.id).map(t => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
                                     </div>
-                                    <div class="flex items-center gap-2 flex-shrink-0">
-                                        <span class="text-[9px] sm:text-[10px] text-gray-500 whitespace-nowrap">${task.deadline ? fmt.date(task.deadline) : ''}</span>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full mt-2 items-center">
-                                    ${task.status !== 'completed' ? `
-                                        <button onclick="advanceTask('${task.id}', '${task.status}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-indigo-600 text-white rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-bold hover:bg-indigo-700 shadow-sm shadow-indigo-200 transition-all">
-                                            <i data-lucide="${task.status === 'pending' ? 'play' : 'check-circle'}" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> <span class="leading-none">${task.status === 'pending' ? 'Start Task' : 'Complete'}</span>
-                                        </button>
-                                    ` : `
-                                        <span class="text-[10px] sm:text-[11px] lg:text-xs font-bold text-emerald-600 flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-emerald-50 rounded-lg">
-                                            <i data-lucide="check-check" class="w-3.5 h-3.5 md:w-4 md:h-4"></i> <span class="leading-none text-center">Completed</span>
-                                        </span>
-                                    `}
-                                    <button onclick="openTaskTagModal('${task.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
-                                    </button>
-                                    <button onclick="confirmDelete('task', '${task.id}', 'this task')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>`).join('')}

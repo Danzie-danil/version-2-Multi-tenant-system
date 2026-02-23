@@ -386,7 +386,7 @@
 
             <!-- Sidebar -->
             <aside id="mainSidebar" class="w-64 bg-white flex flex-col flex-shrink-0 
-                          absolute md:relative z-30 transition-transform duration-300 transform 
+                          fixed top-[57px] left-0 md:top-auto md:left-auto md:relative z-30 transition-transform duration-300 transform 
                           -translate-x-[calc(100%+1rem)] md:translate-x-0 shadow-[4px_0_24px_rgba(0,0,0,0.04)]
                           m-4 rounded-3xl h-[calc(100dvh-57px-32px)]">
                 <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" id="sidebarNav">
@@ -412,6 +412,10 @@
                         <button onclick="switchView('security',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
                             <i data-lucide="shield" class="w-4 h-4 flex-shrink-0"></i> Security
+                        </button>
+                        <button onclick="switchView('requests',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i> Approval Queue
                         </button>
                     </div>
 
@@ -444,6 +448,10 @@
                         <button onclick="switchView('reports',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
                             <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i> Reports
+                        </button>
+                        <button onclick="switchView('requests',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="send" class="w-4 h-4 flex-shrink-0"></i> My Requests
                         </button>
                         <div class="pt-1 pb-0.5">
                             <p class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">More</p>
@@ -501,21 +509,26 @@
     <div id="toast-container"></div>
 
     <!-- ── Notifications Slide-over ───────────────────────────────────────── -->
-    <div id="notifOverlay" class="hidden fixed inset-0 bg-black bg-opacity-20 z-40 transition-opacity"
+    <div id="notifOverlay" class="hidden fixed inset-0 bg-black/50 z-20 backdrop-blur-sm transition-opacity"
         onclick="closeNotifications()"></div>
     <div id="notifPanel"
-        class="fixed inset-y-0 right-0 max-w-sm w-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col border-l border-gray-100">
-        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-            <div class="flex items-center gap-2">
-                <i data-lucide="bell" class="w-5 h-5 text-indigo-600"></i>
-                <h3 class="text-lg font-bold text-gray-900">Notifications</h3>
+        class="fixed top-[57px] right-0 w-[280px] md:w-80 bg-white m-4 h-[calc(100dvh-57px-32px)] rounded-3xl shadow-[-4px_0_24px_rgba(0,0,0,0.04)] transform translate-x-[calc(100%+2rem)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-30 flex flex-col border border-gray-100/50">
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Notifications</h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Update Feed</p>
+                </div>
             </div>
             <button onclick="closeNotifications()"
-                class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-200 transition-colors">
+                class="text-gray-400 hover:text-gray-900 p-2 rounded-xl hover:bg-gray-100 transition-all">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
-        <div id="notifContent" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30">
+        <div id="notifContent" class="flex-1 overflow-y-auto p-4 space-y-1">
             <!-- Injected by JS -->
         </div>
     </div>
@@ -545,6 +558,7 @@
     <script src="js/owner/tasks.js"></script>
     <script src="js/owner/analytics.js"></script>
     <script src="js/owner/security.js"></script>
+    <script src="js/owner/requests.js"></script>
     <script src="js/owner/settings.js"></script>
 
     <!-- 6. Branch Modules -->
@@ -557,6 +571,7 @@
     <script src="js/branch/reports.js"></script>
     <script src="js/branch/notes.js"></script>
     <script src="js/branch/loans.js"></script>
+    <script src="js/branch/requests.js"></script>
     <script src="js/branch/settings.js"></script>
 
     <!-- 7. Main App Router (last — depends on everything above) -->

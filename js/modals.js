@@ -2,6 +2,56 @@
 
 window.getModalHTML = function (type, data) {
     switch (type) {
+        /* ── Request Attention (Branch -> Owner) ─── */
+        case 'requestAttention': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="message-square" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Request Attention</h3>
+                        <p class="text-xs text-gray-500 font-medium">Message to Admin concerning this ${data.type}</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleRequestAttention(event)" class="space-y-4">
+                <input type="hidden" id="reqType" value="${data.type}">
+                <input type="hidden" id="reqRelatedId" value="${data.id}">
+                <input type="hidden" id="reqSummary" value="${data.summary}">
+                
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 mb-4">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Related to</p>
+                    <p class="text-sm font-semibold text-gray-800">${data.summary}</p>
+                </div>
+
+                <div>
+                    <label for="reqSubject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <input type="text" id="reqSubject" required class="form-input" placeholder="What's this about?">
+                </div>
+                <div>
+                    <label for="reqPriority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <select id="reqPriority" class="form-input">
+                        <option value="low">Low - General Feedback</option>
+                        <option value="medium" selected>Medium - Needs Review</option>
+                        <option value="high">High - Immediate Attention</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="reqMessage" class="block text-sm font-medium text-gray-700 mb-1">Your Message / Suggestion</label>
+                    <textarea id="reqMessage" required rows="4" class="form-input" placeholder="Explain your proposal or concern..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Send to Owner</button>
+                </div>
+            </form>
+        </div>`;
+
 
         /* ── Assign Task (Owner) ─────────────────── */
         case 'assignTask': return `
@@ -420,58 +470,122 @@ window.getModalHTML = function (type, data) {
             </form>
         </div>`;
 
-        /* ── Add Inventory Item (Branch) ─────────── */
+        /* ── Add Inventory Item (Request Approval) ─── */
         case 'addInventoryItem': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Add Inventory Item</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Request New Stock</h3>
+                    <p class="text-xs text-gray-500 font-medium">Additions require admin approval</p>
+                </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <form onsubmit="handleAddInventoryItem(event)" class="space-y-4">
-                <div>
-                    <label for="itemName" class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
-                    <input type="text" id="itemName" required class="form-input" placeholder="e.g. Product A">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="itemSku" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                        <input type="text" id="itemSku" class="form-input" placeholder="PRD-001" value="${data && data.suggestedSku ? data.suggestedSku : ''}">
-                    </div>
-                <div>
-                    <label for="itemCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select id="itemCategory" class="form-input">
-                        <option value="General">General</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Home & Garden">Home & Garden</option>
-                        <option value="Health & Beauty">Health & Beauty</option>
-                        <option value="Stationery">Stationery</option>
-                        <option value="Services">Services</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="itemPrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
-                        <input type="text" inputmode="decimal" id="itemPrice" required class="form-input number-format" placeholder="0">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label for="itemQty" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                        <input type="text" inputmode="decimal" id="itemQty" required class="form-input number-format" placeholder="0">
-                    </div>
-                    <div>
-                        <label for="itemMinThreshold" class="block text-sm font-medium text-gray-700 mb-1">Min. Threshold</label>
-                        <input type="text" inputmode="decimal" id="itemMinThreshold" required class="form-input number-format" placeholder="10">
+                <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 mb-4">
+                    <p class="text-[10px] text-blue-600 uppercase font-black tracking-wider mb-2">Item Information</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="itemName" class="block text-sm font-bold text-gray-700 mb-1">Item Name</label>
+                            <input type="text" id="itemName" required class="form-input" placeholder="e.g. Product A">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="itemSku" class="block text-sm font-bold text-gray-700 mb-1">SKU</label>
+                                <input type="text" id="itemSku" class="form-input" placeholder="PRD-001" value="${data && data.suggestedSku ? data.suggestedSku : ''}">
+                            </div>
+                            <div>
+                                <label for="itemCategory" class="block text-sm font-bold text-gray-700 mb-1">Category</label>
+                                <select id="itemCategory" class="form-input">
+                                    <option value="General">General</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Groceries">Groceries</option>
+                                    <option value="Home & Garden">Home & Garden</option>
+                                    <option value="Health & Beauty">Health & Beauty</option>
+                                    <option value="Stationery">Stationery</option>
+                                    <option value="Services">Services</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50 mb-4">
+                    <p class="text-[10px] text-amber-600 uppercase font-black tracking-wider mb-2">Purchase & Supplier Details</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="itemSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
+                            <input type="text" id="itemSupplier" required class="form-input text-amber-900" placeholder="e.g. Acme Corp">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-1">
+                                <label for="itemQty" class="block text-sm font-bold text-gray-700 mb-1">Qty</label>
+                                <input type="text" inputmode="decimal" id="itemQty" required class="form-input number-format" placeholder="0">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="itemCost" class="block text-sm font-bold text-gray-700 mb-1">Unit Cost</label>
+                                <input type="text" inputmode="decimal" id="itemCost" required class="form-input number-format font-bold text-amber-600" placeholder="0.00">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="itemPrice" class="block text-sm font-bold text-gray-700 mb-1">Sale Price</label>
+                                <input type="text" inputmode="decimal" id="itemPrice" required class="form-input number-format font-bold text-emerald-600" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="itemMinThreshold" class="block text-sm font-bold text-gray-700 mb-1">Min. Alert Threshold</label>
+                            <input type="text" inputmode="decimal" id="itemMinThreshold" required class="form-input number-format" placeholder="10">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center">Add Item</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center font-black">Submit for Approval</button>
+                </div>
+            </form>
+        </div>`;
+
+        /* ── Restock Stock (Request Approval) ───────── */
+        case 'restockStock': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Request Stock Addition</h3>
+                    <p class="text-xs text-gray-500 font-medium">${data.name} (SKU: ${data.sku || 'N/A'})</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleRestockStock(event, '${data.id}')" class="space-y-4">
+                <input type="hidden" id="restockName" value="${data.name}">
+                
+                <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50 mb-4">
+                    <p class="text-[10px] text-amber-600 uppercase font-black tracking-wider mb-2">Purchase & Supplier Details</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="restockSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
+                            <input type="text" id="restockSupplier" required class="form-input text-amber-900" placeholder="e.g. Acme Corp">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="restockQty" class="block text-sm font-bold text-gray-700 mb-1">Quantity to Add</label>
+                                <input type="text" inputmode="decimal" id="restockQty" required class="form-input number-format" placeholder="0">
+                            </div>
+                            <div>
+                                <label for="restockCost" class="block text-sm font-bold text-gray-700 mb-1">Unit Cost</label>
+                                <input type="text" inputmode="decimal" id="restockCost" required class="form-input number-format font-bold text-amber-600" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center font-black">Submit Request</button>
                 </div>
             </form>
         </div>`;
@@ -644,6 +758,356 @@ window.getModalHTML = function (type, data) {
 
         case 'editCustomer': return _getEditCustomerHTML(data);
         case 'editLoan': return _getEditLoanHTML(data);
+
+        /* ── Detail Views ────────────────────────── */
+        case 'saleDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Sale Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Customer</p>
+                        <p class="text-sm font-semibold">${data.customer || 'Walk-in'}</p>
+                    </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Revenue</p>
+                        <p class="text-sm font-black text-emerald-600">${fmt.currency(data.amount)}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Est. Profit</p>
+                        <p class="text-sm font-black text-indigo-600">${data.profit !== undefined ? fmt.currency(data.profit) : '—'}</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Items / Description</p>
+                    <p class="text-sm font-medium text-gray-800">${data.items || 'N/A'}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Payment</p>
+                        <p class="text-sm font-semibold capitalize text-gray-700">${data.payment}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Date & Time</p>
+                        <p class="text-[11px] font-medium text-gray-600">${new Date(data.created_at).toLocaleString()}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-8">
+                <button onclick="openEditModal('editSale', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Edit
+                </button>
+                <button onclick="showReceiptDialog('${encodeURIComponent(JSON.stringify(data))}')" class="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-colors">
+                    <i data-lucide="download" class="w-4 h-4"></i> Receipt
+                </button>
+                <button onclick="openRequestModal('sale', '${data.id}', 'Sale: ${data.customer || 'Walk-in'} - ${fmt.currency(data.amount)}')" class="flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Request
+                </button>
+                <button onclick="confirmDelete('sale', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                </button>
+            </div>
+        </div>`;
+
+        case 'inventoryDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Product Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                    <h4 class="text-lg font-bold text-indigo-900 mb-1">${data.name}</h4>
+                    <p class="text-xs text-indigo-600 font-medium">SKU: ${data.sku || 'N/A'}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Category</p>
+                        <p class="text-sm font-semibold">${data.category || 'General'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Unit Price</p>
+                        <p class="text-sm font-bold text-gray-900">${fmt.currency(data.price)}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">In Stock</p>
+                        <p class="text-sm font-bold ${data.quantity <= data.min_threshold ? 'text-red-600' : 'text-emerald-600'}">${data.quantity} units</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Min Threshold</p>
+                        <p class="text-sm font-semibold">${data.min_threshold} units</p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-8">
+                <button onclick="openEditModal('editInventoryItem', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Edit Product
+                </button>
+                <button onclick="openModal('restockStock', ${JSON.stringify(data).replace(/"/g, '&quot;')})" class="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-colors">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Restock Stock
+                </button>
+                <button onclick="openInventoryTagModal('${data.id}', false)" class="flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors">
+                    <i data-lucide="tag" class="w-4 h-4"></i> Tags
+                </button>
+                <button onclick="openRequestModal('inventory', '${data.id}', 'Item: ${data.name} (SKU: ${data.sku || 'N/A'})')" class="flex items-center justify-center gap-2 p-2.5 bg-blue-50 text-blue-700 rounded-xl font-bold text-xs hover:bg-blue-100 transition-colors">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Request Attention
+                </button>
+                <button onclick="confirmDelete('inventory', '${data.id}', '${data.name}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors col-span-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Product
+                </button>
+            </div>
+        </div>`;
+
+        case 'expenseDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Expense Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+                    <p class="text-[10px] text-red-600 uppercase font-bold mb-1">Total Amount</p>
+                    <p class="text-2xl font-black text-red-700">${fmt.currency(data.amount)}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Category</p>
+                    <p class="text-sm font-semibold capitalize">${data.category}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Description</p>
+                    <p class="text-sm">${data.description || 'N/A'}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Date recorded</p>
+                    <p class="text-sm">${new Date(data.created_at).toLocaleDateString()} at ${new Date(data.created_at).toLocaleTimeString()}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-8">
+                <button onclick="openEditModal('editExpense', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Edit
+                </button>
+                <button onclick="openRequestModal('expense', '${data.id}', 'Expense: ${data.description || 'N/A'} - ${fmt.currency(data.amount)}')" class="flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Request
+                </button>
+                <button onclick="confirmDelete('expense', '${data.id}', '${data.description}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                </button>
+            </div>
+        </div>`;
+
+        case 'customerDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Customer Profile</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="user" class="w-8 h-8"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-blue-900 mb-1">${data.name}</h4>
+                    <p class="text-xs text-blue-600 font-medium">${data.customer_id || 'ID: ' + data.id.slice(0, 8)}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Phone</p>
+                        <p class="text-sm font-semibold">${data.phone || 'N/A'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Email</p>
+                        <p class="text-sm font-semibold truncate" title="${data.email || ''}">${data.email || 'N/A'}</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl text-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Loyalty Points / Notes</p>
+                    <p class="text-sm font-semibold italic text-gray-400">Activity summary integration pending...</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-8">
+                <button onclick="openEditModal('editCustomer', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Edit
+                </button>
+                <button onclick="openRequestModal('customer', '${data.id}', 'Customer: ${data.name}')" class="flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Request
+                </button>
+                <button onclick="confirmDelete('customer', '${data.id}', '${data.name}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Remove
+                </button>
+            </div>
+        </div>`;
+
+        case 'noteDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Note Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 text-center">
+                    <h4 class="text-lg font-bold text-amber-900 mb-1">${data.title}</h4>
+                    <span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">${data.tag || 'General'}</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl min-h-[100px]">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-2">Content</p>
+                    <p class="text-sm text-gray-700 whitespace-pre-wrap">${data.content}</p>
+                </div>
+                <p class="text-[10px] text-gray-400 text-center">Created on ${fmt.date(data.created_at)}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-8">
+                <button onclick="openEditModal('editNote', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Edit Note
+                </button>
+                <button onclick="confirmDelete('note', '${data.id}', '${data.title}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Note
+                </button>
+            </div>
+        </div>`;
+
+        case 'loanDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Transaction Record</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-center">
+                    <p class="text-[10px] text-emerald-600 uppercase font-bold mb-1">${data.type.replace('_', ' ')}</p>
+                    <p class="text-2xl font-black text-emerald-700">${fmt.currency(data.amount)}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Party</p>
+                        <p class="text-sm font-semibold">${data.party || 'Anonymous'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Date</p>
+                        <p class="text-sm font-semibold">${fmt.date(data.created_at)}</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Notes</p>
+                    <p class="text-sm text-gray-600 italic">${data.notes || 'No additional notes provided.'}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-8">
+                <button onclick="openEditModal('editLoan', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i> Edit Record
+                </button>
+                <button onclick="confirmDelete('loan', '${data.id}', 'this record')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Record
+                </button>
+            </div>
+        </div>`;
+
+        case 'branchDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Branch Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 text-center">
+                    <h4 class="text-xl font-bold text-indigo-900 mb-1">${data.name}</h4>
+                    <p class="text-sm text-indigo-600 font-medium">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 inline mr-1"></i>${data.location || 'No location set'}
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Manager</p>
+                        <p class="text-sm font-semibold">${data.manager || '—'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Status</p>
+                        <span class="badge ${data.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}">${data.status}</span>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Financial Target</p>
+                    <p class="text-lg font-bold text-gray-900">${fmt.currency(data.target)}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Currency Code</p>
+                    <p class="text-sm font-semibold uppercase">${data.currency || 'Not set'}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-8">
+                <button onclick='openModal("editBranch", ${JSON.stringify(data).replace(/'/g, "&apos;")})' class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Settings
+                </button>
+                <button onclick="openModal('resetPin','${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-violet-50 text-violet-700 rounded-xl font-bold text-xs hover:bg-violet-100 transition-colors">
+                    <i data-lucide="key" class="w-4 h-4"></i> PIN
+                </button>
+                <button onclick="deleteBranchRow('${data.id}', '${data.name}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                </button>
+            </div>
+        </div>`;
+
+        case 'taskDetails': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Task Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Task</span>
+                        ${priorityBadge(data.priority)}
+                    </div>
+                    <h4 class="text-lg font-bold text-indigo-900">${data.title}</h4>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-2">Instructions</p>
+                    <p class="text-sm text-gray-700">${data.description || 'No description provided.'}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3 rounded-xl text-center">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Status</p>
+                        ${statusBadge(data.status)}
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-xl text-center">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Deadline</p>
+                        <p class="text-sm font-bold text-red-600">${fmt.date(data.deadline)}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8">
+                ${data.status !== 'completed' ? `
+                    <button onclick="window.updateTaskStatus ? updateTaskStatus('${data.id}', 'completed') : showToast('Status update pending branch implementation')" class="w-full flex items-center justify-center gap-2 p-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i> Mark as Completed
+                    </button>
+                ` : `
+                    <div class="text-center py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm border border-emerald-100">
+                        <i data-lucide="check-circle" class="w-5 h-5 inline-block mr-1"></i> Task Completed
+                    </div>
+                `}
+            </div>
+        </div>`;
 
         default: return null;
     }
@@ -941,23 +1405,77 @@ window.handleAddLoan = async function (e) {
 };
 
 window.handleAddInventoryItem = async function (e) {
-    e.preventDefault();
-    _setSubmitLoading(e.target, true, 'Add Item');
-    try {
-        const name = document.getElementById('itemName').value;
-        const sku = document.getElementById('itemSku').value;
-        const category = document.getElementById('itemCategory').value;
-        const price = fmt.parseNumber(document.getElementById('itemPrice').value) || 0;
-        const quantity = parseInt(document.getElementById('itemQty').value, 10) || 0;
-        const min_threshold = parseInt(document.getElementById('itemMinThreshold').value, 10) || 10;
+    if (e) e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
 
-        await dbInventory.add(state.branchId, { name, sku, category, quantity, min_threshold, price });
+    const itemData = {
+        name: document.getElementById('itemName').value,
+        sku: document.getElementById('itemSku').value,
+        category: document.getElementById('itemCategory').value,
+        price: fmt.parseNumber(document.getElementById('itemPrice').value) || 0,
+        quantity: fmt.parseNumber(document.getElementById('itemQty').value) || 0,
+        min_threshold: fmt.parseNumber(document.getElementById('itemMinThreshold').value) || 10,
+        cost_price: fmt.parseNumber(document.getElementById('itemCost').value) || 0,
+        supplier: document.getElementById('itemSupplier').value
+    };
+
+    // Mandatory Approval Flow
+    const requestPayload = {
+        branch_id: state.branchId,
+        owner_id: state.profile.id,
+        type: 'inventory_add',
+        subject: `New Stock Request: ${itemData.name}`,
+        message: `Requesting to add ${itemData.quantity} units of ${itemData.name}. Supplier: ${itemData.supplier}. Total Cost Basis: ${fmt.currency(itemData.quantity * itemData.cost_price)}`,
+        metadata: itemData,
+        priority: 'medium',
+        status: 'pending'
+    };
+
+    try {
+        _setSubmitLoading(btn, true, 'Submitting...');
+        await dbRequests.add(requestPayload);
+        showToast('Stock addition request submitted to admin!', 'success');
         closeModal();
-        showToast('Item added to inventory!', 'success');
-        switchView('inventory');
+        if (window.renderInventoryModule) renderInventoryModule();
     } catch (err) {
-        showToast('Failed to add item: ' + err.message, 'error');
-        _setSubmitLoading(e.target, false, 'Add Item');
+        showToast('Failed to submit request: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Submit for Approval');
+    }
+};
+
+window.handleRestockStock = async function (e, id) {
+    if (e) e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    const restockData = {
+        inventory_id: id,
+        name: document.getElementById('restockName').value,
+        quantity: fmt.parseNumber(document.getElementById('restockQty').value) || 0,
+        cost_price: fmt.parseNumber(document.getElementById('restockCost').value) || 0,
+        supplier: document.getElementById('restockSupplier').value
+    };
+
+    const requestPayload = {
+        branch_id: state.branchId,
+        owner_id: state.profile.id,
+        type: 'inventory_update', // restock existing
+        subject: `Restock Request: ${restockData.name}`,
+        message: `Requesting restock of ${restockData.quantity} units for ${restockData.name}. Supplier: ${restockData.supplier}. Cost: ${fmt.currency(restockData.quantity * restockData.cost_price)}`,
+        metadata: restockData,
+        priority: 'medium',
+        status: 'pending'
+    };
+
+    try {
+        _setSubmitLoading(btn, true, 'Submitting...');
+        await dbRequests.add(requestPayload);
+        showToast('Restock request submitted!', 'success');
+        closeModal();
+    } catch (err) {
+        showToast('Failed to submit request: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Submit Request');
     }
 };
 
@@ -1065,6 +1583,40 @@ window.handleEditLoan = async function (e, id) {
     } catch (err) {
         showToast('Failed to update record: ' + err.message, 'error');
         _setSubmitLoading(e.target, false, 'Update Record');
+    }
+};
+
+/* ── Request Attention Handlers ─────────────────── */
+window.openRequestModal = function (type, id, summary) {
+    openModal('requestAttention', { type, id, summary });
+};
+
+window.handleRequestAttention = async function (e) {
+    if (e) e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('button[type="submit"]');
+
+    const payload = {
+        branch_id: state.branchId,
+        owner_id: state.profile.id, // Profile ID is the owner's UUID
+        type: document.getElementById('reqType').value,
+        related_id: document.getElementById('reqRelatedId').value,
+        related_summary: document.getElementById('reqSummary').value,
+        subject: document.getElementById('reqSubject').value,
+        message: document.getElementById('reqMessage').value,
+        priority: document.getElementById('reqPriority').value,
+        status: 'pending'
+    };
+
+    try {
+        _setSubmitLoading(btn, true, 'Sending...');
+        await dbRequests.add(payload);
+        showToast('Request sent to owner successfully!');
+        closeModal();
+    } catch (err) {
+        showToast('Failed to send request: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Send to Owner');
     }
 };
 

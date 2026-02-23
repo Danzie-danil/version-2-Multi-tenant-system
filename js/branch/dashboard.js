@@ -13,14 +13,14 @@ window.renderBranchDashboard = function () {
             <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Dashboard</div>
             <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400">
                 <i data-lucide="calendar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i>
-                <span class="text-[10px] sm:text-xs font-medium whitespace-nowrap">${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span class="text-[10px] sm:text-xs font-bold whitespace-nowrap">${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
             </div>
         </div>
 
         <!-- Loading KPIs -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3" id="dashKPIs">
             <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md animate-pulse">
-                <p class="text-indigo-100 text-xs font-medium uppercase tracking-wide mb-6">Today's Sales</p>
+                <p class="text-indigo-100 text-xs font-bold uppercase tracking-wide mb-6">Today's Sales</p>
                 <div class="h-8 bg-white bg-opacity-20 rounded"></div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
@@ -41,21 +41,21 @@ window.renderBranchDashboard = function () {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
-                <button onclick="openAddSaleModal()" class="p-2 border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
+                <button onclick="openAddSaleModal()" class="p-4 border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-medium text-gray-700">New Sale</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">New Sale</span>
                 </button>
-                <button onclick="openModal('addExpense')" class="p-2 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all text-center group">
+                <button onclick="openModal('addExpense')" class="p-4 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all text-center group">
                     <i data-lucide="minus-circle" class="w-4 h-4 text-red-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-medium text-gray-700">Add Expense</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">Add Expense</span>
                 </button>
-                <button onclick="openModal('addCustomer')" class="p-2 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-center group">
+                <button onclick="openModal('addCustomer')" class="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-center group">
                     <i data-lucide="user-plus" class="w-4 h-4 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-medium text-gray-700">Add Customer</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">Add Customer</span>
                 </button>
-                <button onclick="openModal('addNote')" class="p-2 border border-gray-200 rounded-lg hover:border-amber-400 hover:bg-amber-50 transition-all text-center group">
+                <button onclick="openModal('addNote')" class="p-4 border border-gray-200 rounded-lg hover:border-amber-400 hover:bg-amber-50 transition-all text-center group">
                     <i data-lucide="edit-3" class="w-4 h-4 text-amber-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-medium text-gray-700">Add Note</span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">Add Note</span>
                 </button>
             </div>
         </div>
@@ -81,25 +81,25 @@ window.renderBranchDashboard = function () {
         const todayExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
         document.getElementById('dashKPIs').innerHTML = `
-        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 md:p-5 rounded-2xl text-white shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate">Today's Sales</p>
-            <p class="text-dynamic-lg font-bold truncate" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
+        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 rounded-2xl text-white shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate font-bold">Today's Sales</p>
+            <p class="text-dynamic-lg font-black truncate" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
         </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Transactions</p>
-            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${sales.length}</p>
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Transactions</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate">${sales.length}</p>
         </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Expenses</p>
-            <p class="text-dynamic-lg font-bold text-red-600 truncate" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Expenses</p>
+            <p class="text-dynamic-lg font-black text-red-600 truncate" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
         </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Open Tasks</p>
-            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${tasks.filter(t => t.status !== 'completed').length}</p>
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Open Tasks</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate">${tasks.filter(t => t.status !== 'completed').length}</p>
         </div>
-        <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Sales Target</p>
-            <p class="text-dynamic-lg font-bold text-indigo-600 truncate" title="${fmt.currency(branch.target)}">${fmt.currency(branch.target)}</p>
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Sales Target</p>
+            <p class="text-dynamic-lg font-black text-indigo-600 truncate" title="${fmt.currency(branch.target)}">${fmt.currency(branch.target)}</p>
         </div>`;
 
         // Task preview

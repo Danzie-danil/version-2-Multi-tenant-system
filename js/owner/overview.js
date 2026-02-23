@@ -19,7 +19,7 @@ window.renderOwnerOverview = function () {
         <!-- KPI skeleton -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3" id="overviewKPIs">
             ${[1, 2, 3, 4].map(() => `
-            <div class="stat-card bg-white p-5 rounded-2xl shadow-sm border border-gray-100 animate-pulse">
+            <div class="stat-card bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 animate-pulse">
                 <div class="h-3 bg-gray-100 rounded mb-4 w-24"></div>
                 <div class="h-8 bg-gray-100 rounded w-32"></div>
             </div>`).join('')}
@@ -27,15 +27,19 @@ window.renderOwnerOverview = function () {
 
         <!-- Feed + Branch Performance -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-semibold text-gray-900">Live Activity Feed</h3>
-                    <span class="flex items-center gap-2 text-xs text-emerald-600 font-medium">
-                        <span class="w-2 h-2 rounded-full live-indicator inline-block"></span> Real-time
-                    </span>
-                </div>
-                <div id="activityFeed" class="space-y-3 max-h-80 overflow-auto pr-1">
-                    ${renderActivities()}
+            <div class="lg:col-span-2">
+                <div id="pendingApprovals" class="hidden"></div>
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Live Activity Feed</h3>
+                        <span class="flex items-center gap-2 text-xs text-emerald-600 font-medium">
+                            <span class="w-2 h-2 rounded-full live-indicator inline-block"></span> Real-time
+                        </span>
+                    </div>
+                    <div id="activityFeed" class="space-y-3 max-h-80 overflow-auto pr-1">
+                        ${renderActivities()}
+                    </div>
                 </div>
             </div>
 
@@ -86,24 +90,67 @@ window.renderOwnerOverview = function () {
         state.branches = branches;
         const branchIds = branches.map(b => b.id);
 
-        // Fetch today's sales for all branches in parallel, AND wait for activities
-        const [salesTotals, taskCounts, recentActivities] = await Promise.all([
+        // Fetch everything in parallel
+        const [salesTotals, taskCounts, recentActivities, pendingRequests] = await Promise.all([
             Promise.all(branches.map(b => dbSales.todayTotal(b.id).catch(() => 0))),
             supabaseClient
                 .from('tasks')
                 .select('branch_id, status')
                 .in('branch_id', branchIds)
                 .then(r => r.data || []),
-            dbActivities.fetchRecent(branchIds)
+            dbActivities.fetchRecent(branchIds),
+            dbRequests.fetchAll(state.profile.id)
         ]);
 
         state.activities = recentActivities || [];
+        const pendingQueue = (pendingRequests || []).filter(r => r.status === 'pending');
 
         const withSales = branches.map((b, i) => ({ ...b, todaySales: salesTotals[i] }));
         const totalSales = withSales.reduce((s, b) => s + b.todaySales, 0);
         const totalTarget = withSales.reduce((s, b) => s + Number(b.target), 0);
         const progress = totalTarget > 0 ? fmt.percent(totalSales, totalTarget) : 0;
         const pendingTasks = taskCounts.filter(t => t.status !== 'completed').length;
+
+        // ── Approval Queue (Top of feed column) ───────────────────────────
+        const requestContainer = document.getElementById('pendingApprovals');
+        if (requestContainer) {
+            if (pendingQueue.length === 0) {
+                requestContainer.innerHTML = '';
+                requestContainer.classList.add('hidden');
+            } else {
+                requestContainer.classList.remove('hidden');
+                requestContainer.innerHTML = `
+                    <div class="bg-indigo-600 rounded-2xl shadow-lg border border-indigo-500 overflow-hidden mb-6">
+                        <div class="px-5 py-4 flex items-center justify-between border-b border-indigo-500 bg-indigo-700/50">
+                            <div class="flex items-center gap-2 text-white">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                <h3 class="font-bold">Approval Queue</h3>
+                            </div>
+                            <span class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase">${pendingQueue.length} Pending</span>
+                        </div>
+                        <div class="p-2 space-y-1">
+                            ${pendingQueue.slice(0, 3).map(req => `
+                                <div onclick="switchView('requests', '${req.id}')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-all group">
+                                    <div class="w-10 h-10 bg-white/10 text-white rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <i data-lucide="${req.type.includes('inventory') ? 'package' : 'message-square'}" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold text-white truncate">${req.subject}</p>
+                                        <p class="text-[10px] text-indigo-200 truncate">${req.branches?.name || 'Unknown'} · ${req.related_summary || ''}</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-white/30"></i>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="switchView('requests')" class="w-full py-3 text-[10px] font-black uppercase text-indigo-100 bg-indigo-700/30 hover:bg-indigo-700/50 transition-colors tracking-widest border-t border-indigo-500/30">
+                            Manage All Requests →
+                        </button>
+                    </div>`;
+                lucide.createIcons();
+            }
+        }
+
+        // ... rest of the status updates ...
 
         // ── Inventory Alerts (Across All Branches) ───────────────────────────
         Promise.all(branchIds.map(id => dbInventory.fetchAll(id))).then(results => {
@@ -147,21 +194,21 @@ window.renderOwnerOverview = function () {
 
         // Update KPI cards
         document.getElementById('overviewKPIs').innerHTML = `
-        <div onclick="switchView('sales')" class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 md:p-5 rounded-2xl text-white shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
-            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate">Total Revenue</p>
-            <p class="text-dynamic-lg font-bold truncate" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
+        <div onclick="switchView('sales')" class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 rounded-2xl text-white shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
+            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate font-bold">Total Revenue</p>
+            <p class="text-dynamic-lg font-black truncate" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
         </div>
-        <div onclick="switchView('branches')" class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Active Branches</p>
-            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${branches.length}</p>
+        <div onclick="switchView('branches')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Active Branches</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate">${branches.length}</p>
         </div>
-        <div onclick="switchView('tasks')" class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Pending Tasks</p>
-            <p class="text-dynamic-lg font-bold text-gray-900 truncate">${pendingTasks}</p>
+        <div onclick="switchView('tasks')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Pending Tasks</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate">${pendingTasks}</p>
         </div>
-        <div onclick="switchView('branches')" class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col justify-center">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate">Target Progress</p>
-            <p class="text-dynamic-lg font-bold text-violet-600 truncate mb-1">${progress}%</p>
+        <div onclick="switchView('branches')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col justify-center">
+            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Target Progress</p>
+            <p class="text-dynamic-lg font-black text-violet-600 truncate mb-1">${progress}%</p>
             <div class="w-full bg-gray-100 rounded-full h-1 mt-auto">
                 <div class="bg-violet-500 h-1 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
             </div>
@@ -197,16 +244,57 @@ window.renderOwnerOverview = function () {
         if (window.ownerOverviewInterval) clearInterval(window.ownerOverviewInterval);
         window.ownerOverviewInterval = setInterval(async () => {
             const currentFeed = document.getElementById('activityFeed');
-            // Stop polling if the feed element is gone (user switched view)
-            if (!currentFeed) {
+            const currentQueue = document.getElementById('pendingApprovals');
+            if (!currentFeed && !currentQueue) {
                 clearInterval(window.ownerOverviewInterval);
                 return;
             }
 
             try {
-                const latest = await dbActivities.fetchRecent(branchIds);
+                const [latest, latestReqs] = await Promise.all([
+                    dbActivities.fetchRecent(branchIds),
+                    dbRequests.fetchAll(state.profile.id)
+                ]);
+
                 state.activities = latest || [];
-                currentFeed.innerHTML = renderActivities();
+                if (currentFeed) currentFeed.innerHTML = renderActivities();
+
+                const pendingQueue = (latestReqs || []).filter(r => r.status === 'pending');
+                if (currentQueue) {
+                    if (pendingQueue.length === 0) {
+                        currentQueue.innerHTML = '';
+                        currentQueue.classList.add('hidden');
+                    } else {
+                        currentQueue.classList.remove('hidden');
+                        currentQueue.innerHTML = `
+                        <div class="bg-indigo-600 rounded-2xl shadow-lg border border-indigo-500 overflow-hidden mb-6">
+                            <div class="px-5 py-4 flex items-center justify-between border-b border-indigo-500 bg-indigo-700/50">
+                                <div class="flex items-center gap-2 text-white">
+                                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                    <h3 class="font-bold">Approval Queue</h3>
+                                </div>
+                                <span class="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase">${pendingQueue.length} Pending</span>
+                            </div>
+                            <div class="p-2 space-y-1">
+                                ${pendingQueue.slice(0, 3).map(req => `
+                                    <div onclick="switchView('requests', '${req.id}')" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-all group">
+                                        <div class="w-10 h-10 bg-white/10 text-white rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <i data-lucide="${req.type.includes('inventory') ? 'package' : 'message-square'}" class="w-5 h-5"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-bold text-white truncate">${req.subject}</p>
+                                            <p class="text-[10px] text-indigo-200 truncate">${req.branches?.name || 'Unknown'} · ${req.related_summary || ''}</p>
+                                        </div>
+                                        <i data-lucide="chevron-right" class="w-4 h-4 text-white/30"></i>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button onclick="switchView('requests')" class="w-full py-3 text-[10px] font-black uppercase text-indigo-100 bg-indigo-700/30 hover:bg-indigo-700/50 transition-colors tracking-widest border-t border-indigo-500/30">
+                                Manage All Requests →
+                            </button>
+                        </div>`;
+                    }
+                }
                 lucide.createIcons();
             } catch (err) {
                 console.warn('Polling error:', err);

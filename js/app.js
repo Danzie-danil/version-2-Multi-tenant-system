@@ -25,9 +25,14 @@ window.toggleSidebar = function () {
     }
 };
 
-window.switchView = function (viewId, btnElement) {
-    // If no button passed (e.g., initial load), try to find the matching sidebar item
-    if (!btnElement) {
+window.switchView = function (viewId, context = null) {
+    let btnElement = null;
+    let extraData = null;
+
+    if (context instanceof HTMLElement) {
+        btnElement = context;
+    } else {
+        extraData = context;
         btnElement = document.querySelector(`.sidebar-item[onclick*="switchView('${viewId}'"]`);
     }
 
@@ -42,19 +47,19 @@ window.switchView = function (viewId, btnElement) {
         btnElement.classList.remove('text-gray-700');
     }
 
-    // 2. Hide all views and save preference
+    // 2. Dispatch with extraData
     if (state.role === 'owner') {
         localStorage.setItem('lastOwnerView', viewId);
-        renderOwnerView(viewId);
+        renderOwnerView(viewId, extraData);
     } else {
         localStorage.setItem('lastBranchView', viewId);
-        renderBranchView(viewId);
+        renderBranchView(viewId, extraData);
     }
 
-    // 3. Mobile: Close sidebar after selection
+    // 3. Mobile: Close sidebar
     if (window.innerWidth < 768) {
         const sidebar = document.getElementById('mainSidebar');
-        if (!sidebar.classList.contains('-translate-x-[calc(100%+1rem)]')) {
+        if (sidebar && !sidebar.classList.contains('-translate-x-[calc(100%+1rem)]')) {
             toggleSidebar();
         }
     }
@@ -62,7 +67,7 @@ window.switchView = function (viewId, btnElement) {
 
 // ── Owner View Dispatch ───────────────────────────────────────────────────
 
-window.renderOwnerView = function (view) {
+window.renderOwnerView = function (view, extraData = null) {
     // Each renderer is responsible for writing to #mainContent
     switch (view) {
         case 'overview':
@@ -87,6 +92,9 @@ window.renderOwnerView = function (view) {
         case 'settings':
             renderSettings();
             break;
+        case 'requests':
+            renderRequestsModule(extraData);
+            break;
         default:
             renderOwnerOverview();
     }
@@ -94,7 +102,7 @@ window.renderOwnerView = function (view) {
 
 // ── Branch View Dispatch ──────────────────────────────────────────────────
 
-window.renderBranchView = function (view) {
+window.renderBranchView = function (view, extraData = null) {
     switch (view) {
         case 'dashboard':
             renderBranchDashboard();
@@ -126,6 +134,9 @@ window.renderBranchView = function (view) {
         case 'settings':
             renderBranchSettings();
             break;
+        case 'requests':
+            renderBranchRequestsModule();
+            break;
         default:
             renderBranchDashboard();
     }
@@ -134,35 +145,95 @@ window.renderBranchView = function (view) {
 // ── Notification bell reset ───────────────────────────────────────────────
 // ── Notification Logic ─────────────────────────────────────────────────────
 
-window.checkNotifications = async function () {
-    if (state.role === 'owner') {
-        const { count, error } = await supabaseClient
-            .from('access_requests')
-            .select('*', { count: 'exact', head: true })
-            .eq('owner_id', state.ownerId)
-            .eq('status', 'pending');
+window.checkNotifications = async function (shush = false) {
+    if (!state.profile) return;
 
-        if (!error && count > 0) {
-            document.getElementById('notifBadge')?.classList.remove('hidden');
-        } else {
-            document.getElementById('notifBadge')?.classList.add('hidden');
-        }
-    } else if (state.role === 'branch') {
-        // For branches, check for pending tasks and low inventory
-        const [tasksRes, stockRes] = await Promise.all([
-            supabaseClient.from('tasks').select('id', { count: 'exact', head: true }).eq('branch_id', state.branchId).eq('status', 'pending'),
-            dbInventory.fetchAll(state.branchId)
+    let hasNew = false;
+    const oldRequestCount = state.pendingRequestCount || 0;
+
+    if (state.role === 'owner') {
+        const [reqs, access] = await Promise.all([
+            supabaseClient.from('requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending'),
+            supabaseClient.from('access_requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending')
         ]);
 
-        const pendingTasks = tasksRes.count || 0;
-        const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold).length;
+        const totalPending = (reqs.count || 0) + (access.count || 0);
+        state.pendingRequestCount = totalPending;
+        if (totalPending > oldRequestCount) hasNew = true;
 
-        if (pendingTasks > 0 || lowStock > 0) {
+        if (totalPending > 0) {
             document.getElementById('notifBadge')?.classList.remove('hidden');
         } else {
             document.getElementById('notifBadge')?.classList.add('hidden');
         }
     }
+    else if (state.role === 'branch') {
+        // For branches, check for pending tasks, low inventory, AND new responses
+        const [tasksRes, stockRes, reqsRes] = await Promise.all([
+            supabaseClient.from('tasks').select('id', { count: 'exact', head: true }).eq('branch_id', state.branchId).eq('status', 'pending'),
+            dbInventory.fetchAll(state.branchId),
+            dbRequests.fetchByBranch(state.branchId)
+        ]);
+
+        const pendingTasks = tasksRes.count || 0;
+        const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold).length;
+
+        // Response tracking logic
+        const responses = reqsRes.filter(r => r.status !== 'pending' || r.admin_response);
+        const lastChecked = localStorage.getItem(`last_checked_reqs_${state.branchId}`) || '0';
+        const newResponses = responses.filter(r => new Date(r.updated_at || r.created_at) > new Date(lastChecked)).length;
+
+        if (newResponses > 0) hasNew = true;
+
+        if (pendingTasks > 0 || lowStock > 0 || newResponses > 0) {
+            document.getElementById('notifBadge')?.classList.remove('hidden');
+        } else {
+            document.getElementById('notifBadge')?.classList.add('hidden');
+        }
+    }
+
+    if (hasNew && !shush) {
+        showNotificationHint(state.role === 'owner' ? 'New approval request!' : 'New response from admin!');
+    }
+};
+
+window.showNotificationHint = function (message) {
+    const bell = document.querySelector('button[onclick="showNotifications()"]');
+    if (!bell) return;
+
+    // Remove existing hint if any
+    const oldHint = document.getElementById('notifHint');
+    if (oldHint) oldHint.remove();
+
+    const hint = document.createElement('div');
+    hint.id = 'notifHint';
+    hint.className = 'fixed z-[60] bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl shadow-2xl animate-bounce-subtle pointer-events-none opacity-0 transition-opacity duration-300 flex items-center gap-2';
+    hint.innerHTML = `<i data-lucide="sparkles" class="w-3 h-3"></i> ${message}`;
+
+    // Position near bell
+    const rect = bell.getBoundingClientRect();
+    hint.style.top = (rect.bottom + 10) + 'px';
+    hint.style.left = (rect.left - 40) + 'px';
+
+    document.body.appendChild(hint);
+    lucide.createIcons();
+
+    // Fade in
+    setTimeout(() => hint.classList.remove('opacity-0'), 10);
+
+    // Hide after 2s
+    setTimeout(() => {
+        hint.classList.add('opacity-0');
+        setTimeout(() => hint.remove(), 300);
+    }, 2000);
+};
+
+window.initNotificationPolling = function () {
+    if (window.notifInterval) clearInterval(window.notifInterval);
+    // Initial check
+    checkNotifications(true);
+    // Every 30s
+    window.notifInterval = setInterval(() => checkNotifications(), 30000);
 };
 
 window.showNotifications = async function () {
@@ -171,11 +242,15 @@ window.showNotifications = async function () {
     const content = document.getElementById('notifContent');
 
     // Open panel first with loading state
-    overlay.classList.remove('hidden');
-    setTimeout(() => {
-        overlay.classList.remove('opacity-0');
-        panel.classList.remove('translate-x-full');
-    }, 10);
+    overlay.classList.remove('hidden', 'opacity-0');
+    panel.classList.remove('translate-x-[calc(100%+2rem)]');
+
+    // Update last checked timestamp for branch responses
+    if (state.role === 'branch') {
+        localStorage.setItem(`last_checked_reqs_${state.branchId}`, new Date().toISOString());
+        // Hide badge immediately on panel open if it was only because of responses
+        checkNotifications(true);
+    }
 
     content.innerHTML = `
         <div class="py-10 text-center text-gray-500 flex flex-col items-center">
@@ -188,110 +263,152 @@ window.showNotifications = async function () {
 
         if (state.role === 'owner') {
             // ── OWNER LOGIC ──────────────────────────────────────────────────
-            const { data: requests, error: reqErr } = await supabaseClient
+            const { data: accessRequests, error: accessReqErr } = await supabaseClient
                 .from('access_requests')
                 .select('*, branches(name)')
-                .eq('owner_id', state.ownerId)
+                .eq('owner_id', state.profile.id)
                 .eq('status', 'pending')
                 .order('created_at', { ascending: false });
 
-            if (reqErr) throw reqErr;
+            if (accessReqErr) throw accessReqErr;
 
             const branchIds = state.branches.map(b => b.id);
             const activities = await dbActivities.fetchRecent(branchIds, 15);
 
-            // Render Requests
-            if (requests && requests.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 px-1">Action Required</h4>`;
-                html += requests.map(req => `
-                    <div class="p-4 bg-white rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden mb-3">
+            // Render Requests (Approval Queue)
+            const allReqs = await dbRequests.fetchAll(state.profile.id);
+            const pendingReqs = allReqs.filter(r => r.status === 'pending');
+
+            if (accessRequests && accessRequests.length > 0) {
+                html += `<h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 mt-4 px-1 pb-1 border-b border-indigo-100">Access Requests</h4>`;
+                html += accessRequests.map(req => `
+                    <div onclick="switchView('security', '${req.id}'); closeNotifications();" class="notif-item p-4 bg-white border border-indigo-50 shadow-sm relative overflow-hidden mb-3">
                         <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
-                        <p class="font-bold text-sm text-gray-900 mb-1">${req.branches?.name || 'Unknown Branch'}</p>
-                        <p class="text-xs text-gray-600 mb-3 flex items-center gap-1"><i data-lucide="key" class="w-3 h-3 text-indigo-500"></i> PIN Reset Requested</p>
-                        <div class="flex gap-2">
-                            <button onclick="approveReset('${req.id}', '${req.branch_id}')" class="flex-1 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors">Approve</button>
-                            <button onclick="denyReset('${req.id}')" class="flex-1 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors">Deny</button>
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="font-bold text-sm text-gray-900 leading-tight">PIN Reset for ${req.branches?.name || 'Unknown Branch'}</p>
+                            <span class="text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded uppercase flex-shrink-0 ml-2">Pending</span>
                         </div>
+                        <p class="text-xs text-gray-400 mb-1 font-medium">Requested by branch manager</p>
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="event.stopPropagation(); approveReset('${req.id}', '${req.branch_id}');" class="flex-1 py-1.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-tighter rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">Approve</button>
+                            <button onclick="event.stopPropagation(); denyReset('${req.id}');" class="flex-1 py-1.5 bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-tighter rounded-lg hover:bg-gray-200 transition-colors">Deny</button>
+                        </div>
+                    </div>`).join('');
+            }
+
+            if (pendingReqs && pendingReqs.length > 0) {
+                html += `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-4 px-1">Approval Requests</h4>`;
+                html += pendingReqs.map(req => `
+                    <div onclick="switchView('requests', '${req.id}'); closeNotifications();" class="notif-item p-4 bg-white border border-indigo-50 shadow-sm relative overflow-hidden mb-3">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="font-bold text-sm text-gray-900 leading-tight">${req.subject}</p>
+                            <span class="text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded uppercase flex-shrink-0 ml-2">${req.type.split('_')[1] || req.type}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-1 font-medium">${req.branches?.name || 'Unknown Branch'}</p>
+                        <p class="text-[10px] text-gray-400 italic truncate italic">"${req.message}"</p>
                     </div>`).join('');
             }
 
             // Render Activities
             if (activities && activities.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-6 px-1">Recent Activity</h4>`;
+                html += `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-1">Recent Activity</h4>`;
                 const typeMap = {
-                    sale: { bg: 'bg-emerald-100', icon: 'shopping-cart', ic: 'text-emerald-600' },
-                    expense: { bg: 'bg-red-100', icon: 'credit-card', ic: 'text-red-600' },
-                    task_completed: { bg: 'bg-blue-100', icon: 'check-circle', ic: 'text-blue-600' },
-                    task_assigned: { bg: 'bg-amber-100', icon: 'clipboard-list', ic: 'text-amber-600' }
+                    sale: { bg: 'bg-emerald-100', icon: 'shopping-cart', ic: 'text-emerald-600', view: 'overview' },
+                    expense: { bg: 'bg-red-100', icon: 'credit-card', ic: 'text-red-600', view: 'overview' },
+                    task_completed: { bg: 'bg-blue-100', icon: 'check-circle', ic: 'text-blue-600', view: 'tasks' },
+                    task_assigned: { bg: 'bg-amber-100', icon: 'clipboard-list', ic: 'text-amber-600', view: 'tasks' }
                 };
 
                 html += activities.map(a => {
                     const t = typeMap[a.type] || typeMap.task_completed;
                     return `
-                    <div class="flex items-start gap-3 p-3 bg-white rounded-xl border border-gray-100 shadow-sm mb-2">
+                    <div onclick="switchView('${t.view}'); closeNotifications();" class="notif-item flex items-start gap-3 p-3 bg-white border border-gray-100 shadow-sm mb-2">
                         <div class="w-8 h-8 rounded-full ${t.bg} flex items-center justify-center flex-shrink-0 mt-0.5">
                             <i data-lucide="${t.icon}" class="w-4 h-4 ${t.ic}"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-900 leading-snug">${a.message}</p>
-                            <p class="text-xs text-gray-500 mt-0.5">${a.branch} · ${a.time}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5 uppercase font-bold">${a.branch} · ${a.time}</p>
                         </div>
-                        ${a.amount ? `<span class="text-xs font-bold text-gray-700 mt-0.5">${fmt.currency(a.amount)}</span>` : ''}
+                        ${a.amount ? `<span class="text-xs font-black text-gray-700 mt-0.5">${fmt.currency(a.amount)}</span>` : ''}
                     </div>`;
                 }).join('');
             }
         } else {
             // ── BRANCH LOGIC ─────────────────────────────────────────────────
-            const [tasksRes, stockRes, notesRes] = await Promise.all([
+            const [tasksRes, stockRes, notesRes, requests] = await Promise.all([
                 supabaseClient.from('tasks').select('*').eq('branch_id', state.branchId).neq('status', 'completed').order('deadline', { ascending: true }),
                 dbInventory.fetchAll(state.branchId),
-                supabaseClient.from('notes').select('*').eq('branch_id', state.branchId).order('created_at', { ascending: false }).limit(5)
+                supabaseClient.from('notes').select('*').eq('branch_id', state.branchId).order('created_at', { ascending: false }).limit(5),
+                dbRequests.fetchByBranch(state.branchId)
             ]);
 
             const tasks = tasksRes.data || [];
             const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold);
             const notes = notesRes.data || [];
 
+            // Filter only updated/responded requests
+            const respondedReqs = requests.filter(r => r.status !== 'pending' || r.admin_response).slice(0, 5);
+
+            // 0. Responses from Admin
+            if (respondedReqs.length > 0) {
+                html += `<h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 mt-4 px-1 pb-1 border-b border-indigo-100">Admin Responses</h4>`;
+                html += respondedReqs.map(req => {
+                    const statusColor = { approved: 'bg-emerald-500', rejected: 'bg-red-500', pending: 'bg-indigo-500' };
+                    return `
+                    <div onclick="switchView('requests', '${req.id}'); closeNotifications();" class="notif-item p-4 bg-white border border-gray-100 relative group overflow-hidden mb-3">
+                        <div class="absolute top-0 left-0 w-1 h-full ${statusColor[req.status] || 'bg-gray-500'}"></div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <p class="text-[9px] font-black uppercase text-gray-400 tracking-wider">${req.type.replace('_', ' ')}</p>
+                            <span class="badge ${req.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : (req.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700')} uppercase text-[9px] font-black">${req.status}</span>
+                        </div>
+                        <p class="text-sm font-bold text-gray-900 mb-1 leading-tight">${req.subject}</p>
+                        ${req.admin_response ? `<p class="text-[11px] text-indigo-700 italic bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/30 mt-2 font-medium">"${req.admin_response}"</p>` : ''}
+                    </div>`;
+                }).join('');
+            }
+
             // 1. Stock Alerts (Urgent)
             if (lowStock.length > 0) {
                 html += `<h4 class="text-xs font-bold text-orange-500 uppercase tracking-wider mb-2 mt-4 px-1">Stock Alerts</h4>`;
                 html += lowStock.map(item => `
-                    <div onclick="switchView('inventory')" class="p-3 bg-orange-50 border border-orange-100 rounded-xl mb-2 cursor-pointer hover:bg-orange-100 transition-colors flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-orange-200 flex items-center justify-center flex-shrink-0">
-                            <i data-lucide="alert-triangle" class="w-4 h-4 text-orange-700"></i>
+                    <div onclick="switchView('inventory'); closeNotifications();" class="notif-item p-3 bg-white border border-gray-100 mb-2 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-orange-600"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-gray-900 truncate">${item.name}</p>
-                            <p class="text-xs text-orange-700">Critical: ${item.quantity} left (Min: ${item.min_threshold})</p>
+                            <p class="text-[10px] text-orange-600 font-black uppercase tracking-widest leading-none mt-0.5">${item.quantity} In Stock</p>
                         </div>
                     </div>`).join('');
             }
 
             // 2. Tasks & Deadlines
             if (tasks.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-6 px-1">Pending Tasks</h4>`;
+                html += `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-1">Pending Tasks</h4>`;
                 html += tasks.map(task => {
                     const isOverdue = task.deadline && new Date(task.deadline) < new Date();
                     const statusColor = isOverdue ? 'text-red-600' : 'text-indigo-600';
                     return `
-                    <div onclick="switchView('tasks')" class="p-3 bg-white border border-gray-100 rounded-xl mb-2 cursor-pointer hover:shadow-md transition-all">
-                        <div class="flex items-center gap-2 mb-1">
+                    <div onclick="switchView('tasks'); closeNotifications();" class="notif-item p-4 bg-white border border-gray-100 mb-2">
+                        <div class="flex items-center gap-2 mb-1.5">
                             <span class="w-2 h-2 rounded-full ${isOverdue ? 'bg-red-500' : 'bg-indigo-500'}"></span>
                             <p class="text-sm font-bold text-gray-900 truncate">${task.title}</p>
                         </div>
-                        <p class="text-xs text-gray-500 line-clamp-1 mb-1">${task.description || 'No description'}</p>
-                        ${task.deadline ? `<p class="text-[10px] font-bold ${statusColor} uppercase tracking-tighter flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> Due: ${task.deadline}</p>` : ''}
+                        <p class="text-[11px] text-gray-500 line-clamp-1 mb-2 font-medium">${task.description || 'No description provided'}</p>
+                        ${task.deadline ? `<p class="text-[10px] font-black ${statusColor} uppercase tracking-tight flex items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${isOverdue ? 'OVERDUE' : 'Due'}: ${task.deadline}</p>` : ''}
                     </div>`;
                 }).join('');
             }
 
             // 3. Recent Notes / Comments
             if (notes.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-6 px-1">Recent Notes</h4>`;
+                html += `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-1">Recent Notes</h4>`;
                 html += notes.map(note => `
-                    <div onclick="switchView('notes')" class="p-3 bg-gray-50 border border-transparent rounded-xl mb-2 cursor-pointer hover:border-gray-200 transition-all">
+                    <div onclick="switchView('notes'); closeNotifications();" class="notif-item p-3 bg-white border border-gray-100 mb-2">
                         <p class="text-xs font-bold text-gray-800 mb-1">${note.title}</p>
-                        <p class="text-[10px] text-gray-500 line-clamp-1">${note.content}</p>
+                        <p class="text-[10px] text-gray-500 line-clamp-2 italic font-medium">"${note.content}"</p>
                     </div>`).join('');
             }
         }
@@ -321,14 +438,13 @@ window.showNotifications = async function () {
     } catch (err) {
         content.innerHTML = `<div class="p-10 text-center text-red-500 text-sm"><i data-lucide="alert-circle" class="w-10 h-10 mx-auto mb-3 opacity-50"></i><br>Failed to load: ${err.message}</div>`;
         console.error(err);
-        lucide.createIcons();
     }
 };
 
 window.closeNotifications = function () {
     const overlay = document.getElementById('notifOverlay');
     const panel = document.getElementById('notifPanel');
-    if (panel) panel.classList.add('translate-x-full');
+    if (panel) panel.classList.add('translate-x-[calc(100%+2rem)]');
     if (overlay) overlay.classList.add('opacity-0');
     setTimeout(() => {
         if (overlay) overlay.classList.add('hidden');

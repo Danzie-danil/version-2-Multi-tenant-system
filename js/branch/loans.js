@@ -119,7 +119,7 @@ window.openLoansTagModal = async function (loanId, isBulk = false) {
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Suggestions</p>
                 <div class="flex flex-wrap gap-2">
                     ${['Personal', 'Business', 'Urgent', 'Cleared', 'Pending'].map(t => `
-                        <button onclick="quickAddLoanTag('${t}', '${loanId}', ${isBulk})" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-indigo-500 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all">
+                        <button onclick="quickAddLoanTag('${t}', '${loanId}', ${isBulk})" class="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:border-indigo-500 hover:text-indigo-500 hover:bg-indigo-50/30 transition-all uppercase tracking-tight">
                             + ${t}
                         </button>
                     `).join('')}
@@ -234,23 +234,23 @@ window.renderLoansModule = function () {
                 <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                     <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Loans &amp; Income</div>
                 </div>
-                <button onclick="openModal('addLoan')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <button onclick="openModal('addLoan')" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0 font-bold">
                     <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Transaction
                 </button>
             </div>
 
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Received">Received (Page)</p>
-                    <p class="text-dynamic-lg font-bold text-emerald-600 truncate">${fmt.currency(totalIncome)}</p>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Received">Received (Page)</p>
+                    <p class="text-dynamic-lg font-black text-emerald-600 truncate">${fmt.currency(totalIncome)}</p>
                 </div>
-                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Outgoing">Outgoing (Page)</p>
-                    <p class="text-dynamic-lg font-bold text-red-600 truncate">${fmt.currency(totalOutgoing)}</p>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Outgoing">Outgoing (Page)</p>
+                    <p class="text-dynamic-lg font-black text-red-600 truncate">${fmt.currency(totalOutgoing)}</p>
                 </div>
-                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Records">Total Records</p>
-                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${window.loansPageState.totalCount}</p>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Records">Total Records</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${window.loansPageState.totalCount}</p>
                 </div>
             </div>
 
@@ -295,33 +295,25 @@ window.renderLoansModule = function () {
                     ` : records.map(rec => {
             const t = typeMap[rec.type] || typeMap.income;
             return `
-                        <div data-search="${(rec.party || '').toLowerCase()} ${rec.type} ${(rec.notes || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[3px] ${t.isOut ? 'border-l-red-500 bg-red-50/10' : 'border-l-emerald-500 bg-emerald-50/10'} rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
-                            <div class="pt-0.5">
-                                <input type="checkbox" value="${rec.id}" onchange="toggleLoanSelection('${rec.id}')" class="loan-checkbox rounded w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.loansSelection.has(rec.id) ? 'checked' : ''}>
+                        <div onclick="openDetailsModal('loan', '${rec.id}')" data-search="${(rec.party || '').toLowerCase()} ${rec.type} ${(rec.notes || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[4px] ${t.isOut ? 'border-l-red-500 bg-red-50/10' : 'border-l-emerald-500 bg-emerald-50/10'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                            <div class="pt-1" onclick="event.stopPropagation()">
+                                <input type="checkbox" value="${rec.id}" onchange="toggleLoanSelection('${rec.id}')" class="loan-checkbox rounded w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.loansSelection.has(rec.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate flex-shrink-0 max-w-[35%]">${rec.party || 'No Party Listed'}</h4>
-                                        <span class="${t.bg} ${t.text} text-[9px] px-1.5 py-0.5 rounded font-bold whitespace-nowrap flex-shrink-0 hidden sm:inline-block">${t.label}</span>
-                                        <span class="text-[10px] text-gray-500 whitespace-nowrap flex-shrink-0 hidden md:inline-block">- ${rec.notes || ''}</span>
-                                        <div class="flex gap-1 overflow-hidden">
-                                            ${tags.filter(tg => tg.loan_id === rec.id).map(tg => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${tg.tag}</span>`).join('')}
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                                        <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(rec.created_at)}</span>
-                                        <span class="text-xs sm:text-sm font-black ${t.isOut ? 'text-red-600' : 'text-emerald-600'} whitespace-nowrap">${t.isOut ? '-' : '+'}${fmt.currency(rec.amount)}</span>
+                                <div class="flex items-start justify-between gap-3 mb-1">
+                                    <h4 class="font-bold text-gray-900 text-sm sm:text-base truncate max-w-[50%]">${rec.party || 'No Party Listed'}</h4>
+                                    <div class="text-right">
+                                        <p class="text-[10px] uppercase font-bold text-gray-400 leading-none">${fmt.dateTime(rec.created_at)}</p>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-1 sm:gap-1.5 w-full mt-2">
-                                    <button onclick="openLoansTagModal('${rec.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
-                                    </button>
-                                    <button onclick="confirmDelete('loan', '${rec.id}', 'this record')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
-                                    </button>
+                                <div class="flex items-end justify-between gap-3">
+                                    <div class="flex flex-wrap gap-1.5 overflow-hidden pt-1">
+                                        <span class="${t.bg} ${t.text} text-[10px] px-2 py-0.5 rounded font-bold whitespace-nowrap flex-shrink-0">${t.label}</span>
+                                        ${rec.notes ? `<span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0 hidden md:inline-block">- ${rec.notes}</span>` : ''}
+                                        ${tags.filter(tg => tg.loan_id === rec.id).map(tg => `<span class="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${tg.tag}</span>`).join('')}
+                                    </div>
+                                    <span class="text-sm sm:text-lg font-black ${t.isOut ? 'text-red-600' : 'text-emerald-600'} whitespace-nowrap">${t.isOut ? '-' : '+'}${fmt.currency(rec.amount)}</span>
                                 </div>
                             </div>
                         </div>`;

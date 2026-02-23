@@ -119,7 +119,7 @@ window.openExpensesTagModal = async function (expenseId, isBulk = false) {
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Suggestions</p>
                 <div class="flex flex-wrap gap-2">
                     ${['Office', 'Bills', 'Stock', 'Travel', 'Repair'].map(t => `
-                        <button onclick="quickAddExpenseTag('${t}', '${expenseId}', ${isBulk})" class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-rose-500 hover:text-rose-500 hover:bg-rose-50/30 transition-all">
+                        <button onclick="quickAddExpenseTag('${t}', '${expenseId}', ${isBulk})" class="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:border-rose-500 hover:text-rose-500 hover:bg-rose-50/30 transition-all uppercase tracking-tight">
                             + ${t}
                         </button>
                     `).join('')}
@@ -235,24 +235,24 @@ window.renderExpensesModule = function () {
                 <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                     <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Expense Management</div>
                 </div>
-                <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
+                <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0 font-bold">
                     <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Expense
                 </button>
             </div>
 
             <!-- Stats Row -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Total Spent">Total Spent</p>
-                    <p class="text-dynamic-lg font-bold text-red-600 truncate" title="${fmt.currency(total)}">${fmt.currency(total)}</p>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Spent">Total Spent</p>
+                    <p class="text-dynamic-lg font-black text-red-600 truncate" title="${fmt.currency(total)}">${fmt.currency(total)}</p>
                 </div>
-                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Transactions">Transactions</p>
-                    <p class="text-dynamic-lg font-bold text-gray-900 truncate">${window.expensesPageState.totalCount}</p>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Transactions">Transactions</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${window.expensesPageState.totalCount}</p>
                 </div>
-                <div class="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate" title="Largest Expense">Largest Expense</p>
-                    <p class="text-dynamic-lg font-bold text-gray-900 truncate" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
+                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Largest Expense">Largest Expense</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
                 </div>
             </div>
 
@@ -295,58 +295,47 @@ window.renderExpensesModule = function () {
                             <p class="text-gray-400 text-sm">No expenses history found for this page</p>
                         </div>
                     ` : expenses.map(exp => `
-                        <div data-search="${exp.description.toLowerCase()} ${(exp.category || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[3px] border-l-rose-500 rounded-2xl p-4 flex gap-3 hover:shadow-md transition-all group relative">
-                            <div class="pt-0.5">
-                                <input type="checkbox" value="${exp.id}" onchange="toggleExpenseSelection('${exp.id}')" class="expense-checkbox rounded w-4 h-4 text-rose-600 border-gray-300 focus:ring-rose-500 cursor-pointer" ${window.expensesSelection.has(exp.id) ? 'checked' : ''}>
+                        <div onclick="openDetailsModal('expense', '${exp.id}')" data-search="${exp.description.toLowerCase()} ${(exp.category || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[4px] border-l-rose-500 rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                            <div class="pt-1" onclick="event.stopPropagation()">
+                                <input type="checkbox" value="${exp.id}" onchange="toggleExpenseSelection('${exp.id}')" class="expense-checkbox rounded w-5 h-5 text-rose-600 border-gray-300 focus:ring-rose-500 cursor-pointer" ${window.expensesSelection.has(exp.id) ? 'checked' : ''}>
                             </div>
 
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-2 mb-2">
-                                    <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
-                                        <h4 class="font-bold text-gray-900 text-xs sm:text-sm truncate flex-shrink-0 max-w-[40%]">${exp.description}</h4>
-                                        <span class="bg-gray-100 text-gray-600 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0 hidden sm:inline-block">${exp.category}</span>
-                                        <div class="flex gap-1 overflow-hidden">
-                                            ${tags.filter(t => t.expense_id === exp.id).map(t => `<span class="bg-rose-50 text-rose-700 border border-rose-100 text-[9px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                                        <span class="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">${fmt.date(exp.created_at)}</span>
-                                        <span class="text-xs sm:text-sm font-black text-red-600 whitespace-nowrap">${fmt.currency(exp.amount)}</span>
+                                <div class="flex items-start justify-between gap-3 mb-1">
+                                    <h4 class="font-bold text-gray-900 text-sm sm:text-base truncate">${exp.description}</h4>
+                                    <div class="text-right">
+                                        <p class="text-[10px] uppercase font-bold text-gray-400 leading-none">${fmt.dateTime(exp.created_at)}</p>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-3 gap-1 sm:gap-1.5 w-full mt-2">
-                                    <button onclick="openEditModal('editExpense', '${exp.id}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
-                                        <i data-lucide="edit-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Edit</span>
-                                    </button>
-                                    <button onclick="openExpensesTagModal('${exp.id}', false)" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-rose-600 transition-colors">
-                                        <i data-lucide="tag" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Tag</span>
-                                    </button>
-                                    <button onclick="confirmDelete('expense', '${exp.id}', '${exp.description}')" class="flex flex-col min-[420px]:flex-row items-center justify-center gap-0.5 min-[420px]:gap-1 min-[420px]:px-2 py-1.5 min-[420px]:py-2 bg-white border border-gray-200 shadow-sm rounded-lg text-[10px] sm:text-[11px] lg:text-xs font-semibold text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400"></i> <span class="leading-none">Delete</span>
-                                    </button>
+                                <div class="flex items-end justify-between gap-3">
+                                    <div class="flex flex-wrap gap-1.5 overflow-hidden pt-1">
+                                        <span class="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0 hidden sm:inline-block">${exp.category}</span>
+                                        ${tags.filter(t => t.expense_id === exp.id).map(t => `<span class="bg-rose-50 text-rose-700 border border-rose-100 text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0">#${t.tag}</span>`).join('')}
+                                    </div>
+                                    <span class="text-sm sm:text-lg font-black text-rose-600 whitespace-nowrap">${fmt.currency(exp.amount)}</span>
                                 </div>
                             </div>
                         </div>`).join('')}
                 </div>
 
-                <!-- Pagination Footer -->
-                <div class="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
-                    <p class="text-xs text-gray-500">Showing <span class="font-bold text-gray-900">${expenses.length}</span> of <span class="font-bold text-gray-900">${window.expensesPageState.totalCount}</span> expenses</p>
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeExpensesPage(-1)" ${window.expensesPageState.page === 1 ? 'disabled' : ''} class="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
-                        </button>
-                        <div class="flex items-center gap-1">
-                            ${Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                <!--Pagination Footer-->
+    <div class="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
+        <p class="text-xs text-gray-500">Showing <span class="font-bold text-gray-900">${expenses.length}</span> of <span class="font-bold text-gray-900">${window.expensesPageState.totalCount}</span> expenses</p>
+        <div class="flex items-center gap-2">
+            <button onclick="changeExpensesPage(-1)" ${window.expensesPageState.page === 1 ? 'disabled' : ''} class="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <div class="flex items-center gap-1">
+                ${Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             const p = i + 1;
             return `<button onclick="window.expensesPageState.page = ${p}; renderExpensesModule()" class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${window.expensesPageState.page === p ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-gray-50'}">${p}</button>`;
         }).join('')}
-                        </div>
-                        <button onclick="changeExpensesPage(1)" ${window.expensesPageState.page === totalPages ? 'disabled' : ''} class="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
+            </div>
+            <button onclick="changeExpensesPage(1)" ${window.expensesPageState.page === totalPages ? 'disabled' : ''} class="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
             </div>
         </div>`;
         lucide.createIcons();
