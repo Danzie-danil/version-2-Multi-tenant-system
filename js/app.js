@@ -193,11 +193,11 @@ window.checkNotifications = async function (shush = false) {
     }
 
     if (hasNew && !shush) {
-        showNotificationHint(state.role === 'owner' ? 'New approval request!' : 'New approval response!');
+        showNotificationHint('New Notification');
     }
 };
 
-window.showNotificationHint = function (message) {
+window.showNotificationHint = function (message = 'New Notification') {
     const bell = document.querySelector('button[onclick="showNotifications()"]');
     if (!bell) return;
 
@@ -232,8 +232,29 @@ window.initNotificationPolling = function () {
     if (window.notifInterval) clearInterval(window.notifInterval);
     // Initial check
     checkNotifications(true);
-    // Every 30s
-    window.notifInterval = setInterval(() => checkNotifications(), 30000);
+
+    // Set up Realtime WebSockets instead of polling
+    if (window.notifChannel) {
+        window.supabaseClient.removeChannel(window.notifChannel);
+    }
+
+    window.notifChannel = window.supabaseClient.channel('realtime-notifications');
+
+    if (state.role === 'owner') {
+        window.notifChannel
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'access_requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'access_requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
+            .subscribe();
+    } else if (state.role === 'branch') {
+        window.notifChannel
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'requests', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'requests', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
+            .subscribe();
+    }
 };
 
 window.showNotifications = async function () {
