@@ -592,21 +592,21 @@ window.renderSalesModule = function () {
 
             <!-- Stats Row -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Today's Total">Today's Total</p>
-                    <p class="text-dynamic-lg font-black text-emerald-600 truncate" title="${fmt.currency(summary.today_total)}">${fmt.currency(summary.today_total)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Today's Total">Today's Total</p>
+                    <p class="text-dynamic-lg font-black text-emerald-600 truncate leading-none my-auto py-1" title="${fmt.currency(summary.today_total)}">${fmt.currency(summary.today_total)}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Today's Transactions">Today's Trx</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${summary.transaction_count}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Today's Transactions">Today's Trx</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${summary.transaction_count}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Average Sale">Avg Sale</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate" title="${fmt.currency(summary.avg_sale)}">${fmt.currency(summary.avg_sale)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Average Sale">Avg Sale</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${fmt.currency(summary.avg_sale)}">${fmt.currency(summary.avg_sale)}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 bg-indigo-50/20 border-indigo-100">
-                    <p class="text-[10px] md:text-xs text-indigo-600 font-bold uppercase tracking-wide mb-1 truncate font-bold" title="Gross Profit">Gross Profit</p>
-                    <p class="text-dynamic-lg font-black text-indigo-700 truncate" title="${fmt.currency(profit.gross_profit)}">${fmt.currency(profit.gross_profit)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 bg-indigo-50/20 border-indigo-100 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-indigo-600 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Gross Profit">Gross Profit</p>
+                    <p class="text-dynamic-lg font-black text-indigo-700 truncate leading-none my-auto py-1" title="${fmt.currency(profit.gross_profit)}">${fmt.currency(profit.gross_profit)}</p>
                 </div>
             </div>
 

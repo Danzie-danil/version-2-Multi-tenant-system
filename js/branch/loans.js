@@ -240,17 +240,17 @@ window.renderLoansModule = function () {
             </div>
 
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Received">Received (Page)</p>
-                    <p class="text-dynamic-lg font-black text-emerald-600 truncate">${fmt.currency(totalIncome)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total Received">Received (Page)</p>
+                    <p class="text-dynamic-lg font-black text-emerald-600 truncate leading-none my-auto py-1">${fmt.currency(totalIncome)}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Outgoing">Outgoing (Page)</p>
-                    <p class="text-dynamic-lg font-black text-red-600 truncate">${fmt.currency(totalOutgoing)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total Outgoing">Outgoing (Page)</p>
+                    <p class="text-dynamic-lg font-black text-red-600 truncate leading-none my-auto py-1">${fmt.currency(totalOutgoing)}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Records">Total Records</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${window.loansPageState.totalCount}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Records">Total Records</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${window.loansPageState.totalCount}</p>
                 </div>
             </div>
 

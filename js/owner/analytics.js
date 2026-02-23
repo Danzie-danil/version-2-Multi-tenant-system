@@ -65,25 +65,25 @@ window.renderAnalytics = async function () {
 
             <!-- Top Stats -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
-                <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 rounded-2xl text-white shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate font-bold">Total Revenue</p>
-                    <p class="text-dynamic-lg font-black truncate" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
-                    <p class="text-[10px] md:text-xs text-indigo-200 mt-1 truncate font-bold">Today</p>
+                <div class="bg-gradient-to-br from-indigo-500 to-violet-600 px-3 py-2 rounded-2xl text-white shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-indigo-100 uppercase tracking-tight whitespace-normal font-bold leading-tight">Total Revenue</p>
+                    <p class="text-dynamic-lg font-black truncate leading-none my-auto py-1" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
+                    <p class="text-[11px] sm:text-xs text-indigo-200 truncate font-bold leading-none">Today</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Total Expenses</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate" title="${fmt.currency(totalExpenses)}">${fmt.currency(totalExpenses)}</p>
-                    <p class="text-[10px] md:text-xs text-red-500 mt-1 truncate font-bold">All branches</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight">Total Expenses</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${fmt.currency(totalExpenses)}">${fmt.currency(totalExpenses)}</p>
+                    <p class="text-[11px] sm:text-xs text-red-500 truncate font-bold leading-none">All branches</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Net Profit</p>
-                    <p class="text-dynamic-lg font-black text-emerald-600 truncate" title="${fmt.currency(totalSales - totalExpenses)}">${fmt.currency(totalSales - totalExpenses)}</p>
-                    <p class="text-[10px] md:text-xs text-gray-400 mt-1 truncate font-bold">Revenue − Expenses</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight">Net Profit</p>
+                    <p class="text-dynamic-lg font-black text-emerald-600 truncate leading-none my-auto py-1" title="${fmt.currency(totalSales - totalExpenses)}">${fmt.currency(totalSales - totalExpenses)}</p>
+                    <p class="text-[11px] sm:text-xs text-gray-400 truncate font-bold leading-none">Revenue − Expenses</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Avg / Branch</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate" title="${fmt.currency(state.branches.length ? totalSales / state.branches.length : 0)}">${fmt.currency(state.branches.length ? totalSales / state.branches.length : 0)}</p>
-                    <p class="text-[10px] md:text-xs text-gray-400 mt-1 truncate font-bold">Revenue per branch</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight">Avg / Branch</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${fmt.currency(state.branches.length ? totalSales / state.branches.length : 0)}">${fmt.currency(state.branches.length ? totalSales / state.branches.length : 0)}</p>
+                    <p class="text-[11px] sm:text-xs text-gray-400 truncate font-bold leading-none">Revenue per branch</p>
                 </div>
             </div>
 

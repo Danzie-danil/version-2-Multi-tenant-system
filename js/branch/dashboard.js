@@ -19,21 +19,21 @@ window.renderBranchDashboard = function () {
 
         <!-- Loading KPIs -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3" id="dashKPIs">
-            <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-6 rounded-2xl text-white shadow-md animate-pulse">
-                <p class="text-indigo-100 text-xs font-bold uppercase tracking-wide mb-6">Today's Sales</p>
-                <div class="h-8 bg-white bg-opacity-20 rounded"></div>
+            <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-3 rounded-2xl text-white shadow-md animate-pulse">
+                <p class="text-indigo-100 text-xs font-bold uppercase tracking-tight mb-2 leading-tight">Today's Sales</p>
+                <div class="h-6 bg-white bg-opacity-20 rounded w-3/4"></div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
-                <div class="h-4 bg-gray-100 rounded mb-4"></div>
-                <div class="h-8 bg-gray-100 rounded"></div>
+            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+                <div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div>
+                <div class="h-6 bg-gray-100 rounded w-3/4"></div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
-                <div class="h-4 bg-gray-100 rounded mb-4"></div>
-                <div class="h-8 bg-gray-100 rounded"></div>
+            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+                <div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div>
+                <div class="h-6 bg-gray-100 rounded w-3/4"></div>
             </div>
-            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
-                <div class="h-4 bg-gray-100 rounded mb-4"></div>
-                <div class="h-8 bg-gray-100 rounded"></div>
+            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+                <div class="h-3 bg-gray-100 rounded w-1/2 mb-2"></div>
+                <div class="h-6 bg-gray-100 rounded w-3/4"></div>
             </div>
         </div>
 
@@ -81,25 +81,25 @@ window.renderBranchDashboard = function () {
         const todayExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
         document.getElementById('dashKPIs').innerHTML = `
-        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 rounded-2xl text-white shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate font-bold">Today's Sales</p>
-            <p class="text-dynamic-lg font-black truncate" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
+        <div class="bg-gradient-to-br from-indigo-500 to-violet-600 px-3 py-2 rounded-2xl text-white shadow-sm stat-card min-w-0 flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-indigo-100 uppercase tracking-tight font-bold whitespace-normal leading-tight">Today's Sales</p>
+            <p class="text-dynamic-lg font-black truncate leading-none my-auto py-1" title="${fmt.currency(todaySalesTotal)}">${fmt.currency(todaySalesTotal)}</p>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Transactions</p>
-            <p class="text-dynamic-lg font-black text-gray-900 truncate">${sales.length}</p>
+        <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Transactions</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${sales.length}</p>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Expenses</p>
-            <p class="text-dynamic-lg font-black text-red-600 truncate" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
+        <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Expenses</p>
+            <p class="text-dynamic-lg font-black text-red-600 truncate leading-none my-auto py-1" title="${fmt.currency(todayExpenses)}">${fmt.currency(todayExpenses)}</p>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Open Tasks</p>
-            <p class="text-dynamic-lg font-black text-gray-900 truncate">${tasks.filter(t => t.status !== 'completed').length}</p>
+        <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Open Tasks</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${tasks.filter(t => t.status !== 'completed').length}</p>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Sales Target</p>
-            <p class="text-dynamic-lg font-black text-indigo-600 truncate" title="${fmt.currency(branch.target)}">${fmt.currency(branch.target)}</p>
+        <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Sales Target</p>
+            <p class="text-dynamic-lg font-black text-indigo-600 truncate leading-none my-auto py-1" title="${fmt.currency(branch.target)}">${fmt.currency(branch.target)}</p>
         </div>`;
 
         // Task preview

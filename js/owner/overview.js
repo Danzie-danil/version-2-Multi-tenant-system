@@ -194,22 +194,22 @@ window.renderOwnerOverview = function () {
 
         // Update KPI cards
         document.getElementById('overviewKPIs').innerHTML = `
-        <div onclick="switchView('sales')" class="bg-gradient-to-br from-indigo-500 to-violet-600 p-4 rounded-2xl text-white shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
-            <p class="text-[10px] md:text-xs text-indigo-100 uppercase tracking-wide mb-1 truncate font-bold">Total Revenue</p>
-            <p class="text-dynamic-lg font-black truncate" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
+        <div onclick="switchView('sales')" class="bg-gradient-to-br from-indigo-500 to-violet-600 px-3 py-2 rounded-2xl text-white shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-indigo-100 uppercase tracking-tight font-bold whitespace-normal leading-tight">Total Revenue</p>
+            <p class="text-dynamic-lg font-black truncate leading-none my-auto py-1" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
         </div>
-        <div onclick="switchView('branches')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Active Branches</p>
-            <p class="text-dynamic-lg font-black text-gray-900 truncate">${branches.length}</p>
+        <div onclick="switchView('branches')" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Active Branches</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${branches.length}</p>
         </div>
-        <div onclick="switchView('tasks')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Pending Tasks</p>
-            <p class="text-dynamic-lg font-black text-gray-900 truncate">${pendingTasks}</p>
+        <div onclick="switchView('tasks')" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Pending Tasks</p>
+            <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${pendingTasks}</p>
         </div>
-        <div onclick="switchView('branches')" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col justify-center">
-            <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold">Target Progress</p>
-            <p class="text-dynamic-lg font-black text-violet-600 truncate mb-1">${progress}%</p>
-            <div class="w-full bg-gray-100 rounded-full h-1 mt-auto">
+        <div onclick="switchView('branches')" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Target Progress</p>
+            <p class="text-dynamic-lg font-black text-violet-600 truncate leading-none my-auto py-1">${progress}%</p>
+            <div class="w-full bg-gray-100 rounded-full h-1 mt-0.5">
                 <div class="bg-violet-500 h-1 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
             </div>
         </div>`;

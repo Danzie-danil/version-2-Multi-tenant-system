@@ -230,13 +230,13 @@ window.renderCustomersModule = function () {
             </div>
 
             <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 gap-2 md:gap-3">
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Customers">Total Customers</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${window.customersPageState.totalCount}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total Customers">Total Customers</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${window.customersPageState.totalCount}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Customers on Page">Customers on Page</p>
-                    <p class="text-dynamic-lg font-black text-indigo-600 truncate">${customers.length}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Customers on Page">Customers on Page</p>
+                    <p class="text-dynamic-lg font-black text-indigo-600 truncate leading-none my-auto py-1">${customers.length}</p>
                 </div>
             </div>
 

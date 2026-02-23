@@ -242,17 +242,17 @@ window.renderExpensesModule = function () {
 
             <!-- Stats Row -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Spent">Total Spent</p>
-                    <p class="text-dynamic-lg font-black text-red-600 truncate" title="${fmt.currency(total)}">${fmt.currency(total)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total Spent">Total Spent</p>
+                    <p class="text-dynamic-lg font-black text-red-600 truncate leading-none my-auto py-1" title="${fmt.currency(total)}">${fmt.currency(total)}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Transactions">Transactions</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${window.expensesPageState.totalCount}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Transactions">Transactions</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${window.expensesPageState.totalCount}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Largest Expense">Largest Expense</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Largest Expense">Largest Expense</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
                 </div>
             </div>
 

@@ -193,7 +193,7 @@ window.checkNotifications = async function (shush = false) {
     }
 
     if (hasNew && !shush) {
-        showNotificationHint(state.role === 'owner' ? 'New approval request!' : 'New response from admin!');
+        showNotificationHint(state.role === 'owner' ? 'New approval request!' : 'New approval response!');
     }
 };
 
@@ -353,7 +353,7 @@ window.showNotifications = async function () {
 
             // 0. Responses from Admin
             if (respondedReqs.length > 0) {
-                html += `<h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 mt-4 px-1 pb-1 border-b border-indigo-100">Admin Responses</h4>`;
+                html += `<h4 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 mt-4 px-1 pb-1 border-b border-indigo-100">Approval Responses</h4>`;
                 html += respondedReqs.map(req => {
                     const statusColor = { approved: 'bg-emerald-500', rejected: 'bg-red-500', pending: 'bg-indigo-500' };
                     return `

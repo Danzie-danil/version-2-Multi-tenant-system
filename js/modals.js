@@ -2,7 +2,7 @@
 
 window.getModalHTML = function (type, data) {
     switch (type) {
-        /* ── Request Attention (Branch -> Owner) ─── */
+        /* ── Request Attention (Branch -> Admin) ─── */
         case 'requestAttention': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
@@ -12,7 +12,7 @@ window.getModalHTML = function (type, data) {
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">Request Attention</h3>
-                        <p class="text-xs text-gray-500 font-medium">Message to Admin concerning this ${data.type}</p>
+                        <p class="text-xs text-gray-500 font-medium">Message for Approval concerning this ${data.type}</p>
                     </div>
                 </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
@@ -47,7 +47,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center">Send to Owner</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Request Approval</button>
                 </div>
             </form>
         </div>`;
@@ -476,7 +476,7 @@ window.getModalHTML = function (type, data) {
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-gray-900">Request New Stock</h3>
-                    <p class="text-xs text-gray-500 font-medium">Additions require admin approval</p>
+                    <p class="text-xs text-gray-500 font-medium">Additions require approval</p>
                 </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -589,6 +589,174 @@ window.getModalHTML = function (type, data) {
                 </div>
             </form>
         </div>`;
+
+        /* ── Edit General Request (Branch) ─── */
+        case 'editGeneralRequest': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Edit Request</h3>
+                        <p class="text-xs text-gray-500 font-medium truncate w-48">${data.subject}</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleEditGeneralRequest(event, '${data.id}')" class="space-y-4">
+                <div>
+                    <label for="editReqSubject" class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                    <input type="text" id="editReqSubject" required class="form-input" value="${data.subject}">
+                </div>
+                <div>
+                    <label for="editReqPriority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    <select id="editReqPriority" class="form-input">
+                        <option value="low" ${data.priority === 'low' ? 'selected' : ''}>Low - General Feedback</option>
+                        <option value="medium" ${data.priority === 'medium' ? 'selected' : ''}>Medium - Needs Review</option>
+                        <option value="high" ${data.priority === 'high' ? 'selected' : ''}>High - Immediate Attention</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="editReqMessage" class="block text-sm font-medium text-gray-700 mb-1">Your Message</label>
+                    <textarea id="editReqMessage" required rows="4" class="form-input">${data.message}</textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Update Request</button>
+                </div>
+            </form>
+        </div>`;
+
+        /* ── Edit Inventory Add Request (Branch) ─── */
+        case 'editInventoryAddRequest': {
+            const meta = data.metadata || {};
+            return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Edit Stock Request</h3>
+                    <p class="text-xs text-gray-500 font-medium">Update proposed item details</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleEditInventoryAddRequest(event, '${data.id}')" class="space-y-4">
+                <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 mb-4">
+                    <p class="text-[10px] text-blue-600 uppercase font-black tracking-wider mb-2">Item Information</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="editItemNameAdd" class="block text-sm font-bold text-gray-700 mb-1">Item Name</label>
+                            <input type="text" id="editItemNameAdd" required class="form-input" value="${meta.name || ''}">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="editItemSkuAdd" class="block text-sm font-bold text-gray-700 mb-1">SKU</label>
+                                <input type="text" id="editItemSkuAdd" class="form-input" value="${meta.sku || ''}">
+                            </div>
+                            <div>
+                                <label for="editItemCategoryAdd" class="block text-sm font-bold text-gray-700 mb-1">Category</label>
+                                <select id="editItemCategoryAdd" class="form-input">
+                                    <option value="General" ${meta.category === 'General' ? 'selected' : ''}>General</option>
+                                    <option value="Electronics" ${meta.category === 'Electronics' ? 'selected' : ''}>Electronics</option>
+                                    <option value="Clothing" ${meta.category === 'Clothing' ? 'selected' : ''}>Clothing</option>
+                                    <option value="Groceries" ${meta.category === 'Groceries' ? 'selected' : ''}>Groceries</option>
+                                    <option value="Home & Garden" ${meta.category === 'Home & Garden' ? 'selected' : ''}>Home & Garden</option>
+                                    <option value="Health & Beauty" ${meta.category === 'Health & Beauty' ? 'selected' : ''}>Health & Beauty</option>
+                                    <option value="Stationery" ${meta.category === 'Stationery' ? 'selected' : ''}>Stationery</option>
+                                    <option value="Services" ${meta.category === 'Services' ? 'selected' : ''}>Services</option>
+                                    <option value="Other" ${meta.category === 'Other' ? 'selected' : ''}>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50 mb-4">
+                    <p class="text-[10px] text-amber-600 uppercase font-black tracking-wider mb-2">Purchase & Supplier Details</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="editItemSupplierAdd" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
+                            <input type="text" id="editItemSupplierAdd" required class="form-input text-amber-900" value="${meta.supplier || ''}">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-1">
+                                <label for="editItemQtyAdd" class="block text-sm font-bold text-gray-700 mb-1">Qty</label>
+                                <input type="text" inputmode="decimal" id="editItemQtyAdd" required class="form-input number-format" value="${meta.quantity !== undefined ? meta.quantity : ''}">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="editItemCostAdd" class="block text-sm font-bold text-gray-700 mb-1">Unit Cost</label>
+                                <input type="text" inputmode="decimal" id="editItemCostAdd" required class="form-input number-format font-bold text-amber-600" value="${meta.cost_price !== undefined ? meta.cost_price : ''}">
+                            </div>
+                            <div class="col-span-1">
+                                <label for="editItemPriceAdd" class="block text-sm font-bold text-gray-700 mb-1">Sale Price</label>
+                                <input type="text" inputmode="decimal" id="editItemPriceAdd" required class="form-input number-format font-bold text-emerald-600" value="${meta.price !== undefined ? meta.price : ''}">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="editItemMinThresholdAdd" class="block text-sm font-bold text-gray-700 mb-1">Min. Alert Threshold</label>
+                            <input type="text" inputmode="decimal" id="editItemMinThresholdAdd" required class="form-input number-format" value="${meta.min_threshold !== undefined ? meta.min_threshold : ''}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center font-black">Update Request</button>
+                </div>
+            </form>
+        </div>`;
+        }
+
+        /* ── Edit Restock Request (Branch) ───────── */
+        case 'editRestockRequest': {
+            const meta = data.metadata || {};
+            return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Edit Restock Request</h3>
+                    <p class="text-xs text-gray-500 font-medium">${meta.name || ''} (SKU: ${meta.sku || 'N/A'})</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleEditRestockRequest(event, '${data.id}')" class="space-y-4">
+                <input type="hidden" id="editRestockName" value="${meta.name || ''}">
+                <input type="hidden" id="editRestockInvId" value="${meta.inventory_id || ''}">
+                
+                <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50 mb-4">
+                    <p class="text-[10px] text-amber-600 uppercase font-black tracking-wider mb-2">Purchase & Supplier Details</p>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="editRestockSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
+                            <input type="text" id="editRestockSupplier" required class="form-input text-amber-900" value="${meta.supplier || ''}">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="editRestockQty" class="block text-sm font-bold text-gray-700 mb-1">Quantity to Add</label>
+                                <input type="text" inputmode="decimal" id="editRestockQty" required class="form-input number-format" value="${meta.quantity !== undefined ? meta.quantity : ''}">
+                            </div>
+                            <div>
+                                <label for="editRestockCost" class="block text-sm font-bold text-gray-700 mb-1">Unit Cost</label>
+                                <input type="text" inputmode="decimal" id="editRestockCost" required class="form-input number-format font-bold text-amber-600" value="${meta.cost_price !== undefined ? meta.cost_price : ''}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center font-black">Update Request</button>
+                </div>
+            </form>
+        </div>`;
+        }
 
         /* ── Edit Sale ───────────────────────────── */
         case 'editSale': return `
@@ -768,35 +936,30 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Customer</p>
-                        <p class="text-sm font-semibold">${data.customer || 'Walk-in'}</p>
-                    </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Revenue</p>
-                        <p class="text-sm font-black text-emerald-600">${fmt.currency(data.amount)}</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Est. Profit</p>
-                        <p class="text-sm font-black text-indigo-600">${data.profit !== undefined ? fmt.currency(data.profit) : '—'}</p>
-                    </div>
+            <div class="space-y-3">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Customer</p>
+                    <p class="text-sm font-semibold">${data.customer || 'Walk-in'}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Items / Description</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Revenue</p>
+                    <p class="text-sm font-black text-emerald-600">${fmt.currency(data.amount)}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Est. Profit</p>
+                    <p class="text-sm font-black text-indigo-600">${data.profit !== undefined ? fmt.currency(data.profit) : '—'}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Items / Description</p>
                     <p class="text-sm font-medium text-gray-800">${data.items || 'N/A'}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Payment</p>
-                        <p class="text-sm font-semibold capitalize text-gray-700">${data.payment}</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Date & Time</p>
-                        <p class="text-[11px] font-medium text-gray-600">${new Date(data.created_at).toLocaleString()}</p>
-                    </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Payment</p>
+                    <p class="text-sm font-semibold capitalize text-gray-700">${data.payment}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Date & Time</p>
+                    <p class="text-[11px] font-medium text-gray-600">${new Date(data.created_at).toLocaleString()}</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-8">
@@ -823,30 +986,26 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+            <div class="space-y-3">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 mb-2">
                     <h4 class="text-lg font-bold text-indigo-900 mb-1">${data.name}</h4>
                     <p class="text-xs text-indigo-600 font-medium">SKU: ${data.sku || 'N/A'}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Category</p>
-                        <p class="text-sm font-semibold">${data.category || 'General'}</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Unit Price</p>
-                        <p class="text-sm font-bold text-gray-900">${fmt.currency(data.price)}</p>
-                    </div>
+                <div class="bg-gray-50 p-3 rounded-xl flex justify-between items-center border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Category</p>
+                    <p class="text-sm font-semibold">${data.category || 'General'}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">In Stock</p>
-                        <p class="text-sm font-bold ${data.quantity <= data.min_threshold ? 'text-red-600' : 'text-emerald-600'}">${data.quantity} units</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Min Threshold</p>
-                        <p class="text-sm font-semibold">${data.min_threshold} units</p>
-                    </div>
+                <div class="bg-gray-50 p-3 rounded-xl flex justify-between items-center border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Unit Price</p>
+                    <p class="text-sm font-bold text-gray-900">${fmt.currency(data.price)}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl flex justify-between items-center border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">In Stock</p>
+                    <p class="text-sm font-bold ${data.quantity <= data.min_threshold ? 'text-red-600' : 'text-emerald-600'}">${data.quantity} units</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl flex justify-between items-center border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Min Threshold</p>
+                    <p class="text-sm font-semibold">${data.min_threshold} units</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-8">
@@ -876,22 +1035,22 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+            <div class="space-y-3">
+                <div class="bg-red-50 p-4 rounded-2xl border border-red-100 mb-2">
                     <p class="text-[10px] text-red-600 uppercase font-bold mb-1">Total Amount</p>
                     <p class="text-2xl font-black text-red-700">${fmt.currency(data.amount)}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Category</p>
-                    <p class="text-sm font-semibold capitalize">${data.category}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Category</p>
+                    <p class="text-sm font-semibold capitalize w-2/3">${data.category}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Description</p>
-                    <p class="text-sm">${data.description || 'N/A'}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-start text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3 pt-0.5">Description</p>
+                    <p class="text-sm w-2/3">${data.description || 'N/A'}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Date recorded</p>
-                    <p class="text-sm">${new Date(data.created_at).toLocaleDateString()} at ${new Date(data.created_at).toLocaleTimeString()}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Date recorded</p>
+                    <p class="text-xs w-2/3">${new Date(data.created_at).toLocaleDateString()} at ${new Date(data.created_at).toLocaleTimeString()}</p>
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2 mt-8">
@@ -915,27 +1074,25 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center">
+            <div class="space-y-3">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center mb-2">
                     <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
                         <i data-lucide="user" class="w-8 h-8"></i>
                     </div>
                     <h4 class="text-lg font-bold text-blue-900 mb-1">${data.name}</h4>
                     <p class="text-xs text-blue-600 font-medium">${data.customer_id || 'ID: ' + data.id.slice(0, 8)}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Phone</p>
-                        <p class="text-sm font-semibold">${data.phone || 'N/A'}</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Email</p>
-                        <p class="text-sm font-semibold truncate" title="${data.email || ''}">${data.email || 'N/A'}</p>
-                    </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Phone</p>
+                    <p class="text-sm font-semibold w-2/3">${data.phone || 'N/A'}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl text-center">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Loyalty Points / Notes</p>
-                    <p class="text-sm font-semibold italic text-gray-400">Activity summary integration pending...</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Email</p>
+                    <p class="text-sm font-semibold truncate w-2/3" title="${data.email || ''}">${data.email || 'N/A'}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-start text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3 pt-0.5">Notes</p>
+                    <p class="text-xs font-semibold italic text-gray-400 w-2/3">Integration pending...</p>
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2 mt-8">
@@ -959,16 +1116,15 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 text-center">
+            <div class="space-y-3">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 text-center mb-2">
                     <h4 class="text-lg font-bold text-amber-900 mb-1">${data.title}</h4>
                     <span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">${data.tag || 'General'}</span>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-xl min-h-[100px]">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 min-h-[100px]">
                     <p class="text-[10px] text-gray-500 uppercase font-bold mb-2">Content</p>
                     <p class="text-sm text-gray-700 whitespace-pre-wrap">${data.content}</p>
                 </div>
-                <p class="text-[10px] text-gray-400 text-center">Created on ${fmt.date(data.created_at)}</p>
             </div>
             <div class="grid grid-cols-2 gap-3 mt-8">
                 <button onclick="openEditModal('editNote', '${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
@@ -988,24 +1144,22 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-center">
+            <div class="space-y-3">
+                <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-center mb-2">
                     <p class="text-[10px] text-emerald-600 uppercase font-bold mb-1">${data.type.replace('_', ' ')}</p>
                     <p class="text-2xl font-black text-emerald-700">${fmt.currency(data.amount)}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Party</p>
-                        <p class="text-sm font-semibold">${data.party || 'Anonymous'}</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Date</p>
-                        <p class="text-sm font-semibold">${fmt.date(data.created_at)}</p>
-                    </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Party</p>
+                    <p class="text-sm font-semibold w-2/3">${data.party || 'Anonymous'}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Notes</p>
-                    <p class="text-sm text-gray-600 italic">${data.notes || 'No additional notes provided.'}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Date</p>
+                    <p class="text-sm font-semibold w-2/3">${fmt.date(data.created_at)}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-start text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3 pt-0.5">Notes</p>
+                    <p class="text-xs text-gray-600 italic w-2/3">${data.notes || 'No additional notes provided.'}</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-3 mt-8">
@@ -1026,30 +1180,30 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 text-center">
+            <div class="space-y-3">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 text-center mb-2">
                     <h4 class="text-xl font-bold text-indigo-900 mb-1">${data.name}</h4>
                     <p class="text-sm text-indigo-600 font-medium">
                         <i data-lucide="map-pin" class="w-3.5 h-3.5 inline mr-1"></i>${data.location || 'No location set'}
                     </p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Manager</p>
-                        <p class="text-sm font-semibold">${data.manager || '—'}</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-xl">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Status</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Manager</p>
+                    <p class="text-sm font-semibold w-2/3">${data.manager || '—'}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Status</p>
+                    <div class="w-2/3 flex justify-end">
                         <span class="badge ${data.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}">${data.status}</span>
                     </div>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Financial Target</p>
-                    <p class="text-lg font-bold text-gray-900">${fmt.currency(data.target)}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Target</p>
+                    <p class="text-lg font-bold text-gray-900 w-2/3">${fmt.currency(data.target)}</p>
                 </div>
-                <div class="bg-gray-50 p-3 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Currency Code</p>
-                    <p class="text-sm font-semibold uppercase">${data.currency || 'Not set'}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Currency</p>
+                    <p class="text-sm font-semibold uppercase w-2/3">${data.currency || 'Not set'}</p>
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-2 mt-8">
@@ -1073,27 +1227,30 @@ window.getModalHTML = function (type, data) {
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-4">
-                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+            <div class="space-y-3">
+                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 mb-2">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Task</span>
                         ${priorityBadge(data.priority)}
                     </div>
                     <h4 class="text-lg font-bold text-indigo-900">${data.title}</h4>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-xl">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold mb-2">Instructions</p>
-                    <p class="text-sm text-gray-700">${data.description || 'No description provided.'}</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-start">
+                    <div class="flex flex-col w-full">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Instructions</p>
+                        <p class="text-sm text-gray-700">${data.description || 'No description provided.'}</p>
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Status</p>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Status</p>
+                    <div class="w-2/3 flex justify-end">
                         ${statusBadge(data.status)}
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-xl text-center">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Deadline</p>
-                        <p class="text-sm font-bold text-red-600">${fmt.date(data.deadline)}</p>
-                    </div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Deadline</p>
+                    <p class="text-sm font-bold text-red-600 w-2/3">${fmt.date(data.deadline)}</p>
+                </div>
                 </div>
             </div>
             <div class="mt-8">
@@ -1434,7 +1591,7 @@ window.handleAddInventoryItem = async function (e) {
     try {
         _setSubmitLoading(btn, true, 'Submitting...');
         await dbRequests.add(requestPayload);
-        showToast('Stock addition request submitted to admin!', 'success');
+        showToast('Stock addition request submitted for approval!', 'success');
         closeModal();
         if (window.renderInventoryModule) renderInventoryModule();
     } catch (err) {
@@ -1611,14 +1768,101 @@ window.handleRequestAttention = async function (e) {
     try {
         _setSubmitLoading(btn, true, 'Sending...');
         await dbRequests.add(payload);
-        showToast('Request sent to owner successfully!');
+        showToast('Approval request sent successfully!');
         closeModal();
     } catch (err) {
         showToast('Failed to send request: ' + err.message, 'error');
     } finally {
-        _setSubmitLoading(btn, false, 'Send to Owner');
+        _setSubmitLoading(btn, false, 'Request Approval');
     }
 };
+
+window.handleEditGeneralRequest = async function (e, id) {
+    if (e) e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    const updateData = {
+        subject: document.getElementById('editReqSubject').value,
+        message: document.getElementById('editReqMessage').value,
+        priority: document.getElementById('editReqPriority').value
+    };
+    try {
+        _setSubmitLoading(btn, true, 'Updating...');
+        await dbRequests.update(id, updateData);
+        showToast('Request updated successfully!', 'success');
+        closeModal();
+        if (window.renderBranchRequestsList) renderBranchRequestsList();
+    } catch (err) {
+        showToast('Failed to update request: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Update Request');
+    }
+};
+
+window.handleEditInventoryAddRequest = async function (e, id) {
+    if (e) e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    const itemData = {
+        name: document.getElementById('editItemNameAdd').value,
+        sku: document.getElementById('editItemSkuAdd').value,
+        category: document.getElementById('editItemCategoryAdd').value,
+        price: fmt.parseNumber(document.getElementById('editItemPriceAdd').value) || 0,
+        quantity: fmt.parseNumber(document.getElementById('editItemQtyAdd').value) || 0,
+        min_threshold: fmt.parseNumber(document.getElementById('editItemMinThresholdAdd').value) || 10,
+        cost_price: fmt.parseNumber(document.getElementById('editItemCostAdd').value) || 0,
+        supplier: document.getElementById('editItemSupplierAdd').value
+    };
+
+    const updateData = {
+        subject: `New Stock Request: ${itemData.name} (Updated)`,
+        message: `Requesting to add ${itemData.quantity} units of ${itemData.name}. Supplier: ${itemData.supplier}. Total Cost Basis: ${fmt.currency(itemData.quantity * itemData.cost_price)}`,
+        metadata: itemData
+    };
+
+    try {
+        _setSubmitLoading(btn, true, 'Updating...');
+        await dbRequests.update(id, updateData);
+        showToast('Stock request updated!', 'success');
+        closeModal();
+        if (window.renderBranchRequestsList) renderBranchRequestsList();
+    } catch (err) {
+        showToast('Failed to update request: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Update Request');
+    }
+};
+
+window.handleEditRestockRequest = async function (e, id) {
+    if (e) e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    const restockData = {
+        inventory_id: document.getElementById('editRestockInvId').value,
+        name: document.getElementById('editRestockName').value,
+        quantity: fmt.parseNumber(document.getElementById('editRestockQty').value) || 0,
+        cost_price: fmt.parseNumber(document.getElementById('editRestockCost').value) || 0,
+        supplier: document.getElementById('editRestockSupplier').value
+    };
+
+    const updateData = {
+        subject: `Restock Request: ${restockData.name} (Updated)`,
+        message: `Requesting restock of ${restockData.quantity} units for ${restockData.name}. Supplier: ${restockData.supplier}. Cost: ${fmt.currency(restockData.quantity * restockData.cost_price)}`,
+        metadata: restockData
+    };
+
+    try {
+        _setSubmitLoading(btn, true, 'Updating...');
+        await dbRequests.update(id, updateData);
+        showToast('Restock request updated!', 'success');
+        closeModal();
+        if (window.renderBranchRequestsList) renderBranchRequestsList();
+    } catch (err) {
+        showToast('Failed to update request: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Update Request');
+    }
+};
+
 
 /* ── Close modal on backdrop click ──────────────── */
 document.addEventListener('DOMContentLoaded', () => {

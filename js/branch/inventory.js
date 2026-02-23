@@ -229,17 +229,17 @@ window.renderInventoryModule = function () {
 
             <!-- Stats -->
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total SKUs">Total SKUs</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${window.inventoryPageState.totalCount}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total SKUs">Total SKUs</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${window.inventoryPageState.totalCount}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Low Stock">Items on Pge</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate">${items.length}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Low Stock">Items on Pge</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${items.length}</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0">
-                    <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wide mb-1 truncate font-bold" title="Total Units">Low Stock (Page)</p>
-                    <p class="text-dynamic-lg font-black text-red-600 truncate">${lowStock.length}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total Units">Low Stock (Page)</p>
+                    <p class="text-dynamic-lg font-black text-red-600 truncate leading-none my-auto py-1">${lowStock.length}</p>
                 </div>
             </div>
 

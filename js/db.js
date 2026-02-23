@@ -877,6 +877,12 @@ window.dbRequests = {
             .update({ ...data, updated_at: new Date().toISOString() })
             .eq('id', id);
         return _check(res, 'updateRequest');
+    },
+
+    /** Delete request */
+    delete: async (id) => {
+        const res = await _db.from('requests').delete().eq('id', id);
+        return _check(res, 'deleteRequest');
     }
 };
 

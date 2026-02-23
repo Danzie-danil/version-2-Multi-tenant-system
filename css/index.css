@@ -610,10 +610,9 @@ aside {
 }
 
 .stat-card {
-    min-height: 140px;
+    min-height: 80px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
 }
 
 .stat-card:hover {
