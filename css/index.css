@@ -15,6 +15,15 @@
 
     --border-color: #e5e7eb;
     --border-light: #f1f5f9;
+
+    /* Chat Theme (Light) */
+    --chat-bg: #efeae2;
+    --chat-sidebar: #ffffff;
+    --chat-header: #f0f2f5;
+    --chat-input-bar: #f0f2f5;
+    --chat-bubble-mine: #d9fdd3;
+    --chat-bubble-other: #ffffff;
+    --chat-text-target: #065f46;
 }
 
 .dark {
@@ -32,6 +41,15 @@
 
     --border-color: #334155;
     --border-light: #1e293b;
+
+    /* Chat Theme (Dark) */
+    --chat-bg: #0b141a;
+    --chat-sidebar: #111b21;
+    --chat-header: #202c33;
+    --chat-input-bar: #202c33;
+    --chat-bubble-mine: #005c4b;
+    --chat-bubble-other: #202c33;
+    --chat-text-target: #10b981;
 }
 
 /* ── Base ─────────────────────────────────────── */
@@ -1042,4 +1060,152 @@ select.form-input:disabled {
 
 .receipt-fmt-cancel:hover {
     color: #4b5563;
+}
+
+/*  BMS Native Chat Styles  */
+.chat-bubble-mine {
+    background-color: #d9fdd3 !important;
+}
+
+.chat-bubble-other {
+    background-color: #ffffff !important;
+}
+
+.msg-animate {
+    animation: message-pop 0.15s ease-out;
+}
+
+@keyframes message-pop {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #10b981;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Chat Attachments ────────────────────────────────────────────────────────── */
+.chat-attachment-img {
+    max-height: 16rem;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.chat-attachment-img:hover {
+    filter: brightness(0.9);
+}
+
+.chat-doc-preview {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-doc-preview:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .chat-doc-preview:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Authentic Bubble Tails ────────────────────────────────────────────── */
+.msg-bubble-mine {
+    position: relative;
+    background: var(--chat-bubble-mine);
+}
+
+.msg-bubble-mine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -8px;
+    width: 12px;
+    height: 12px;
+    background: var(--chat-bubble-mine);
+    clip-path: polygon(0 0, 0% 100%, 100% 0);
+}
+
+.msg-bubble-other {
+    position: relative;
+    background: var(--chat-bubble-other);
+}
+
+.msg-bubble-other::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -8px;
+    width: 12px;
+    height: 12px;
+    background: var(--chat-bubble-other);
+    clip-path: polygon(0 0, 100% 100%, 100% 0);
+}
+
+.dark .msg-bubble-mine::after {
+    background: var(--chat-bubble-mine);
+}
+
+.dark .msg-bubble-other::after {
+    background: var(--chat-bubble-other);
+}
+
+/* ── Mobile Chat Layout ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    #chatMainContainer {
+        height: calc(100vh - 140px);
+        /* Reset for mobile default */
+    }
+
+    #chatSidebar {
+        width: 100% !important;
+        display: block;
+    }
+
+    #chatWindow {
+        display: none;
+        flex-direction: column;
+        background: var(--chat-bg);
+        width: 100%;
+        height: 100%;
+    }
+
+    /* When a chat is focused on mobile */
+    #chatMainContainer.chat-active {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 9999 !important;
+        background: var(--chat-bg);
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    .chat-active #chatSidebar {
+        display: none !important;
+    }
+
+    .chat-active #chatWindow {
+        display: flex !important;
+    }
 }

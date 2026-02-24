@@ -919,14 +919,30 @@ window.dbMessages = {
         return _check(res, 'sendMessage');
     },
 
-    /** Fetch conversation history between branch and admin */
-    fetchConversation: async (branchId) => {
-        const res = await _db
+    /** Fetch conversation history */
+    fetchConversation: async (branchId, isGroup = false, groupId = null) => {
+        let query = _db
             .from('messages')
             .select('*')
-            .eq('branch_id', branchId)
             .order('created_at', { ascending: true });
-        return _check(res, 'fetchConversation');
+
+        if (groupId) {
+            query = query.eq('group_id', groupId);
+        } else if (isGroup) {
+            query = query.eq('is_group', true).is('group_id', null);
+        } else {
+            query = query.eq('branch_id', branchId).eq('is_group', false);
+        }
+
+        const res = await query;
+        const messages = _check(res, 'fetchConversation');
+
+        // Filter messages locally to respect soft-deletion
+        const currentId = state.role === 'owner' ? state.profile.id : state.branchId;
+        return messages.filter(m => {
+            const deletedFor = m.deleted_for || [];
+            return !deletedFor.includes(currentId);
+        });
     },
 
     /** Mark all messages in a conversation as read (for the receiver) */
@@ -954,5 +970,148 @@ window.dbMessages = {
 
         const res = await query;
         return res.count || 0;
+    },
+
+    /** Toggle an emoji reaction on a message */
+    toggleReaction: async (messageId, emoji, userRef) => {
+        // userRef: {id, name}
+        const { data: msg } = await _db
+            .from('messages')
+            .select('reactions')
+            .eq('id', messageId)
+            .single();
+
+        let reactions = msg?.reactions || [];
+        const index = reactions.findIndex(r => r.userId === userRef.id && r.emoji === emoji);
+
+        if (index > -1) {
+            reactions.splice(index, 1); // Remove
+        } else {
+            reactions.push({ userId: userRef.id, name: userRef.name, emoji }); // Add
+        }
+
+        const res = await _db
+            .from('messages')
+            .update({ reactions })
+            .eq('id', messageId);
+
+        return _check(res, 'toggleReaction');
+    },
+
+    /** Pin a message for a specific branch */
+    pinForBranch: async (messageId, branchId) => {
+        const res = await _db
+            .from('pinned_messages')
+            .insert([{ message_id: messageId, branch_id: branchId }]);
+        return _check(res, 'pinForBranch');
+    },
+
+    /** Dismiss a pin */
+    dismissPin: async (pinId) => {
+        const res = await _db
+            .from('pinned_messages')
+            .delete()
+            .eq('id', pinId);
+        return _check(res, 'dismissPin');
+    },
+
+    /** Fetch active pins for a branch */
+    fetchPins: async (branchId) => {
+        const res = await _db
+            .from('pinned_messages')
+            .select('*, messages(*)')
+            .eq('branch_id', branchId)
+            .order('created_at', { ascending: false });
+        return _check(res, 'fetchPins');
+    },
+
+    /** Advanced: Groups, Stars, Archive */
+    createGroup: async (name, memberBranchIds, createdBy) => {
+        const { data: group, error: gErr } = await _db
+            .from('chat_groups')
+            .insert([{ name, created_by: createdBy }])
+            .select()
+            .single();
+        if (gErr) throw gErr;
+
+        const members = memberBranchIds.map(bid => ({ group_id: group.id, branch_id: bid }));
+        const { error: mErr } = await _db.from('group_members').insert(members);
+        if (mErr) throw mErr;
+
+        return group;
+    },
+
+    fetchGroups: async (branchId = null) => {
+        let query = _db.from('chat_groups').select('*, group_members!inner(*)');
+        if (branchId) {
+            query = query.eq('group_members.branch_id', branchId);
+        }
+        const res = await query;
+        return _check(res, 'fetchGroups');
+    },
+
+    starMessage: async (messageId, userId) => {
+        const res = await _db.from('starred_messages').insert([{ message_id: messageId, user_id: userId }]);
+        return _check(res, 'starMessage');
+    },
+
+    unstarMessage: async (messageId, userId) => {
+        const res = await _db.from('starred_messages').delete().match({ message_id: messageId, user_id: userId });
+        return _check(res, 'unstarMessage');
+    },
+
+    fetchStarred: async (userId) => {
+        const res = await _db.from('starred_messages').select('*, messages(*)').eq('user_id', userId);
+        return _check(res, 'fetchStarred');
+    },
+
+    archiveRoom: async (userId, targetId, type) => {
+        const res = await _db.from('archived_conversations').insert([{ user_id: userId, target_id: targetId, type }]);
+        return _check(res, 'archiveRoom');
+    },
+
+    fetchArchived: async (userId) => {
+        const res = await _db.from('archived_conversations').select('*').eq('user_id', userId);
+        return _check(res, 'fetchArchived');
+    },
+
+    /** Attachment Upload */
+    uploadFile: async (file, path = 'chat-attachments') => {
+        const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        const filePath = `${path}/${fileName}`;
+
+        const { data, error } = await _db.storage
+            .from('chat-attachments')
+            .upload(filePath, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = _db.storage
+            .from('chat-attachments')
+            .getPublicUrl(filePath);
+
+        return {
+            url: publicUrl,
+            name: file.name,
+            type: file.type,
+            size: file.size
+        };
+    },
+
+    /** Deletion Logic */
+    softDelete: async (messageId, userId) => {
+        // Fetch current deleted_for
+        const { data: msg } = await _db.from('messages').select('deleted_for').eq('id', messageId).single();
+        const deletedFor = msg?.deleted_for || [];
+        if (!deletedFor.includes(userId)) {
+            deletedFor.push(userId);
+        }
+        const res = await _db.from('messages').update({ deleted_for: deletedFor }).eq('id', messageId);
+        return _check(res, 'softDelete');
+    },
+
+    hardDelete: async (messageId) => {
+        const res = await _db.from('messages').delete().eq('id', messageId);
+        return _check(res, 'hardDelete');
     }
 };

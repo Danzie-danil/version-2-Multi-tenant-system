@@ -63,6 +63,7 @@
         ['access_requests', null, 'access_requests'],
         ['branches', null, 'branches'],
         ['messages', 'chat', 'chat'],
+        ['pinned_messages', 'chat', null],
     ];
 
     let _channel = null;

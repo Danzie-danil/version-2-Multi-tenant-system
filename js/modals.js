@@ -3,6 +3,256 @@
 window.getModalHTML = function (type, data) {
     switch (type) {
         /* ── Request Attention (Branch -> Admin) ─── */
+        case 'chatBranchInfo': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                        <i data-lucide="building-2" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-gray-900 dark:text-white">${data.name}</h3>
+                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">${data.manager || 'No Manager'}</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center text-gray-400">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl flex items-center justify-between border border-transparent dark:border-white/5">
+                    <div>
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                        <span class="text-sm font-bold text-emerald-600 capitalize">${data.status}</span>
+                    </div>
+                    <div class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                </div>
+                <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-transparent dark:border-white/5">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Location</p>
+                    <p class="text-sm font-bold text-[var(--text-primary)]">${data.location || 'Not set'}</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-transparent dark:border-white/5">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Since</p>
+                    <p class="text-sm font-bold text-[var(--text-primary)]">${new Date(data.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+            <div class="mt-8 grid grid-cols-2 gap-3">
+                <button onclick="window.toggleMute()" class="p-3 bg-gray-100 dark:bg-white/5 rounded-xl font-bold text-xs hover:bg-gray-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="bell-off" class="w-4 h-4"></i> Mute Branch
+                </button>
+                <button onclick="window.clearChat()" class="p-3 bg-red-50 text-red-600 rounded-xl font-bold text-xs hover:bg-red-100 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Clear Chat
+                </button>
+            </div>
+        </div>`;
+
+        case 'chatPreferences': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-black text-gray-900 dark:text-white">Chat Preferences</h3>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center text-gray-400">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5">
+                    <div>
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">Chat Sounds</p>
+                        <p class="text-xs text-gray-500">Play alert on new messages</p>
+                    </div>
+                    <button id="prefSounds" onclick="window.toggleChatPref('sounds')" class="w-12 h-6 bg-emerald-500 rounded-full relative transition-all shadow-inner">
+                        <div class="absolute top-1 left-7 w-4 h-4 bg-white rounded-full shadow-sm transition-all"></div>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5">
+                    <div>
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">Enter to Send</p>
+                        <p class="text-xs text-gray-500">Use Enter key to send message</p>
+                    </div>
+                    <button id="prefEnter" onclick="window.toggleChatPref('enter')" class="w-12 h-6 bg-emerald-500 rounded-full relative transition-all shadow-inner">
+                        <div class="absolute top-1 left-7 w-4 h-4 bg-white rounded-full shadow-sm transition-all"></div>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5">
+                    <div>
+                        <p class="text-sm font-bold text-gray-900 dark:text-white">Read Receipts</p>
+                        <p class="text-xs text-gray-500">Show when you've read messages</p>
+                    </div>
+                    <button class="w-12 h-6 bg-emerald-500 rounded-full relative transition-all opacity-50 cursor-not-allowed">
+                        <div class="absolute top-1 left-7 w-4 h-4 bg-white rounded-full shadow-sm transition-all"></div>
+                    </button>
+                </div>
+            </div>
+            <p class="mt-8 text-[10px] text-center text-gray-400 font-bold uppercase tracking-widest">End-to-End Encrypted</p>
+        </div>`;
+
+        case 'chatCreateGroup': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-black text-gray-900 dark:text-white">Create Group Room</h3>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center text-gray-400">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="window.handleCreateChatGroup(event)" class="space-y-6">
+                <div class="flex justify-center mb-4">
+                    <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 rounded-full flex items-center justify-center shadow-inner cursor-pointer hover:scale-105 transition-all">
+                        <i data-lucide="camera" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Group Name</label>
+                    <input type="text" id="groupName" required placeholder="Project Alpha, HQ Connect..." class="w-full bg-gray-50 dark:bg-white/5 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Add Branches</label>
+                    <div class="max-h-48 overflow-y-auto space-y-2 p-2 bg-gray-50 dark:bg-white/5 rounded-2xl border border-transparent dark:border-white/5">
+                        ${state.branches.map(b => `
+                            <label class="flex items-center justify-between p-3 hover:bg-white/10 rounded-xl cursor-pointer transition-colors group">
+                                <span class="text-sm font-bold text-gray-700 dark:text-gray-300 group-hover:text-emerald-500">${b.name}</span>
+                                <input type="checkbox" name="groupBranches" value="${b.id}" class="w-5 h-5 rounded-lg border-gray-300 text-emerald-500 focus:ring-emerald-500">
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                    Create Room
+                </button>
+            </form>
+        </div>`;
+
+        case 'chatStarredMessages': return `
+        <div class="p-0">
+            <div class="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                <h3 class="text-xl font-black text-gray-900 dark:text-white">Starred Messages</h3>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center text-gray-400">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 max-h-[500px] overflow-y-auto space-y-4 bg-gray-50/50 dark:bg-[#0b141a]">
+                <div class="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                    <i data-lucide="star" class="w-12 h-12 mb-4"></i>
+                    <p class="text-sm font-medium">No starred messages yet.</p>
+                </div>
+            </div>
+        </div>`;
+
+        case 'chatArchivedRooms': return `
+        <div class="p-0">
+            <div class="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                <h3 class="text-xl font-black text-gray-900 dark:text-white">Archived Chats</h3>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center text-gray-400">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 max-h-[500px] overflow-y-auto space-y-4 bg-gray-50/50 dark:bg-[#0b141a]">
+                <div class="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                    <i data-lucide="archive" class="w-12 h-12 mb-4"></i>
+                    <p class="text-sm font-medium">Your archived chats will appear here.</p>
+                </div>
+            </div>
+        </div>`;
+        case 'chatBranchInfo': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                        <i data-lucide="building-2" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-gray-900 dark:text-white">${data.name}</h3>
+                        <p class="text-xs text-emerald-500 font-bold uppercase tracking-widest">${data.location || 'Main Office'}</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <p class="text-[10px] text-gray-400 uppercase font-black mb-1">Weekly Sales</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white">Kes 42,500</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <p class="text-[10px] text-gray-400 uppercase font-black mb-1">Performance</p>
+                    <p class="text-lg font-bold text-emerald-500">+12.5%</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-4 p-4 border border-gray-100 dark:border-white/5 rounded-2xl group hover:border-emerald-500/30 transition-colors">
+                    <div class="w-10 h-10 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center">
+                        <i data-lucide="phone" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-[10px] text-gray-400 uppercase font-black">Contact Number</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">${data.contact_number || '+254 7XX XXX XXX'}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 p-4 border border-gray-100 dark:border-white/5 rounded-2xl group hover:border-emerald-500/30 transition-colors">
+                    <div class="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-[10px] text-gray-400 uppercase font-black">Branch Email</p>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">${data.login_id}@bms.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeModal()" class="w-full mt-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+                Close Profile
+            </button>
+        </div>`;
+
+        case 'chatPreferences': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chat Preferences</h3>
+                        <p class="text-xs text-gray-500">Customize your messaging experience</p>
+                    </div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Message Sounds</p>
+                        <p class="text-[11px] text-gray-500">Play alert on new messages</p>
+                    </div>
+                    <button id="prefSounds" onclick="window.toggleChatPref('sounds')" class="w-12 h-6 bg-emerald-500 rounded-full relative transition-colors">
+                        <div class="w-4 h-4 bg-white rounded-full absolute top-1 left-7 shadow-sm transition-all transform pointer-events-none"></div>
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Enter to Send</p>
+                        <p class="text-[11px] text-gray-500">Send message when pressing Enter</p>
+                    </div>
+                    <button id="prefEnter" onclick="window.toggleChatPref('enter')" class="w-12 h-6 bg-emerald-500 rounded-full relative transition-colors">
+                        <div class="w-4 h-4 bg-white rounded-full absolute top-1 left-7 shadow-sm transition-all transform pointer-events-none"></div>
+                    </button>
+                </div>
+
+                <div class="p-4 bg-red-500/5 border border-red-500/20 rounded-2xl mt-4">
+                    <p class="text-[10px] text-red-500 uppercase font-bold mb-2">Danger Zone</p>
+                    <button onclick="window.handleChatAction('Clear Messages')" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-xl transition-all active:scale-95">
+                        Clear All Conversations
+                    </button>
+                </div>
+            </div>
+        </div>`;
+
         case 'requestAttention': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
