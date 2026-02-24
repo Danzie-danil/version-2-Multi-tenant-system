@@ -11,6 +11,19 @@ window.filterList = function (listId, query) {
     });
 };
 
+/* ── Audio Feedback ─────────────────────────────── */
+window._audioCache = {};
+window.playSound = function (name) {
+    try {
+        if (!window._audioCache[name]) {
+            window._audioCache[name] = new Audio(`audio/${name}.mp3`);
+        }
+        const snd = window._audioCache[name].cloneNode();
+        snd.volume = 0.5;
+        snd.play().catch(() => { }); // silently ignore autoplay blocks
+    } catch (e) { }
+};
+
 /* ── Toast Notifications ────────────────────────── */
 window.showToast = function (message, type = 'info', duration = 2500) {
     let container = document.getElementById('toast-container');
@@ -35,6 +48,10 @@ window.showToast = function (message, type = 'info', duration = 2500) {
     toast.innerHTML = `<i data-lucide="${icons[type]}" style="width:16px;height:16px;flex-shrink:0"></i> ${message}`;
     container.appendChild(toast);
     lucide.createIcons();
+
+    // Play matching sound
+    if (type === 'error') playSound('error');
+    else playSound('pop-alert');
 
     setTimeout(() => {
         if (!toast.parentElement) return;

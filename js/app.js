@@ -217,6 +217,7 @@ window.showNotificationHint = function (message = 'New Notification') {
 
     document.body.appendChild(hint);
     lucide.createIcons();
+    playSound('notification');
 
     // Fade in
     setTimeout(() => hint.classList.remove('opacity-0'), 10);
@@ -358,16 +359,14 @@ window.showNotifications = async function () {
             }
         } else {
             // ── BRANCH LOGIC ─────────────────────────────────────────────────
-            const [tasksRes, stockRes, notesRes, requests] = await Promise.all([
+            const [tasksRes, stockRes, requests] = await Promise.all([
                 supabaseClient.from('tasks').select('*').eq('branch_id', state.branchId).neq('status', 'completed').order('deadline', { ascending: true }),
                 dbInventory.fetchAll(state.branchId),
-                supabaseClient.from('notes').select('*').eq('branch_id', state.branchId).order('created_at', { ascending: false }).limit(5),
                 dbRequests.fetchByBranch(state.branchId)
             ]);
 
             const tasks = tasksRes.data || [];
             const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold);
-            const notes = notesRes.data || [];
 
             // Filter only updated/responded requests
             const respondedReqs = requests.filter(r => r.status !== 'pending' || r.admin_response).slice(0, 5);
@@ -423,15 +422,6 @@ window.showNotifications = async function () {
                 }).join('');
             }
 
-            // 3. Recent Notes / Comments
-            if (notes.length > 0) {
-                html += `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-1">Recent Notes</h4>`;
-                html += notes.map(note => `
-                    <div onclick="switchView('notes'); closeNotifications();" class="notif-item p-3 bg-white border border-gray-100 mb-2">
-                        <p class="text-xs font-bold text-gray-800 mb-1">${note.title}</p>
-                        <p class="text-[10px] text-gray-500 line-clamp-2 italic font-medium">"${note.content}"</p>
-                    </div>`).join('');
-            }
         }
 
         if (!html) {

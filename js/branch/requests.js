@@ -89,7 +89,15 @@ window.renderBranchRequestsList = async function () {
                     </button>
                 </div>` : req.admin_response ? '' : `
                 <div class="text-right">
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Awaiting Approval...</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest ${req.status === 'approved' ? 'text-emerald-500' :
+                        req.status === 'rejected' ? 'text-red-400' :
+                            req.status === 'resolved' ? 'text-indigo-400' :
+                                'text-gray-400'
+                    }">${req.status === 'approved' ? '✓ Approved' :
+                        req.status === 'rejected' ? '✗ Rejected' :
+                            req.status === 'resolved' ? '✓ Resolved' :
+                                'Awaiting Approval...'
+                    }</p>
                 </div>
                 `}
             </div>`;

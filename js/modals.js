@@ -1753,11 +1753,12 @@ window.handleRequestAttention = async function (e) {
     const form = e.target;
     const btn = form.querySelector('button[type="submit"]');
 
+    const rawRelatedId = document.getElementById('reqRelatedId').value;
     const payload = {
         branch_id: state.branchId,
         owner_id: state.profile.id, // Profile ID is the owner's UUID
         type: document.getElementById('reqType').value,
-        related_id: document.getElementById('reqRelatedId').value,
+        related_id: (rawRelatedId && rawRelatedId !== 'null' && rawRelatedId !== '') ? rawRelatedId : null,
         related_summary: document.getElementById('reqSummary').value,
         subject: document.getElementById('reqSubject').value,
         message: document.getElementById('reqMessage').value,
