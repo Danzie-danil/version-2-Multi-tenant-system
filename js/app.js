@@ -95,6 +95,9 @@ window.renderOwnerView = function (view, extraData = null) {
         case 'requests':
             renderRequestsModule(extraData);
             break;
+        case 'chat':
+            renderChatModule();
+            break;
         default:
             renderOwnerOverview();
     }
@@ -137,6 +140,9 @@ window.renderBranchView = function (view, extraData = null) {
         case 'requests':
             renderBranchRequestsModule();
             break;
+        case 'chat':
+            renderChatModule();
+            break;
         default:
             renderBranchDashboard();
     }
@@ -152,12 +158,13 @@ window.checkNotifications = async function (shush = false) {
     const oldRequestCount = state.pendingRequestCount || 0;
 
     if (state.role === 'owner') {
-        const [reqs, access] = await Promise.all([
+        const [reqs, access, unreadChat] = await Promise.all([
             supabaseClient.from('requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending'),
-            supabaseClient.from('access_requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending')
+            supabaseClient.from('access_requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending'),
+            dbMessages.getUnreadCount(null, 'admin')
         ]);
 
-        const totalPending = (reqs.count || 0) + (access.count || 0);
+        const totalPending = (reqs.count || 0) + (access.count || 0) + (unreadChat || 0);
         state.pendingRequestCount = totalPending;
         if (totalPending > oldRequestCount) hasNew = true;
 
@@ -169,10 +176,11 @@ window.checkNotifications = async function (shush = false) {
     }
     else if (state.role === 'branch') {
         // For branches, check for pending tasks, low inventory, AND new responses
-        const [tasksRes, stockRes, reqsRes] = await Promise.all([
+        const [tasksRes, stockRes, reqsRes, unreadChat] = await Promise.all([
             supabaseClient.from('tasks').select('id', { count: 'exact', head: true }).eq('branch_id', state.branchId).eq('status', 'pending'),
             dbInventory.fetchAll(state.branchId),
-            dbRequests.fetchByBranch(state.branchId)
+            dbRequests.fetchByBranch(state.branchId),
+            dbMessages.getUnreadCount(state.branchId, 'branch')
         ]);
 
         const pendingTasks = tasksRes.count || 0;
@@ -183,9 +191,9 @@ window.checkNotifications = async function (shush = false) {
         const lastChecked = localStorage.getItem(`last_checked_reqs_${state.branchId}`) || '0';
         const newResponses = responses.filter(r => new Date(r.updated_at || r.created_at) > new Date(lastChecked)).length;
 
-        if (newResponses > 0) hasNew = true;
+        if (newResponses > 0 || (unreadChat || 0) > 0) hasNew = true;
 
-        if (pendingTasks > 0 || lowStock > 0 || newResponses > 0) {
+        if (pendingTasks > 0 || lowStock > 0 || newResponses > 0 || (unreadChat || 0) > 0) {
             document.getElementById('notifBadge')?.classList.remove('hidden');
         } else {
             document.getElementById('notifBadge')?.classList.add('hidden');
@@ -368,8 +376,9 @@ window.showNotifications = async function () {
             const tasks = tasksRes.data || [];
             const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold);
 
-            // Filter only updated/responded requests
+            // Filter for responded and pending requests
             const respondedReqs = requests.filter(r => r.status !== 'pending' || r.admin_response).slice(0, 5);
+            const pendingReqs = requests.filter(r => r.status === 'pending' && !r.admin_response).slice(0, 5);
 
             // 0. Responses from Admin
             if (respondedReqs.length > 0) {
@@ -385,6 +394,22 @@ window.showNotifications = async function () {
                         </div>
                         <p class="text-sm font-bold text-gray-900 mb-1 leading-tight">${req.subject}</p>
                         ${req.admin_response ? `<p class="text-[11px] text-indigo-700 italic bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/30 mt-2 font-medium">"${req.admin_response}"</p>` : ''}
+                    </div>`;
+                }).join('');
+            }
+
+            // 0.5 Pending Requests (Awaiting Admin)
+            if (pendingReqs.length > 0) {
+                html += `<h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 px-1 pb-1 border-b border-gray-100">Pending Approvals</h4>`;
+                html += pendingReqs.map(req => {
+                    return `
+                    <div onclick="switchView('requests', '${req.id}'); closeNotifications();" class="notif-item p-4 bg-white border border-gray-100 relative group overflow-hidden mb-3 opacity-80">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-gray-300"></div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <p class="text-[9px] font-black uppercase text-gray-400 tracking-wider">${req.type.replace('_', ' ')}</p>
+                            <span class="badge bg-gray-100 text-gray-600 uppercase text-[9px] font-black italic">Awaiting...</span>
+                        </div>
+                        <p class="text-sm font-bold text-gray-900 mb-1 leading-tight">${req.subject}</p>
                     </div>`;
                 }).join('');
             }

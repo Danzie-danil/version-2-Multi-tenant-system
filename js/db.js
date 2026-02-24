@@ -907,3 +907,52 @@ window.dbInventoryPurchases = {
         return _check(res, 'fetchPurchases');
     }
 };
+
+window.dbMessages = {
+    /** Send a message */
+    send: async (payload) => {
+        const res = await _db
+            .from('messages')
+            .insert([payload])
+            .select()
+            .single();
+        return _check(res, 'sendMessage');
+    },
+
+    /** Fetch conversation history between branch and admin */
+    fetchConversation: async (branchId) => {
+        const res = await _db
+            .from('messages')
+            .select('*')
+            .eq('branch_id', branchId)
+            .order('created_at', { ascending: true });
+        return _check(res, 'fetchConversation');
+    },
+
+    /** Mark all messages in a conversation as read (for the receiver) */
+    markRead: async (branchId, role) => {
+        const res = await _db
+            .from('messages')
+            .update({ is_read: true })
+            .eq('branch_id', branchId)
+            .neq('sender_role', role)
+            .eq('is_read', false);
+        return _check(res, 'markRead');
+    },
+
+    /** Get unread message count */
+    getUnreadCount: async (branchId, role) => {
+        const query = _db
+            .from('messages')
+            .select('id', { count: 'exact', head: true })
+            .neq('sender_role', role)
+            .eq('is_read', false);
+
+        if (branchId) {
+            query.eq('branch_id', branchId);
+        }
+
+        const res = await query;
+        return res.count || 0;
+    }
+};

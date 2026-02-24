@@ -29,6 +29,7 @@
         notes: { view: 'notes', fn: () => window.renderNotesModule?.() },
         loans: { view: 'loans', fn: () => window.renderLoansModule?.() },
         requests: { view: 'requests', fn: () => window.renderBranchRequestsList?.() },
+        chat: { view: 'chat', fn: () => window.renderChatModule?.() },
         // dashboard listens to several tables
         _dashboard_sales: { view: 'dashboard', fn: () => window.renderBranchDashboard?.() },
         _dashboard_expenses: { view: 'dashboard', fn: () => window.renderBranchDashboard?.() },
@@ -45,6 +46,7 @@
         expenses: { view: 'overview', fn: () => window.renderOwnerOverview?.() },
         _analytics_sales: { view: 'analytics', fn: () => window.renderAnalytics?.() },
         _analytics_expenses: { view: 'analytics', fn: () => window.renderAnalytics?.() },
+        chat: { view: 'chat', fn: () => window.renderChatModule?.() },
     };
 
     // Tables to subscribe to and which logical key to use for each role
@@ -60,6 +62,7 @@
         ['requests', 'requests', 'requests'],
         ['access_requests', null, 'access_requests'],
         ['branches', null, 'branches'],
+        ['messages', 'chat', 'chat'],
     ];
 
     let _channel = null;
@@ -106,6 +109,11 @@
         debounce('notifications', () => {
             window.checkNotifications?.(true);
         }, 600);
+
+        // Specific trigger for Chat
+        if (table === 'messages') {
+            window.refreshChat?.(payload);
+        }
     }
 
     // ─── Build and subscribe the Supabase Realtime channel ───────────────────
@@ -135,7 +143,7 @@
 
                 if (state.role === 'branch' && state.branchId) {
                     // Tables that have a branch_id column
-                    const branchScopedTables = ['sales', 'expenses', 'inventory', 'customers', 'tasks', 'notes', 'loans', 'requests'];
+                    const branchScopedTables = ['sales', 'expenses', 'inventory', 'customers', 'tasks', 'notes', 'loans', 'requests', 'messages'];
                     if (branchScopedTables.includes(table)) {
                         opts.filter = `branch_id=eq.${state.branchId}`;
                     }
