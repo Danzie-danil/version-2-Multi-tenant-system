@@ -40,7 +40,7 @@ window.renderBranchDashboard = function () {
         <!-- Quick Actions -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 md:gap-3">
                 <button onclick="openAddSaleModal()" class="p-4 border border-gray-200 rounded-lg hover:border-emerald-400 hover:bg-emerald-50 transition-all text-center group">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
                     <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">New Sale</span>
@@ -57,6 +57,13 @@ window.renderBranchDashboard = function () {
                     <i data-lucide="edit-3" class="w-4 h-4 text-amber-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
                     <span class="text-xs font-bold text-gray-700 uppercase tracking-tight">Add Note</span>
                 </button>
+                <button onclick="switchView('chat',null)" id="dashMsgBtn" class="relative p-4 border border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-all text-center group">
+                    <div class="relative inline-block">
+                        <i data-lucide="message-square" class="w-4 h-4 text-indigo-500 mx-auto group-hover:scale-110 transition-transform"></i>
+                        <span id="dashMsgBadge" class="chat-unread-badge hidden absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow"></span>
+                    </div>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-tight block mt-1">Messages</span>
+                </button>
             </div>
         </div>
 
@@ -64,6 +71,15 @@ window.renderBranchDashboard = function () {
         <div id="dashInventoryAlerts"></div>
     </div>`;
     lucide.createIcons();
+
+    // Load unread message badge
+    dbMessages.getUnreadCount(state.branchId, state.role).then(count => {
+        const badge = document.getElementById('dashMsgBadge');
+        if (badge && count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.classList.remove('hidden');
+        }
+    }).catch(() => { });
 
     // Fetch data in parallel — all paginated APIs return { items, count }
     Promise.all([

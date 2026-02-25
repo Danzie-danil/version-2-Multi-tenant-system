@@ -63,7 +63,7 @@ window.renderOwnerOverview = function () {
         <!-- Quick Actions -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
                 <button onclick="openModal('assignTask')" class="p-2 border border-gray-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-all text-center group">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
                     <span class="text-xs font-medium text-gray-700">Assign Task</span>
@@ -80,10 +80,26 @@ window.renderOwnerOverview = function () {
                     <i data-lucide="shield" class="w-4 h-4 text-violet-500 mx-auto mb-1 group-hover:scale-110 transition-transform"></i>
                     <span class="text-xs font-medium text-gray-700">Security</span>
                 </button>
+                <button onclick="switchView('chat',null)" id="ownerDashMsgBtn" class="relative p-2 border border-gray-200 rounded-lg hover:border-pink-400 hover:bg-pink-50 transition-all text-center group">
+                    <div class="relative inline-block">
+                        <i data-lucide="message-square" class="w-4 h-4 text-pink-500 mx-auto group-hover:scale-110 transition-transform"></i>
+                        <span id="ownerDashMsgBadge" class="chat-unread-badge hidden absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow"></span>
+                    </div>
+                    <span class="text-xs font-medium text-gray-700 block mt-1">Messages</span>
+                </button>
             </div>
         </div>
     </div>`;
     lucide.createIcons();
+
+    // Load unread message badge for owner
+    dbMessages.getUnreadCount(null, state.role).then(count => {
+        const badge = document.getElementById('ownerDashMsgBadge');
+        if (badge && count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.classList.remove('hidden');
+        }
+    }).catch(() => { });
 
     // Fetch data for all branches of this owner
     dbBranches.fetchAll(state.ownerId).then(async branches => {

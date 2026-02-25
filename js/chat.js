@@ -521,12 +521,14 @@
 
         if (isGroup) {
             _activeBranchId = null;
+            _activeGroupId = null;  // Global Room has no groupId
             groupBtn?.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
             groupBtn?.classList.remove('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
             dmBtn?.classList.add('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
             dmBtn?.classList.remove('bg-emerald-500', 'text-white', 'shadow-lg');
             renderConversation(null, true);
         } else {
+            _activeGroupId = null;  // Not a group chat
             if (state.role === 'branch') _activeBranchId = state.branchId;
             dmBtn?.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
             dmBtn?.classList.remove('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
