@@ -13,22 +13,26 @@
     let _activeContextMenu = null;
     let _isSearchOpen = false;
 
+    // Recording State
+    let _mediaRecorder = null;
+    let _audioChunks = [];
+    let _recordingStartTime = null;
+    let _recordingTimerInterval = null;
+    let _recordedBlob = null;
+
     // ─── Entry Point ──────────────────────────────────────────────────────────
     window.renderChatModule = async function () {
-        const isOwner = state.role === 'owner';
         const container = document.getElementById('mainContent');
+        _isGroupChat = false;
+        _activeBranchId = state.role === 'branch' ? null : null; // Reset for unified view
 
-        if (isOwner) {
-            renderOwnerChat(container);
-        } else {
-            _isGroupChat = false;
-            _activeBranchId = state.branchId;
-            renderBranchChat(container);
-        }
+        renderUnifiedChat(container);
     };
 
-    // ─── Owner (Admin) Chat UI ────────────────────────────────────────────────
-    async function renderOwnerChat(container) {
+    // ─── Unified Chat UI (Both Owner & Branch) ───────────────────────────────
+    async function renderUnifiedChat(container) {
+        const isOwner = state.role === 'owner';
+
         container.innerHTML = `
             <div id="chatMainContainer" class="flex flex-col h-[calc(100vh-140px)] bg-[var(--chat-bg)] rounded-[1.5rem] shadow-2xl border border-gray-200/20 dark:border-white/10 overflow-hidden animate-in fade-in zoom-in duration-500">
                 <div class="flex h-full">
@@ -37,7 +41,7 @@
                         <div class="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                             <h3 class="text-lg font-black text-[var(--text-primary)]">Chats</h3>
                             <div class="flex gap-2">
-                                <button onclick="window.handleNewChat()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 transition-all active:scale-95" title="New Chat"><i data-lucide="message-square-plus" class="w-5 h-5"></i></button>
+                                ${isOwner ? `<button onclick="window.handleNewChat()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 transition-all active:scale-95" title="New Chat"><i data-lucide="message-square-plus" class="w-5 h-5"></i></button>` : ''}
                                 <button onclick="window.toggleSidebarMenu(event)" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 transition-all active:scale-95" title="Menu"><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
                             </div>
                         </div>
@@ -46,13 +50,14 @@
                             <div class="bg-gray-100 dark:bg-white/5 rounded-xl px-4 py-2 flex items-center gap-3 border border-transparent focus-within:border-emerald-500/30 transition-all">
                                 <i data-lucide="search" class="w-3.5 h-3.5 opacity-40"></i>
                                 <input type="text" placeholder="Search or start new chat" id="sidebarSearchInput" oninput="window.handleSidebarSearch(this.value)"
-                                       class="bg-transparent border-none focus:ring-0 text-sm outline-none text-[var(--text-primary)] flex-1 placeholder:text-[11px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider">
+                                       class="bg-transparent border-none focus:ring-0 text-sm outline-none text-[var(--text-primary)] flex-1 placeholder:text-[11px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:opacity-40"
+                                       style="background-color: transparent !important;">
                             </div>
                         </div>
                         <div class="p-4 space-y-2">
                              <button onclick="window.selectGroupChat()" 
                                     id="groupChatBtn"
-                                    class="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:opacity-90 active:scale-[0.98] border border-transparent ${_isGroupChat && !_activeGroupId ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-gray-50 dark:bg-white/5 text-gray-500'} group">
+                                    class="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:opacity-90 active:scale-[0.98] border border-transparent ${_isGroupChat && !_activeGroupId ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 text-gray-500'} group">
                                 <div class="w-12 h-12 rounded-full ${_isGroupChat && !_activeGroupId ? 'bg-white/20' : 'bg-emerald-500'} flex items-center justify-center shadow-sm">
                                     <i data-lucide="globe" class="w-6 h-6 text-white"></i>
                                 </div>
@@ -63,7 +68,7 @@
                             </button>
                             <div id="groupChatList" class="space-y-1"></div>
                         </div>
-                        <div id="branchChatList" class="flex-1 overflow-y-auto space-y-0.5">
+                        <div id="branchChatList" class="flex-1 overflow-y-auto p-4 pt-0 space-y-2">
                             <div class="p-8 text-center text-gray-400 text-xs italic">Loading...</div>
                         </div>
                     </div>
@@ -105,8 +110,8 @@
                 const isActive = _activeGroupId === g.id;
                 return `
                     <button onclick="window.selectGroupChat('${g.id}')" 
-                            class="w-full text-left p-3 px-4 transition-all flex items-center gap-3 group rounded-xl ${isActive ? 'bg-gray-100 dark:bg-white/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}">
-                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-xs ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
+                            class="w-full text-left p-3 px-4 transition-all flex items-center gap-3 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
+                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-xs ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
                             ${g.name.charAt(0)}
                         </div>
                         <div class="flex-1 min-w-0">
@@ -126,34 +131,62 @@
         const list = document.getElementById('branchChatList');
         if (!list) return;
 
-        const branches = state.branches;
-        const unreadCounts = await Promise.all(branches.map(async b => {
-            const count = await dbMessages.getUnreadCount(b.id, 'admin');
-            return { id: b.id, count };
-        }));
+        const isOwner = state.role === 'owner';
 
-        list.innerHTML = branches.map(b => {
-            const unread = unreadCounts.find(u => u.id === b.id)?.count || 0;
-            const isActive = _activeBranchId === b.id && !_isGroupChat;
-            return `
-                <button onclick="window.selectChatBranch('${b.id}')" 
-                        class="w-full text-left p-4 transition-all flex items-center gap-4 group border-b border-gray-50 dark:border-white/5 ${isActive ? 'bg-gray-100 dark:bg-white/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}">
+        if (isOwner) {
+            const branches = state.branches;
+            const unreadCounts = await Promise.all(branches.map(async b => {
+                const count = await dbMessages.getUnreadCount(b.id, 'owner');
+                return { id: b.id, count };
+            }));
+
+            list.innerHTML = branches.map(b => {
+                const unread = unreadCounts.find(u => u.id === b.id)?.count || 0;
+                const isActive = _activeBranchId === b.id && !_isGroupChat;
+                return `
+                    <button onclick="window.selectChatBranch('${b.id}')" 
+                            class="w-full text-left p-4 transition-all flex items-center gap-4 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
+                        <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center font-black text-sm ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
+                            ${b.name.charAt(0)}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="text-[15px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
+                                <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap">9:41 AM</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm text-gray-500 dark:text-gray-400 truncate opacity-80">${b.location || 'Branch'}</p>
+                                ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        } else {
+            // Branch user: Show only the Administrator (Owner)
+            const unread = await dbMessages.getUnreadCount(state.branchId, 'branch');
+            const isActive = _activeBranchId === state.branchId && !_isGroupChat;
+            const enterpriseName = state.enterpriseName || 'Administrator';
+
+            list.innerHTML = `
+                <button onclick="window.selectChatBranch('${state.branchId}')" 
+                        class="w-full text-left p-4 transition-all flex items-center gap-4 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
                     <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center font-black text-sm ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
-                        ${b.name.charAt(0)}
+                        A
                     </div>
                     <div class="min-w-0 flex-1">
                         <div class="flex justify-between items-center mb-1">
-                            <p class="text-[15px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
-                            <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap">9:41 AM</span>
+                            <p class="text-[15px] font-bold truncate text-[var(--text-primary)]">${enterpriseName}</p>
+                            <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap">online</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate opacity-80">${b.location || 'Branch'}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate opacity-80">Enterprise Support</p>
                             ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
                         </div>
                     </div>
                 </button>
             `;
-        }).join('');
+        }
     }
 
     let _activeGroupId = null;
@@ -177,7 +210,18 @@
     // ─── Shared Conversation Renderer ─────────────────────────────────────────
     async function renderConversation(branchId, isGroup, groupId = null) {
         const chatWindow = document.getElementById('chatWindow');
-        const title = isGroup ? (groupId ? 'Group' : 'Global Room') : state.branches.find(b => b.id === branchId)?.name;
+
+        let title = 'Chat';
+        if (isGroup) {
+            title = groupId ? 'Group' : 'Global Room';
+        } else {
+            if (state.role === 'owner') {
+                title = state.branches.find(b => b.id === branchId)?.name || 'Branch';
+            } else {
+                // For branch users, DM is always with the Admin/Owner
+                title = state.enterpriseName || 'Administrator';
+            }
+        }
 
         chatWindow.innerHTML = `
             <!-- Chat Header -->
@@ -241,13 +285,16 @@
             </div>
 
             <!-- Input Bar -->
-            <div class="p-4 bg-[var(--chat-input-bar)] flex items-end gap-3 px-6 relative z-10 border-t border-gray-200 dark:border-white/5 transition-all">
+            <div class="p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] md:pb-4 bg-[var(--chat-input-bar)] flex items-end gap-3 px-6 relative z-30 border-t border-gray-200 dark:border-white/5 transition-all">
                 <div class="flex gap-4 pb-2 text-gray-500 dark:text-gray-400 relative">
                     <button onclick="window.toggleEmojiPicker(event)" class="hover:text-emerald-500 transition-all active:scale-90"><i data-lucide="smile" class="w-6 h-6"></i></button>
                     <div class="relative">
                         <button onclick="window.toggleAttachmentMenu(event)" class="hover:text-emerald-500 transition-all active:scale-90" title="Add Attachment">
                             <i data-lucide="plus" class="w-6 h-6"></i>
                         </button>
+                        
+                        <!-- Hidden File Input for All Attachments -->
+                        <input type="file" id="chatFileInput" class="hidden" onchange="window.handleAttachment(this)">
                         
                         <!-- Attachment Menu Popover (Image 2 Style) -->
                         <div id="attachmentMenu" class="absolute bottom-full left-0 mb-6 hidden bg-white dark:bg-[#232d36] rounded-2xl shadow-2xl py-2 w-48 border border-gray-200 dark:border-white/10 animate-in slide-in-from-bottom-4 zoom-in-95 duration-200 z-50">
@@ -260,7 +307,7 @@
                                     <span>Photos & Videos</span>
                                     <i data-lucide="image" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-all"></i>
                                 </button>
-                                <button onclick="showToast('Camera feature coming soon', 'info')" class="w-full text-left px-4 py-3 text-[14px] text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-between group transition-all">
+                                <button onclick="window.triggerFileSelect('camera')" class="w-full text-left px-4 py-3 text-[14px] text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-between group transition-all">
                                     <span>Camera</span>
                                     <i data-lucide="camera" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-all"></i>
                                 </button>
@@ -269,25 +316,106 @@
                                     <span>Poll</span>
                                     <i data-lucide="bar-chart-2" class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-all"></i>
                                 </button>
-                            </div>
+            </div>
                         </div>
                     </div>
                     
                     <!-- Emoji Picker Popover -->
-                    <div id="emojiPicker" class="absolute bottom-full left-0 mb-4 hidden bg-white dark:bg-[#232d36] rounded-2xl shadow-2xl p-4 w-72 border border-gray-200 dark:border-white/10 animate-in slide-in-from-bottom-4 zoom-in-95 duration-200 z-50">
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Common Emojis</p>
-                        <div class="grid grid-cols-7 gap-1">
-                            ${['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '🥵', '🥶', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😻', '😼', '👍', '👎', '👋', '🙌', '👏', '🙏'].map(e => `
-                                <button onclick="window.addEmoji('${e}')" class="text-xl p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-all active:scale-125">${e}</button>
+                    <div id="emojiPicker" class="absolute bottom-full left-0 mb-4 hidden bg-white dark:bg-[#232d36] rounded-2xl shadow-2xl w-80 border border-gray-200 dark:border-white/10 animate-in slide-in-from-bottom-4 zoom-in-95 duration-200 z-50 flex flex-col overflow-hidden">
+                        <!-- Category Tabs -->
+                        <div class="flex items-center justify-between px-2 py-1.5 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-black/10">
+                            ${[
+                { icon: 'clock', cat: 'Recent', title: 'Recent' },
+                { icon: 'smile', cat: 'Smileys', title: 'Smileys' },
+                { icon: 'dog', cat: 'Animals', title: 'Animals' },
+                { icon: 'coffee', cat: 'Food', title: 'Food' },
+                { icon: 'plane', cat: 'Travel', title: 'Travel' },
+                { icon: 'volleyball', cat: 'Activities', title: 'Activities' },
+                { icon: 'lightbulb', cat: 'Objects', title: 'Objects' },
+                { icon: 'hash', cat: 'Symbols', title: 'Symbols' },
+                { icon: 'flag', cat: 'Flags', title: 'Flags' }
+            ].map(t => `
+                                <button onclick="window.scrollToEmojiCategory('${t.cat}')" title="${t.title}" class="p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg transition-all text-gray-400 hover:text-emerald-500">
+                                    <i data-lucide="${t.icon}" class="w-4 h-4"></i>
+                                </button>
+                            `).join('')}
+                            <div class="w-[1px] h-4 bg-gray-200 dark:bg-white/10 mx-0.5"></div>
+                            <button onclick="document.getElementById('emojiPicker').classList.add('hidden')" class="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Search Bar -->
+                        <div class="p-2 border-b border-gray-100 dark:border-white/5">
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"></i>
+                                <input type="text" placeholder="Search emoji" oninput="window.handleEmojiSearch(this.value)"
+                                       class="w-full bg-gray-100 dark:bg-white/5 border-none rounded-xl pl-8 pr-4 py-1.5 text-[13px] outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Emoji Grid -->
+                        <div id="emojiGridContainer" class="max-h-64 overflow-y-auto scroller-custom p-3 pt-1">
+                            ${[
+                { name: 'Smileys', emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '🥵', '🥶', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃'] },
+                { name: 'Animals', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷', '🕸', '🦂', '🐢', '🐍', '🦎', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🐘', '🦏', '🐪', '🐫', '🦒', '🦘', '🐄', '🐎', '🐖', '🐏', '🐑', '🐐', '🦌', '🐕', '🐩', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐿', '🦔'] },
+                { name: 'Food', emojis: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌽', '🥕', '🫑', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🥪', '🌮', '🌯', '🥗', '🥘', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '☕️', '🍵', '🧃', '🥤', '🍶', '🍺', '🍻', '🥂', '🍷', '🥃', '🍸', '🍹', '🧉', '🍾', '🧊'] },
+                { name: 'Travel', emojis: ['🚗', '🚕', '🚙', '🚌', '🚐', '🏎', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛵', '🚲', '🛴', '🚏', '🛣', '🛤', '⛽️', '🚨', '🚥', '🚦', '🚧', '⚓️', '⛵️', '🛶', '🚤', '🛳', '⛴', '🚢', '✈️', '🛩', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰', '🚀', '🛸', '🛎', '🧳', '⌛️', '⏳', '⌚️', '⏰', '⏱', '⏲', '🕰', '🌡', '☀️', '🌤', '⛅️', '🌥', '☁️', '🌦', '🌧', '⛈', '🌩', '🌨', '❄️', '☃️', '⛄️', '🌬', '💨', '🌪', '🌫', '🌈', '⛱', '⚡️', '❄️', '🔥', '💥', '☄️', '🌛', '☀️', '🌍', '🌎', '🌏', '🌑', '🌓', '🌕', '🌙', '🌚', '🪐', '💫', '⭐️', '🌟', '✨', '⚡️'] },
+                { name: 'Activities', emojis: ['⚽️', '🏀', '🏈', '⚾️', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳️', '🪁', '🏹', '🎣', '🥊', '🥋', '🎽', '🛹', '⛸️', '⛷️', '🏂', '🏋️', '🚴', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖', '🏵', '🎗', '🎫', '🎟', '🎪', '🤹', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎸', '🎻', '🎲', '🧩', '♟', '🎯', '🎳', '🎮', '🎰'] },
+                { name: 'Objects', emojis: ['⌚️', '📱', '📲', '💻', '⌨️', '🖥', '🖨', '🖱', '🖲', '🕹', '🗜', '💽', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽', '🎞', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙', '🎚', '🎛', '🧭', '⏱', '⏲', '⏰', '🕰', '⌛️', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯', '🪔', '🪟', '🗑', '🛢', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🪛', '🔧', '🔨', '⚒', '🛠', '⛏', '🪓', '🔩', '⚙️', '🗜', '🧱', '⛓', '🧲', '🔫', '💣', '🧨', '🪚', '🔪', '🗡', '⚔️', '🛡', '🚬', '⚰️', '🪦', '⚱️', '🏺', '🔮', '📿', '🧿', '💈', '⚗️', '🔭', '🔬', '🕳', '🩹', '🩺', '💊', '💉', '🩸', '🧬', '🦠', '🧫', '🧪'] },
+                { name: 'Symbols', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈️', '♉️', '♊️', '♋️', '♌️', '♍️', '♎️', '♏️', '♐️', '♑️', '♒️', '♓️', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚️', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆑', '🅾️', '🅿️', '🆘', '❌', '⭕️', '🛑', '⛔️', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗️', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯️', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿️', '🈳', '🈂️', '🛂', '🛃', '🛄'] },
+                { name: 'Flags', emojis: ['🏁', '🚩', '🎌', '🏴', '🏳️', '🏳️‍🌈', '🏴‍☠️', '🇦🇫', '🇦🇽', '🇦🇱', '🇩🇿', '🇦🇸', '🇦🇩', '🇦🇴', '🇦🇮', '🇦🇶', '🇦🇬', '🇦🇷', '🇦🇲', '🇦🇼', '🇦🇺', '🇦🇹', '🇦🇿', '🇧🇸', '🇧🇭', '🇧🇩', '🇧🇧', '🇧🇾', '🇧🇪', '🇧🇿', '🇧🇯', '🇧🇲', '🇧🇹', '🇧🇴', '🇧🇦', '🇧🇼', '🇧🇷', '🇮🇴', '🇻🇬', '🇧🇳', '🇧🇬', '🇧🇫', '🇧🇮', '🇰🇭', '🇨🇲', '🇨🇦', '🇮🇨', '🇨🇻', '🇧🇶', '🇰🇾', '🇨🇫', '🇹🇩', '🇨🇱', '🇨🇳', '🇨🇽', '🇨🇨', '🇨🇴', '🇰🇲', '🇨🇬', '🇨🇩', '🇨🇰', '🇨🇷', '🇨🇮', '🇭🇷', '🇨🇺', '🇨🇼', '🇨🇾', '🇨🇿', '🇩🇰', '🇩🇯', '🇩🇲', '🇩🇴', '🇪🇨', '🇪🇬', '🇸🇻', '🇬🇶', '🇪🇷', '🇪🇪', '🇪🇹', '🇪🇺'] }
+            ].map(cat => `
+                                <div id="emoji-cat-${cat.name.split(' ')[0]}" class="emoji-category-section mb-4">
+                                    <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3 sticky top-0 bg-white dark:bg-[#232d36] py-1 whitespace-nowrap z-10">${cat.name}</p>
+                                    <div class="grid grid-cols-7 gap-1 emoji-grid">
+                                        ${cat.emojis.map(e => `
+                                            <button onclick="window.addEmoji('${e}')" title="${e}" data-emoji="${e}" class="emoji-item group p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all active:scale-125 flex items-center justify-center">
+                                                <img src="https://emojicdn.elk.sh/${encodeURIComponent(e)}?style=apple" class="w-6 h-6 object-contain pointer-events-none" loading="lazy">
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
                             `).join('')}
                         </div>
                     </div>
                 </div>
-                <div class="flex-1 bg-white dark:bg-[#1f2c33] rounded-2xl shadow-sm border border-gray-200 dark:border-white/5 p-1 flex items-end">
+                <div class="flex-1 bg-white dark:bg-[#1f2c33] rounded-2xl shadow-sm border border-gray-200 dark:border-white/5 p-1 flex items-end relative overflow-hidden">
                     <textarea id="chatInput" placeholder="Type a message" rows="1" required
                            class="flex-1 bg-transparent border-none px-4 py-2 text-[15px] focus:ring-0 outline-none resize-none max-h-40 leading-normal text-[var(--text-primary)] transition-all rounded-2xl"
                            oninput="window.handleChatInput(this)"
                            onkeydown="if(event.key === 'Enter' && !event.shiftKey && localStorage.getItem('chatPref_enter') !== 'false') { event.preventDefault(); window.handleChatSubmit(event); }"></textarea>
+
+                    <!-- Recording Bar (Hidden by default) -->
+                    <div id="recordingBar" class="absolute inset-0 bg-white dark:bg-[#1f2c33] hidden flex items-center justify-between px-4 animate-in slide-in-from-bottom-full duration-300 z-20">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                            <span id="recordingTimer" class="text-sm font-bold text-[var(--text-primary)] tabular-nums">0:00</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <button onclick="window.cancelRecording()" class="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full text-red-500 transition-all active:scale-90" title="Cancel">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="window.stopRecording()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-emerald-500 transition-all active:scale-90" title="Stop">
+                                <i data-lucide="square" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Review Bar (Hidden by default) -->
+                    <div id="reviewBar" class="absolute inset-0 bg-white dark:bg-[#1f2c33] hidden flex items-center justify-between px-4 animate-in fade-in duration-300 z-20">
+                         <div class="flex items-center gap-3 flex-1 mr-4">
+                            <i data-lucide="mic" class="w-4 h-4 text-emerald-500"></i>
+                            <div class="h-1 flex-1 bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full bg-emerald-500 w-full"></div>
+                            </div>
+                        </div>
+                         <div class="flex items-center gap-2">
+                             <button onclick="window.discardVoiceNote()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-400" title="Discard">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="pb-1">
                     <button onclick="window.handleChatSubmit(event)" id="sendChatBtn"
@@ -299,40 +427,46 @@
             </div>
             
             <!-- Floating Menu / Context Menu (Hidden) -->
-            <div id="contextMenu" class="fixed hidden z-[100] bg-[#232d36] rounded-2xl shadow-2xl p-2 w-64 border border-white/10 animate-in zoom-in-95 duration-150">
-                <div class="flex justify-between px-3 py-2 border-b border-white/5 mb-2 gap-2 overflow-x-auto scroller-hidden">
-                    ${['👍', '❤️', '😂', '😮', '😢', '🙏', '➕'].map(emoji => `
-                        <button onclick="window.applyReaction('${emoji}')" class="text-xl hover:scale-125 transition-transform p-1 animate-in zoom-in-50">${emoji}</button>
+            <div id="contextMenu" class="fixed hidden z-[100] bg-white dark:bg-[#232d36] rounded-t-3xl md:rounded-2xl shadow-2xl p-2 w-full md:w-64 border-t md:border border-gray-200 dark:border-white/10 animate-in slide-in-from-bottom-full md:slide-in-from-bottom-0 md:zoom-in-95 duration-200 bottom-0 left-0 md:bottom-auto md:left-auto">
+                <div class="flex justify-between px-3 py-3 md:py-2 border-b border-gray-100 dark:border-white/5 mb-2 gap-2 overflow-x-auto scroller-hidden">
+                    ${['👍', '❤️', '😂', '😮', '😢', '🙏'].map(emoji => `
+                        <button onclick="window.applyReaction('${emoji}')" class="text-2xl md:text-xl hover:scale-125 transition-transform p-1 animate-in zoom-in-50">${emoji}</button>
                     `).join('')}
                 </div>
-                <div class="space-y-0.5">
-                    <button onclick="window.execMenu('reply')" class="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
-                        Reply <i data-lucide="reply" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>
+                <div class="space-y-0.5 pb-8 md:pb-0">
+                    <button onclick="window.execMenu('reply')" class="w-full text-left px-5 py-3.5 md:px-4 md:py-2.5 text-[15px] md:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
+                        Reply <i data-lucide="reply" class="w-5 h-5 md:w-4 md:h-4 opacity-50 group-hover:opacity-100"></i>
                     </button>
-                    <button onclick="window.execMenu('copy')" class="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
-                        Copy <i data-lucide="copy" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>
+                    <button onclick="window.execMenu('copy')" class="w-full text-left px-5 py-3.5 md:px-4 md:py-2.5 text-[15px] md:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
+                        Copy <i data-lucide="copy" class="w-5 h-5 md:w-4 md:h-4 opacity-50 group-hover:opacity-100"></i>
                     </button>
-                    <button onclick="window.execMenu('pin')" class="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
-                        Pin <i data-lucide="pin" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>
+                    <button onclick="window.execMenu('pin')" class="w-full text-left px-5 py-3.5 md:px-4 md:py-2.5 text-[15px] md:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
+                        Pin <i data-lucide="pin" class="w-5 h-5 md:w-4 md:h-4 opacity-50 group-hover:opacity-100"></i>
                     </button>
-                    <button onclick="window.execMenu('star')" class="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
-                        Star <i data-lucide="star" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>
+                    <button onclick="window.execMenu('star')" class="w-full text-left px-5 py-3.5 md:px-4 md:py-2.5 text-[15px] md:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl flex items-center justify-between group transition-colors">
+                        Star <i data-lucide="star" class="w-5 h-5 md:w-4 md:h-4 opacity-50 group-hover:opacity-100"></i>
                     </button>
-                    <button onclick="window.execMenu('delete')" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-xl flex items-center justify-between group transition-colors">
-                        Delete <i data-lucide="trash-2" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>
+                    <button onclick="window.execMenu('delete')" class="w-full text-left px-5 py-3.5 md:px-4 md:py-2.5 text-[15px] md:text-sm text-red-500 hover:bg-red-500/10 rounded-xl flex items-center justify-between group transition-colors">
+                        Delete <i data-lucide="trash-2" class="w-5 h-5 md:w-4 md:h-4 opacity-50 group-hover:opacity-100"></i>
                     </button>
                 </div>
             </div>
         `;
         lucide.createIcons();
-        loadHistory(branchId, isGroup);
+        loadHistory(branchId, isGroup, groupId);
         refreshPins();
         window.toggleMobileChatView('chat');
 
-        // Desktop dismissal of context menu
+        // Desktop dismissal of menus
         document.addEventListener('click', (e) => {
             if (!e.target.closest('#contextMenu') && !e.target.closest('.msg-options')) {
                 document.getElementById('contextMenu')?.classList.add('hidden');
+            }
+            if (!e.target.closest('#emojiPicker') && !e.target.closest('button[onclick*="toggleEmojiPicker"]')) {
+                document.getElementById('emojiPicker')?.classList.add('hidden');
+            }
+            if (!e.target.closest('#attachmentMenu') && !e.target.closest('button[onclick*="toggleAttachments"]')) {
+                document.getElementById('attachmentMenu')?.classList.add('hidden');
             }
         });
 
@@ -405,20 +539,25 @@
             const messages = await dbMessages.fetchConversation(branchId, isGroup, groupId);
             _activeMessages = messages;
 
+            // Mark visible messages as delivered if we are the recipient
+            if (!isGroup && branchId) {
+                dbMessages.markDelivered(branchId, state.role);
+            }
+
             if (messages.length === 0) {
                 historyDiv.innerHTML = `<div class="p-20 text-center opacity-40 italic text-sm text-[var(--text-primary)]">End-to-end encrypted.</div>`;
                 return;
             }
 
             historyDiv.innerHTML = messages.map((msg, idx) => {
-                const isMine = (state.role === 'admin' && msg.sender_role === 'admin') ||
+                const isMine = (state.role === 'owner' && msg.sender_role === 'owner') ||
                     (state.role === 'branch' && msg.sender_role === 'branch' && msg.branch_id === state.branchId);
 
                 const parent = msg.parent_id ? messages.find(m => m.id === msg.parent_id) : null;
                 const isNewGroup = idx === 0 || messages[idx - 1].sender_name !== msg.sender_name;
 
                 // Reaction summary
-                const reactions = msg.reactions || [];
+                const reactions = (msg.reactions || []).filter(r => r.emoji !== '➕');
                 const reactionMap = {};
                 reactions.forEach(r => reactionMap[r.emoji] = (reactionMap[r.emoji] || 0) + 1);
                 const reactionHtml = Object.entries(reactionMap).map(([emoji, count]) => `
@@ -447,8 +586,8 @@
                                  ontouchstart="window.handleMessageDown(event, '${msg.id}')"
                                  ontouchend="window.handleMessageUp()"
                                  class="relative ${isMine ?
-                        'msg-bubble-mine text-white dark:text-gray-100 rounded-lg rounded-tr-none shadow-sm' :
-                        'msg-bubble-other text-gray-800 dark:text-gray-200 rounded-lg rounded-tl-none shadow-sm'} px-3 py-1.5 min-w-[70px] cursor-pointer active:scale-[0.99] transition-transform">
+                        'msg-bubble-mine rounded-lg rounded-tr-none shadow-sm' :
+                        'msg-bubble-other rounded-lg rounded-tl-none shadow-sm'} px-3 py-1.5 ${reactions.length ? 'mb-3' : ''} min-w-[70px] cursor-pointer active:scale-[0.99] transition-transform">
                                 
                                 ${!isMine && isNewGroup && isGroup ? `<p class="text-[11px] font-black text-emerald-500 mb-0.5 tracking-tight">${msg.sender_name}</p>` : ''}
                                 
@@ -463,16 +602,28 @@
 
                                 <div class="flex flex-wrap items-end gap-2">
                                     <p class="text-[14.5px] leading-relaxed flex-1">${msg.content}</p>
-                                    <div class="flex flex-col items-end gap-0.5 pb-0.5 min-w-[50px]">
-                                        <div class="flex items-center gap-1 opacity-50">
-                                            <span class="text-[9px] font-bold uppercase">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                            ${isMine ? `<i data-lucide="check-check" class="w-3.5 h-3.5 text-blue-400"></i>` : ''}
-                                        </div>
+                                    <div class="flex items-center gap-1.5 pb-0.5 min-w-[50px] opacity-60">
+                                        <span class="text-[9px] font-black uppercase tracking-tight">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        ${isMine ? `
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[7px] font-black uppercase tracking-tighter opacity-80">
+                                                    ${(msg.metadata?.attachment && localStorage.getItem(`dl_${msg.metadata.attachment.url}`)) ?
+                            'Opened' :
+                            (msg.is_read ? 'Read' : (msg.is_delivered ? 'Delivered' : 'Sent'))}
+                                                </span>
+                                                ${msg.is_read ?
+                            '<i data-lucide="check-check" class="w-3.5 h-3.5 text-blue-400"></i>' :
+                            (msg.is_delivered ?
+                                '<i data-lucide="check-check" class="w-3.5 h-3.5 text-gray-400/70"></i>' :
+                                '<i data-lucide="check" class="w-3.5 h-3.5 text-gray-400/70"></i>')
+                        }
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 </div>
 
-                                <!-- Floating Reactions -->
-                                ${reactionHtml ? `<div class="absolute -bottom-3 ${isMine ? 'right-0' : 'left-0'} flex gap-0.5 z-10">${reactionHtml}</div>` : ''}
+                                 <!-- Floating Reactions -->
+                                 ${reactionHtml ? `<div class="absolute -bottom-3.5 ${isMine ? 'right-2' : 'left-2'} flex gap-1 z-10">${reactionHtml}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -487,40 +638,135 @@
     }
 
     function renderAttachment(att, isMine) {
-        const isImage = att.type.startsWith('image/');
-        const labelClass = isMine ? 'text-white' : 'text-[var(--text-primary)]';
-        const subLabelClass = isMine ? 'text-white/60' : 'text-gray-500';
+        if (!att) return '';
+
+        const isImage = att.type?.startsWith('image/');
+        const isVideo = att.type?.startsWith('video/');
+        const isAudio = att.isAudio || att.type?.startsWith('audio/');
+
+        const bgClass = isMine ? 'bg-black/10' : 'bg-gray-100 dark:bg-white/5';
+        const labelClass = isMine ? 'text-white' : 'text-gray-800 dark:text-gray-200';
+        const subLabelClass = isMine ? 'text-white/60' : 'text-gray-400';
 
         if (isImage) {
+            return `<img src="${att.url}" class="rounded-lg mb-2 max-h-[300px] w-full object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                         onclick="window.openAttachment('${att.url}', '${att.name || 'image.png'}')">`;
+        }
+
+        if (isVideo) {
+            return `<video src="${att.url}" controls class="rounded-lg mb-2 max-h-[300px] w-full object-cover"></video>`;
+        }
+
+        if (isAudio) {
             return `
-                <div class="mb-2 rounded-lg overflow-hidden cursor-pointer active:scale-[0.98] transition-all" onclick="window.openAttachment('${att.url}')">
-                    <img src="${att.url}" alt="${att.name}" class="max-h-60 rounded-lg object-cover w-full">
+                <div class="flex flex-col gap-2 p-3 ${bgClass} rounded-xl mb-2 min-w-[240px]">
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.toggleAudio(this, '${att.url}')" 
+                                class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                            <i data-lucide="play" class="w-5 h-5 ml-0.5"></i>
+                        </button>
+                        <div class="flex-1">
+                            <div class="h-1.5 w-full bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div class="audio-progress h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1.5">
+                                <span class="audio-time text-[10px] font-black uppercase tracking-widest ${subLabelClass}">0:00</span>
+                                <i data-lucide="mic" class="w-3 h-3 ${subLabelClass}"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
 
-        let icon = 'file-text';
-        let iconColor = 'bg-blue-500';
-        if (att.type.includes('pdf')) { icon = 'file-text'; iconColor = 'bg-red-500'; }
-        if (att.type.includes('word') || att.name.endsWith('.doc') || att.name.endsWith('.docx')) { icon = 'file-text'; iconColor = 'bg-blue-600'; }
-        if (att.type.includes('excel') || att.name.endsWith('.xls') || att.name.endsWith('.xlsx')) { icon = 'table'; iconColor = 'bg-emerald-600'; }
-
         return `
-            <div class="mb-2 p-2.5 bg-black/5 dark:bg-white/5 rounded-lg border border-white/10 flex items-center gap-3 cursor-pointer hover:bg-black/10 transition-all active:scale-[0.98]" onclick="window.openAttachment('${att.url}')">
-                <div class="w-9 h-9 ${iconColor} text-white rounded flex items-center justify-center shadow-sm">
-                    <i data-lucide="${icon}" class="w-5 h-5"></i>
+            <div onclick="window.openAttachment('${att.url}', '${att.name}')" 
+                 class="flex items-center gap-3 p-3 ${bgClass} rounded-xl cursor-pointer hover:opacity-80 transition-all mb-2 ring-1 ring-black/5 dark:ring-white/5">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-[13px] font-bold truncate ${labelClass}">${att.name}</p>
                     <p class="text-[10px] font-black uppercase tracking-widest ${subLabelClass}">${(att.size / 1024).toFixed(1)} KB</p>
                 </div>
-                <i data-lucide="download" class="w-4 h-4 opacity-40"></i>
+                ${!localStorage.getItem(`dl_${att.url}`) ? `<i data-lucide="download" class="w-4 h-4 opacity-40"></i>` : ''}
             </div>
         `;
     }
 
-    window.openAttachment = function (url) {
-        window.open(url, '_blank');
+    // Audio Player Logic
+    let _activeAudio = null;
+    let _activeAudioBtn = null;
+
+    window.toggleAudio = function (btn, url) {
+        if (_activeAudio && _activeAudio.src === url) {
+            if (_activeAudio.paused) {
+                _activeAudio.play();
+                btn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
+            } else {
+                _activeAudio.pause();
+                btn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-0.5"></i>';
+            }
+            lucide.createIcons();
+            return;
+        }
+
+        if (_activeAudio) {
+            _activeAudio.pause();
+            if (_activeAudioBtn) _activeAudioBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-0.5"></i>';
+        }
+
+        const audio = new Audio(url);
+        _activeAudio = audio;
+        _activeAudioBtn = btn;
+
+        audio.play();
+        btn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
+        lucide.createIcons();
+
+        const progressBar = btn.parentElement.querySelector('.audio-progress');
+        const timeDisplay = btn.parentElement.querySelector('.audio-time');
+
+        audio.ontimeupdate = () => {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            if (progressBar) progressBar.style.width = `${progress}%`;
+
+            const mins = Math.floor(audio.currentTime / 60);
+            const secs = Math.floor(audio.currentTime % 60);
+            if (timeDisplay) timeDisplay.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+        };
+
+        audio.onended = () => {
+            btn.innerHTML = '<i data-lucide="play" class="w-5 h-5 ml-0.5"></i>';
+            if (progressBar) progressBar.style.width = '0%';
+            if (timeDisplay) timeDisplay.innerText = '0:00';
+            lucide.createIcons();
+        };
+    };
+
+    window.openAttachment = async function (url, filename = 'download') {
+        try {
+            showToast('Downloading file...', 'info');
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+
+            // Mark as downloaded per device
+            localStorage.setItem(`dl_${url}`, 'true');
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId); // Refresh views
+        } catch (error) {
+            console.error('Download failed:', error);
+            showToast('Download failed. Opening in browser instead.', 'warning');
+            window.open(url, '_blank');
+        }
     };
 
     // ─── Menu & Logic ─────────────────────────────────────────────────────────
@@ -532,12 +778,20 @@
         const menu = document.getElementById('contextMenu');
         menu.classList.remove('hidden');
 
-        // Position intelligently
-        const x = Math.min(e.clientX, window.innerWidth - 280);
-        const y = Math.min(e.clientY, window.innerHeight - 380);
+        if (window.innerWidth > 768) {
+            // Position intelligently for Desktop
+            const x = Math.min(e.clientX, window.innerWidth - 280);
+            const y = Math.min(e.clientY, window.innerHeight - 380);
 
-        menu.style.left = `${x}px`;
-        menu.style.top = `${y}px`;
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+            menu.style.bottom = 'auto'; // Reset mobile style
+        } else {
+            // Mobil - Bottom Sheet (handled by CSS classes mostly)
+            menu.style.left = '0';
+            menu.style.top = 'auto';
+            menu.style.bottom = '0';
+        }
         lucide.createIcons();
     };
 
@@ -603,7 +857,7 @@
 
         try {
             await dbMessages.toggleReaction(msgId, emoji, { id: state.profile.id, name: state.currentUser });
-            loadHistory(_activeBranchId, _isGroupChat);
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
             if (localStorage.getItem('chatPref_sounds') !== 'false') playSound('pop-alert');
         } catch (e) {
             showToast('Failed to react', 'error');
@@ -642,6 +896,20 @@
     window.handleChatSubmit = async function (e) {
         if (e) e.preventDefault();
         const input = document.getElementById('chatInput');
+
+        // If recording just finished (review state), send the voice note
+        if (_recordedBlob && !document.getElementById('reviewBar').classList.contains('hidden')) {
+            window.sendVoiceNote();
+            return;
+        }
+
+        // If mic is visible, start recording instead of submitting text
+        const mic = document.getElementById('micIcon');
+        if (mic && !mic.classList.contains('hidden')) {
+            window.startRecording();
+            return;
+        }
+
         const content = input.value.trim();
         if (!content) return;
 
@@ -677,11 +945,147 @@
         }
     };
 
+    // ─── Recording Logic ──────────────────────────────────────────────────────
+    window.startRecording = async function () {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            _audioChunks = [];
+            _mediaRecorder = new MediaRecorder(stream);
+
+            _mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) _audioChunks.push(e.data);
+            };
+
+            _mediaRecorder.onstop = () => {
+                _recordedBlob = new Blob(_audioChunks, { type: 'audio/webm' });
+                document.getElementById('recordingBar').classList.add('hidden');
+                document.getElementById('reviewBar').classList.remove('hidden');
+
+                // Switch main button to Send
+                document.getElementById('micIcon').classList.add('hidden');
+                document.getElementById('sendIcon').classList.remove('hidden');
+
+                lucide.createIcons();
+            };
+
+            _mediaRecorder.start();
+            _recordingStartTime = Date.now();
+
+            document.getElementById('recordingBar').classList.remove('hidden');
+            document.getElementById('recordingTimer').innerText = '0:00';
+
+            _recordingTimerInterval = setInterval(updateRecordingTimer, 1000);
+
+            if (navigator.vibrate) navigator.vibrate(50);
+        } catch (err) {
+            console.error('Mic access denied:', err);
+            showToast('Microphone access is required for voice notes', 'warning');
+        }
+    };
+
+    window.stopRecording = function () {
+        if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+            _mediaRecorder.stop();
+            _mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            clearInterval(_recordingTimerInterval);
+        }
+    };
+
+    window.cancelRecording = function () {
+        if (_mediaRecorder) {
+            _mediaRecorder.stop();
+            _mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+        clearInterval(_recordingTimerInterval);
+        _audioChunks = [];
+        document.getElementById('recordingBar').classList.add('hidden');
+
+        // Ensure main button is Mic (unless text exists, but usually recording starts when empty)
+        const input = document.getElementById('chatInput');
+        if (input.value.trim().length === 0) {
+            document.getElementById('micIcon').classList.remove('hidden');
+            document.getElementById('sendIcon').classList.add('hidden');
+        }
+
+        if (navigator.vibrate) navigator.vibrate(20);
+    };
+
+    window.discardVoiceNote = function () {
+        _recordedBlob = null;
+        _audioChunks = [];
+        document.getElementById('reviewBar').classList.add('hidden');
+
+        // Reset main button
+        document.getElementById('micIcon').classList.remove('hidden');
+        document.getElementById('sendIcon').classList.add('hidden');
+        lucide.createIcons();
+    };
+
+    window.sendVoiceNote = async function () {
+        if (!_recordedBlob) return;
+
+        const sendBtn = document.getElementById('sendChatBtn');
+        const originalHtml = sendBtn.innerHTML;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>`;
+
+        try {
+            const file = new File([_recordedBlob], `voice_note_${Date.now()}.webm`, { type: 'audio/webm' });
+            const attachment = await dbMessages.uploadFile(file, 'voice-notes');
+
+            const payload = {
+                branch_id: _activeBranchId,
+                is_group: _isGroupChat,
+                group_id: _activeGroupId,
+                sender_role: state.role,
+                sender_name: state.currentUser,
+                content: 'Voice Message',
+                metadata: {
+                    attachment: {
+                        ...attachment,
+                        isAudio: true
+                    }
+                }
+            };
+
+            await dbMessages.send(payload);
+            window.discardVoiceNote();
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
+            if (localStorage.getItem('chatPref_sounds') !== 'false') playSound('pop-alert');
+        } catch (e) {
+            console.error('Failed to send voice note:', e);
+            showToast('Failed to send voice note', 'error');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = originalHtml;
+        }
+    };
+
+    function updateRecordingTimer() {
+        const elapsed = Math.floor((Date.now() - _recordingStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        document.getElementById('recordingTimer').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
     window.triggerFileSelect = function (type) {
         const input = document.getElementById('chatFileInput');
-        if (type === 'image') input.accept = 'image/*,video/*';
-        else if (type === 'doc') input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.txt';
-        else input.accept = 'image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt';
+        if (!input) return;
+
+        // Reset any previous capture state
+        input.removeAttribute('capture');
+
+        if (type === 'image') {
+            input.accept = 'image/*,video/*';
+        } else if (type === 'doc') {
+            input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.txt';
+        } else if (type === 'camera') {
+            input.accept = 'image/*';
+            input.setAttribute('capture', 'environment');
+        } else {
+            input.accept = 'image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt';
+        }
+
         input.click();
         document.getElementById('attachmentMenu')?.classList.add('hidden');
     };
@@ -820,10 +1224,13 @@
             (!_isGroupChat && !payload.new.is_group && payload.new.branch_id === _activeBranchId);
 
         if (isMsgTarget) {
-            loadHistory(_activeBranchId, _isGroupChat);
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
             if (payload.new.sender_role !== state.role) {
                 playSound('notification');
-                if (!payload.new.is_group && !_isGroupChat) dbMessages.markRead(_activeBranchId, state.role);
+                if (!payload.new.is_group && !_isGroupChat) {
+                    dbMessages.markDelivered(_activeBranchId, state.role); // Mark as delivered upon realtime arrival
+                    dbMessages.markRead(_activeBranchId, state.role);
+                }
             }
         } else if (state.role === 'owner') {
             updateBranchList();
@@ -837,6 +1244,13 @@
         // Toggle mic/send
         const mic = document.getElementById('micIcon');
         const send = document.getElementById('sendIcon');
+
+        // Prevent toggling icons if we are in recording or review mode
+        const reviewBar = document.getElementById('reviewBar');
+        const recordingBar = document.getElementById('recordingBar');
+        if ((reviewBar && !reviewBar.classList.contains('hidden')) ||
+            (recordingBar && !recordingBar.classList.contains('hidden'))) return;
+
         if (input.value.trim().length > 0) {
             mic?.classList.add('hidden');
             send?.classList.remove('hidden');
@@ -850,19 +1264,79 @@
     };
 
     window.toggleEmojiPicker = function (e) {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         const picker = document.getElementById('emojiPicker');
-        picker?.classList.toggle('hidden');
+        if (!picker) return;
 
-        const closePicker = (ev) => {
-            if (!ev.target.closest('#emojiPicker')) {
-                picker?.classList.add('hidden');
-                document.removeEventListener('click', closePicker);
-            }
-        };
-        if (!picker?.classList.contains('hidden')) {
-            document.addEventListener('click', closePicker);
+        const isHidden = picker.classList.contains('hidden');
+
+        // Close other menus
+        if (isHidden) {
+            document.getElementById('attachmentMenu')?.classList.add('hidden');
+            document.getElementById('contextMenu')?.classList.add('hidden');
+            lucide.createIcons();
         }
+
+        picker.classList.toggle('hidden');
+
+        if (!picker.classList.contains('hidden')) {
+            const closePicker = (ev) => {
+                if (!ev.target.closest('#emojiPicker') && !ev.target.closest('button[onclick*="toggleEmojiPicker"]')) {
+                    picker.classList.add('hidden');
+                    document.removeEventListener('click', closePicker);
+                }
+            };
+            // Use setTimeout to avoid immediate trigger from this click
+            setTimeout(() => document.addEventListener('click', closePicker), 10);
+        }
+    };
+
+    window.scrollToEmojiCategory = function (catName) {
+        const container = document.getElementById('emojiGridContainer');
+        const section = document.getElementById(`emoji-cat-${catName.split(' ')[0]}`);
+        if (container && section) {
+            container.scrollTo({
+                top: section.offsetTop - container.offsetTop,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    window.handleEmojiSearch = function (query) {
+        const q = query.toLowerCase().trim();
+        const sections = document.querySelectorAll('.emoji-category-section');
+
+        if (!q) {
+            sections.forEach(sec => {
+                sec.classList.remove('hidden');
+                sec.querySelectorAll('.emoji-item').forEach(item => item.classList.remove('hidden'));
+            });
+            return;
+        }
+
+        sections.forEach(section => {
+            const catName = section.querySelector('p').innerText.toLowerCase();
+            const items = section.querySelectorAll('.emoji-item');
+            let hasVisibleItems = false;
+
+            if (catName.includes(q)) {
+                section.classList.remove('hidden');
+                items.forEach(item => item.classList.remove('hidden'));
+                hasVisibleItems = true;
+            } else {
+                items.forEach(item => {
+                    if (item.dataset.emoji === q || item.title.toLowerCase().includes(q)) {
+                        item.classList.remove('hidden');
+                        hasVisibleItems = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+
+                if (hasVisibleItems) section.classList.remove('hidden');
+                else section.classList.add('hidden');
+            }
+        });
     };
 
     window.addEmoji = function (emoji) {
@@ -900,13 +1374,13 @@
         if (_isSearchOpen) {
             document.getElementById('msgSearchInput')?.focus();
         } else {
-            loadHistory(_activeBranchId, _isGroupChat);
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
         }
     };
 
     window.handleMsgSearch = function (query) {
         if (!query.trim()) {
-            loadHistory(_activeBranchId, _isGroupChat);
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
             return;
         }
         const filtered = _activeMessages.filter(m =>

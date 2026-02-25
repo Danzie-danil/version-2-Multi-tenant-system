@@ -945,15 +945,29 @@ window.dbMessages = {
         });
     },
 
-    /** Mark all messages in a conversation as read (for the receiver) */
+    /** Mark all messages in a conversation as read (for the recipient) */
     markRead: async (branchId, role) => {
         const res = await _db
             .from('messages')
-            .update({ is_read: true })
+            .update({
+                is_read: true,
+                is_delivered: true // If it's read, it's definitely delivered
+            })
             .eq('branch_id', branchId)
             .neq('sender_role', role)
             .eq('is_read', false);
         return _check(res, 'markRead');
+    },
+
+    /** Mark specific messages as delivered */
+    markDelivered: async (branchId, role) => {
+        const res = await _db
+            .from('messages')
+            .update({ is_delivered: true })
+            .eq('branch_id', branchId)
+            .neq('sender_role', role)
+            .eq('is_delivered', false);
+        return _check(res, 'markDelivered');
     },
 
     /** Get unread message count */

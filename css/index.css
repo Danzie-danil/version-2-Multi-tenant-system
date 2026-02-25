@@ -24,32 +24,36 @@
     --chat-bubble-mine: #d9fdd3;
     --chat-bubble-other: #ffffff;
     --chat-text-target: #065f46;
+    --chat-text-mine: #111b21;
+    --chat-text-other: #111b21;
 }
 
 .dark {
     /* ── Dark Theme Variables ─────────────────── */
-    --bg-main: #0f172a;
-    --bg-card: #1e293b;
-    --bg-sidebar: #1e293b;
-    --bg-header: #1e293b;
-    --bg-input: #0f172a;
-    --bg-glass: rgba(15, 23, 42, 0.95);
+    --bg-main: #0b141a;
+    --bg-card: #111b21;
+    --bg-sidebar: #111b21;
+    --bg-header: #111b21;
+    --bg-input: #111b21;
+    --bg-glass: rgba(17, 27, 33, 0.95);
 
     --text-primary: #f8fafc;
     --text-secondary: #e2e8f0;
     --text-muted: #94a3b8;
 
-    --border-color: #334155;
-    --border-light: #1e293b;
+    --border-color: #202c33;
+    --border-light: #111b21;
 
     /* Chat Theme (Dark) */
     --chat-bg: #0b141a;
     --chat-sidebar: #111b21;
-    --chat-header: #202c33;
-    --chat-input-bar: #202c33;
-    --chat-bubble-mine: #005c4b;
+    --chat-header: #0b141a;
+    --chat-input-bar: #0b141a;
+    --chat-bubble-mine: #04422c;
     --chat-bubble-other: #202c33;
     --chat-text-target: #10b981;
+    --chat-text-mine: #e9edef;
+    --chat-text-other: #e9edef;
 }
 
 /* ── Base ─────────────────────────────────────── */
@@ -1131,6 +1135,7 @@ select.form-input:disabled {
 .msg-bubble-mine {
     position: relative;
     background: var(--chat-bubble-mine);
+    color: var(--chat-text-mine);
 }
 
 .msg-bubble-mine::after {
@@ -1147,6 +1152,7 @@ select.form-input:disabled {
 .msg-bubble-other {
     position: relative;
     background: var(--chat-bubble-other);
+    color: var(--chat-text-other);
 }
 
 .msg-bubble-other::after {
@@ -1186,7 +1192,10 @@ select.form-input:disabled {
         background: var(--chat-bg);
         width: 100%;
         height: 100%;
+        position: relative;
+        z-index: 10;
     }
+
 
     /* When a chat is focused on mobile */
     #chatMainContainer.chat-active {
@@ -1195,6 +1204,7 @@ select.form-input:disabled {
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
+        height: 100dvh !important;
         z-index: 9999 !important;
         background: var(--chat-bg);
         border-radius: 0 !important;
