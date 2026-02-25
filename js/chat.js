@@ -285,7 +285,7 @@
             </div>
 
             <!-- Input Bar -->
-            <div class="p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] md:pb-4 bg-[var(--chat-input-bar)] flex items-end gap-3 px-6 relative z-30 border-t border-gray-200 dark:border-white/5 transition-all">
+            <div class="p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] md:pb-4 bg-[var(--chat-input-bar)] flex items-end gap-2 md:gap-3 px-3 md:px-6 relative z-30 border-t border-gray-200 dark:border-white/5 transition-all">
                 <div class="flex gap-4 pb-2 text-gray-500 dark:text-gray-400 relative">
                     <button onclick="window.toggleEmojiPicker(event)" class="hover:text-emerald-500 transition-all active:scale-90"><i data-lucide="smile" class="w-6 h-6"></i></button>
                     <div class="relative">

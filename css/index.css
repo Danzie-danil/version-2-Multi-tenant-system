@@ -1202,13 +1202,14 @@ select.form-input:disabled {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
-        width: 100vw !important;
+        width: 100% !important;
         height: 100vh !important;
         height: 100dvh !important;
         z-index: 9999 !important;
         background: var(--chat-bg);
         border-radius: 0 !important;
         margin: 0 !important;
+        overflow-x: hidden;
     }
 
     .chat-active #chatSidebar {
