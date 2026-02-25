@@ -412,7 +412,6 @@ window.setupDashboard = function () {
 
     if (isOwner) {
         document.getElementById('ownerNav').classList.remove('hidden');
-        document.getElementById('liveIndicator').classList.remove('hidden');
 
         const lastView = localStorage.getItem('lastOwnerView') || 'overview';
         switchView(lastView);

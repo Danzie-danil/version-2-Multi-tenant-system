@@ -17,9 +17,14 @@ window.renderSettings = function () {
                 <span class="text-[10px] sm:text-sm font-medium text-gray-500 hidden md:block whitespace-nowrap">Manage your profile and business details.</span>
             </div>
             
-            <button onclick="saveSettings()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all active:scale-95 whitespace-nowrap flex-shrink-0">
-                <i data-lucide="save" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Save</span>
-            </button>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button onclick="confirmUpdateApp()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl hover:bg-emerald-600 hover:text-white transition-all active:scale-95 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline">Check Updates</span>
+                </button>
+                <button onclick="saveSettings()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all active:scale-95 whitespace-nowrap">
+                    <i data-lucide="save" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Save</span>
+                </button>
+            </div>
         </div>
 
         <div class="flex flex-col md:flex-row gap-8">
@@ -67,12 +72,36 @@ window.renderSettings = function () {
                                 <input type="tel" id="set_mobile_number" value="${profile.mobile_number || ''}" class="form-input w-full" placeholder="+1 (555) 000-0000">
                             </div>
                             <div class="col-span-1 md:col-span-2 mt-2">
-                                <label for="set_avatar_url" class="block text-sm font-medium text-gray-700 mb-2">Profile Avatar (URL)</label>
-                                <div class="flex items-center gap-4">
-                                    <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 text-xl font-bold overflow-hidden border-2 border-white shadow">
-                                        ${profile.avatar_url ? `<img src="${profile.avatar_url}" class="w-full h-full object-cover">` : (profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U')}
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Profile Avatar</label>
+                                <div class="flex items-center gap-6">
+                                    <div class="relative group">
+                                        <div id="avatar_preview" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 text-xl font-bold overflow-hidden border-2 border-white shadow-md ring-2 ring-indigo-50">
+                                            ${profile.avatar_url ? `<img src="${profile.avatar_url}" class="w-full h-full object-cover">` : (profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U')}
+                                        </div>
+                                        <label for="set_avatar_file" class="absolute bottom-0 right-0 p-1.5 bg-indigo-600 text-white rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-all border-2 border-white scale-90 group-hover:scale-100">
+                                            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                                            <input type="file" id="set_avatar_file" accept="image/*" class="hidden" onchange="handleAvatarUpload(this)">
+                                        </label>
                                     </div>
-                                    <input type="url" id="set_avatar_url" value="${profile.avatar_url || ''}" class="form-input w-full" placeholder="https://example.com/photo.jpg">
+                                    <div class="flex-1" id="avatar_controls">
+                                        <h4 class="text-sm font-bold text-gray-900 mb-1">Upload Profile Image</h4>
+                                        <p class="text-xs text-gray-500 mb-3">Square images work best. Max size 2MB.</p>
+                                        <input type="hidden" id="set_avatar_url" value="${profile.avatar_url || ''}">
+                                        <div class="flex items-center gap-2">
+                                            ${profile.avatar_url ? `
+                                                <button type="button" onclick="document.getElementById('set_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                                                    Replace
+                                                </button>
+                                                <button type="button" onclick="removeAvatar()" class="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 rounded-lg border border-red-100 transition-colors">
+                                                    Remove
+                                                </button>
+                                            ` : `
+                                                <button type="button" onclick="document.getElementById('set_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                                                    Choose Image from Files
+                                                </button>
+                                            `}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -137,88 +166,128 @@ window.renderSettings = function () {
 
                     <!-- Tab Content: Global Preferences -->
                     <div id="content-preferences" class="${activeTab === 'preferences' ? 'block' : 'hidden'} p-8">
-                        <h3 class="text-lg font-bold text-gray-900 mb-6">Global Branch Preferences</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="col-span-1">
-                                <label for="set_default_target" class="block text-sm font-medium text-gray-700 mb-1">Default Daily Sales Target</label>
-                                <div class="flex items-stretch rounded-lg shadow-sm border border-gray-300 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden active:border-indigo-500 transition-colors bg-white">
-                                    <span class="flex items-center px-4 bg-gray-50 border-r border-gray-300 text-gray-500 font-medium whitespace-nowrap">${fmt.currency(0).replace(/[0-9.,\s]/g, '').trim()}</span>
-                                    <input type="text" inputmode="decimal" id="set_default_target" value="${profile.default_target || 10000}" class="flex-1 block w-full px-4 py-2 text-gray-900 border-0 focus:ring-0 focus:outline-none number-format">
+                        <h3 class="text-lg font-bold text-gray-900 mb-6 font-primary">Global Branch Preferences</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="col-span-1 space-y-8">
+                                <!-- Group 1: Sales Target -->
+                                <div>
+                                    <label for="set_default_target" class="block text-sm font-medium text-gray-700 mb-1">Default Daily Sales Target</label>
+                                    <div class="flex items-stretch rounded-lg shadow-sm border border-gray-300 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden bg-white">
+                                        <span class="flex items-center px-3 bg-gray-50 border-r border-gray-300 text-gray-400 text-[10px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">${fmt.currency(0).replace(/[0-9.,\s]/g, '').trim() || 'Val'}</span>
+                                        <input type="text" inputmode="decimal" id="set_default_target" value="${profile.default_target || 10000}" class="flex-1 block w-full px-4 py-2 text-gray-900 border-0 focus:ring-0 focus:outline-none number-format min-w-0">
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2">Applied as baseline when creating new branches.</p>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-2">Applied as baseline when creating new branches.</p>
-                            </div>
-                            <div class="col-span-1">
-                                <label for="set_hours_open" class="block text-sm font-medium text-gray-700 mb-1">Global Operating Hours</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="time" id="set_hours_open" value="${(profile.operating_hours ? JSON.parse(profile.operating_hours).open : '08:00')}" class="form-input flex-1">
-                                    <span class="text-gray-400 text-sm">to</span>
-                                    <input type="time" id="set_hours_close" value="${(profile.operating_hours ? JSON.parse(profile.operating_hours).close : '18:00')}" class="form-input flex-1">
+
+                                <!-- Group 2: Operating Hours (Now Below) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-3">Global Operating Hours</label>
+                                    <div class="space-y-2">
+                                        <div class="relative flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100 transition-all hover:border-indigo-200">
+                                            <div class="flex items-center gap-2.5 pointer-events-none">
+                                                <div class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-indigo-500">
+                                                    <i data-lucide="clock" class="w-4 h-4"></i>
+                                                </div>
+                                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Opens At</span>
+                                            </div>
+                                            <input type="time" id="set_hours_open" value="${(profile.operating_hours ? JSON.parse(profile.operating_hours).open : '08:00')}" 
+                                                class="form-input w-36 py-1 px-0 border-0 bg-transparent text-sm font-bold text-gray-700 focus:ring-0 text-right custom-time-input"
+                                                style="color-scheme: light;">
+                                        </div>
+                                        <div class="relative flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100 transition-all hover:border-indigo-200">
+                                            <div class="flex items-center gap-2.5 pointer-events-none">
+                                                <div class="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-indigo-500">
+                                                    <i data-lucide="moon" class="w-4 h-4"></i>
+                                                </div>
+                                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Closes At</span>
+                                            </div>
+                                            <input type="time" id="set_hours_close" value="${(profile.operating_hours ? JSON.parse(profile.operating_hours).close : '18:00')}" 
+                                                class="form-input w-36 py-1 px-0 border-0 bg-transparent text-sm font-bold text-gray-700 focus:ring-0 text-right custom-time-input"
+                                                style="color-scheme: light;">
+                                        </div>
+                                    </div>
+                                    <style>
+                                        .custom-time-input::-webkit-calendar-picker-indicator {
+                                            background: transparent;
+                                            bottom: 0;
+                                            color: transparent;
+                                            cursor: pointer;
+                                            height: auto;
+                                            left: 0;
+                                            position: absolute;
+                                            right: 0;
+                                            top: 0;
+                                            width: auto;
+                                            z-index: 10;
+                                        }
+                                    </style>
                                 </div>
                             </div>
-                            <div class="col-span-1 md:col-span-2">
+
+                            <div class="col-span-1">
                                 <label for="set_receipt_text" class="block text-sm font-medium text-gray-700 mb-1">Default Receipt / Invoice Footer Text</label>
-                                <textarea id="set_receipt_text" class="form-input w-full" rows="3" placeholder="Thank you for your business!">${profile.receipt_text || 'Thank you for your business!'}</textarea>
+                                <textarea id="set_receipt_text" class="form-input w-full" rows="7" placeholder="Thank you for your business!">${profile.receipt_text || 'Thank you for your business!'}</textarea>
+                                <p class="text-xs text-gray-400 mt-2">Maximum 500 characters. Support for basic plain text.</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Tab Content: Security & Billing -->
                     <div id="content-security" class="${activeTab === 'security' ? 'block' : 'hidden'} p-8">
-                        <h3 class="text-lg font-bold text-gray-900 mb-6">Security & Billing</h3>
+                        <h3 class="text-lg font-bold text-gray-900 mb-6 font-primary">Security & Billing</h3>
                         
-                        <div class="mb-8">
-                            <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Account Security</h4>
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <div>
-                                    <p class="font-medium text-sm text-gray-900">Two-Factor Authentication (2FA)</p>
-                                    <p class="text-xs text-gray-500 mt-1">Require a code via email when logging in.</p>
+                        <div class="mb-10">
+                            <h4 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Account Security</h4>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-indigo-100 transition-all hover:shadow-sm">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-500">
+                                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm text-gray-900">Two-Factor Authentication (2FA)</p>
+                                        <p class="text-[11px] text-gray-500 font-medium">Extra security layer for your owner account</p>
+                                    </div>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="set_two_factor" class="sr-only peer" ${profile.two_factor ? 'checked' : ''}>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 shadow-inner"></div>
                                 </label>
                             </div>
                         </div>
 
                         <div>
-                            <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">Subscription Details</h4>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 text-center">
-                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Current Plan</p>
-                                    <p class="font-bold text-indigo-700">${profile.current_plan || 'Free Tier'}</p>
+                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Subscription Details</h4>
+                            <div class="space-y-2 max-w-sm">
+                                <div class="flex items-center justify-between p-2.5 bg-gray-50/50 rounded-xl border border-gray-100 group transition-all hover:bg-white hover:shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="zap" class="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                                        <span class="text-sm font-medium text-gray-600">Current Plan</span>
+                                    </div>
+                                    <span class="text-sm font-bold text-indigo-600">${profile.current_plan || 'Free Tier'}</span>
                                 </div>
-                                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
-                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">Billing Cycle</p>
-                                    <p class="font-bold text-gray-900 capitalize">${profile.billing_cycle || 'Monthly'}</p>
+                                
+                                <div class="flex items-center justify-between p-2.5 bg-gray-50/50 rounded-xl border border-gray-100 group transition-all hover:bg-white hover:shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="calendar" class="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
+                                        <span class="text-sm font-medium text-gray-600">Billing Cycle</span>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-900 capitalize">${profile.billing_cycle || 'Monthly'}</span>
                                 </div>
-                                <div class="col-span-2 flex items-center justify-center p-4">
-                                    <button type="button" class="w-full px-4 py-2 border border-gray-300 bg-white shadow-sm text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                                        Manage Billing
-                                    </button>
-                                </div>
+
+                                <button type="button" class="w-full flex items-center justify-between p-2.5 bg-white rounded-xl border border-dashed border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/30 transition-all active:scale-[0.98] group">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="credit-card" class="w-4 h-4 text-gray-400 group-hover:text-indigo-600"></i>
+                                        <span class="text-sm font-bold">Manage Billing</span>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 opacity-50 group-hover:opacity-100"></i>
+                                </button>
                             </div>
                         </div>
-
                     </div>
 
                 </form>
                 
-                <!-- Always Visible System Utilities -->
-                <div class="p-8 border-t border-gray-100 bg-gray-50/30">
-                    <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">System Utilities</h4>
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white rounded-xl border border-gray-100 gap-4">
-                        <div>
-                            <p class="font-medium text-sm text-gray-900">Fetch New Code Changes</p>
-                            <p class="text-xs text-gray-500 mt-1">Force the application to reload and download the latest updates.</p>
-                        </div>
-                        <button type="button" onclick="confirmUpdateApp()" class="flex items-center justify-center gap-3 px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-full hover:bg-emerald-700 transition-colors w-full sm:w-auto shadow-sm group">
-                            <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center shadow-sm">
-                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
-                            </div>
-                            <span class="text-white font-medium text-sm pr-1">Check for Updates</span>
-                        </button>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>`;
@@ -329,5 +398,109 @@ window.saveSettings = async function () {
         notifyBtn.innerHTML = originalText;
         notifyBtn.disabled = false;
         lucide.createIcons();
+    }
+};
+
+window.handleAvatarUpload = function (input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+
+        // Validation
+        if (file.size > 5 * 1024 * 1024) { // Increased to 5MB since we will compress/resize
+            showToast('Image size should be less than 5MB', 'error');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                // Auto-crop to Square Logic
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const size = 200; // Standardize to 200x200
+                canvas.width = size;
+                canvas.height = size;
+
+                // Calculate crop dimensions (center crop)
+                let sourceX, sourceY, sourceWidth, sourceHeight;
+                if (img.width > img.height) {
+                    sourceHeight = img.height;
+                    sourceWidth = img.height;
+                    sourceX = (img.width - img.height) / 2;
+                    sourceY = 0;
+                } else {
+                    sourceWidth = img.width;
+                    sourceHeight = img.width;
+                    sourceX = 0;
+                    sourceY = (img.height - img.width) / 2;
+                }
+
+                // Draw cropped image
+                ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, size, size);
+
+                const finalBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+                // Update Preview
+                const preview = document.getElementById('avatar_preview');
+                if (preview) {
+                    preview.innerHTML = `<img src="${finalBase64}" class="w-full h-full object-cover">`;
+                }
+
+                // Update hidden input
+                const hiddenInput = document.getElementById('set_avatar_url');
+                if (hiddenInput) {
+                    hiddenInput.value = finalBase64;
+                }
+
+                showToast('Photo cropped and prepared. Click "Save" to apply.', 'info');
+                updateAvatarControls(true);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+window.removeAvatar = function () {
+    const hiddenInput = document.getElementById('set_avatar_url');
+    if (hiddenInput) {
+        hiddenInput.value = '';
+    }
+
+    const preview = document.getElementById('avatar_preview');
+    if (preview) {
+        const profile = state.profile || {};
+        preview.innerHTML = profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U';
+    }
+
+    updateAvatarControls(false);
+    showToast('Photo removed. Click "Save" to apply changes.', 'info');
+};
+
+window.updateAvatarControls = function (hasImage) {
+    const container = document.getElementById('avatar_controls');
+    if (!container) return;
+
+    const buttonGroup = container.querySelector('.flex.items-center.gap-2');
+    if (!buttonGroup) return;
+
+    if (hasImage) {
+        buttonGroup.innerHTML = `
+            <button type="button" onclick="document.getElementById('set_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                Replace
+            </button>
+            <button type="button" onclick="removeAvatar()" class="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 rounded-lg border border-red-100 transition-colors">
+                Remove
+            </button>
+        `;
+    } else {
+        buttonGroup.innerHTML = `
+            <button type="button" onclick="document.getElementById('set_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                Choose Image from Files
+            </button>
+        `;
     }
 };

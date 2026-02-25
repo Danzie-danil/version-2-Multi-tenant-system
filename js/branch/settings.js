@@ -7,13 +7,18 @@ window.renderBranchSettings = function () {
     main.innerHTML = `
     <div class="max-w-4xl mx-auto opacity-0 translate-y-4 animate-fade-in-up">
         
-        <!-- Header -->
-        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden w-fit mb-5">
-            <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Settings</div>
-            <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400">
-                <i data-lucide="settings" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i>
-                <span class="text-[10px] sm:text-xs font-medium whitespace-nowrap">Profile & System</span>
+        <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between mb-5 overflow-hidden">
+            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Branch Settings</div>
+                <div class="flex items-center gap-1.5 sm:gap-2 text-gray-400">
+                    <i data-lucide="settings" class="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0"></i>
+                    <span class="text-[10px] sm:text-xs font-medium whitespace-nowrap">Profile & System</span>
+                </div>
             </div>
+
+            <button onclick="confirmUpdateApp()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl hover:bg-emerald-600 hover:text-white transition-all active:scale-95 whitespace-nowrap flex-shrink-0">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Check Updates</span>
+            </button>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -136,22 +141,7 @@ window.renderBranchSettings = function () {
                 </div>
             </div>
 
-            <!-- Section: System Utilities -->
-            <div class="p-8 border-b border-gray-100 bg-gray-50/30">
-                <h4 class="text-sm font-bold text-gray-900 mb-4 border-b pb-2">System Utilities</h4>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white rounded-xl border border-gray-100 gap-4">
-                    <div>
-                        <p class="font-medium text-sm text-gray-900">Fetch New Code Changes</p>
-                        <p class="text-xs text-gray-500 mt-1">Force the application to reload and download the latest updates.</p>
-                    </div>
-                    <button type="button" onclick="confirmUpdateApp()" class="flex items-center justify-center gap-3 px-4 py-2 bg-emerald-600 border border-emerald-500 rounded-full hover:bg-emerald-700 transition-colors w-full sm:w-auto shadow-sm group">
-                        <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center shadow-sm">
-                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-white"></i>
-                        </div>
-                        <span class="text-white font-medium text-sm pr-1">Check for Updates</span>
-                    </button>
-                </div>
-            </div>
+
 
         </div>
     </div>`;

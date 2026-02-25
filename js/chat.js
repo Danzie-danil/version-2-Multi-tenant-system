@@ -38,9 +38,9 @@
             <div id="chatMainContainer" class="flex flex-col h-[calc(100vh-140px)] bg-[var(--chat-bg)] rounded-[1.5rem] shadow-2xl border border-gray-200/20 dark:border-white/10 overflow-hidden animate-in fade-in zoom-in duration-500">
                 <div class="flex h-full">
                     <!-- Sidebar -->
-                    <div id="chatSidebar" class="w-full md:w-80 border-r border-gray-200 dark:border-white/10 flex flex-col bg-[var(--chat-sidebar)]">
-                        <div class="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
-                            <h3 class="text-lg font-black text-[var(--text-primary)]">Chats</h3>
+                    <div id="chatSidebar" class="w-full md:w-72 border-r border-gray-200 dark:border-white/10 flex flex-col bg-[var(--chat-sidebar)]">
+                        <div class="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                            <h3 class="text-base font-black text-[var(--text-primary)]">Chats</h3>
                             <div class="flex gap-2">
                                 ${isOwner ? `<button onclick="window.handleNewChat()" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 transition-all active:scale-95" title="New Chat"><i data-lucide="message-square-plus" class="w-5 h-5"></i></button>` : ''}
                                 <button onclick="window.toggleSidebarMenu(event)" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-500 transition-all active:scale-95" title="Menu"><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
@@ -55,16 +55,16 @@
                                        style="background-color: transparent !important;">
                             </div>
                         </div>
-                        <div class="p-4 space-y-2">
+                        <div class="p-3 space-y-2">
                              <button onclick="window.selectGroupChat()" 
                                     id="groupChatBtn"
-                                    class="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:opacity-90 active:scale-[0.98] border border-transparent ${_isGroupChat && !_activeGroupId ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 text-gray-500'} group">
-                                <div class="w-12 h-12 rounded-full ${_isGroupChat && !_activeGroupId ? 'bg-white/20' : 'bg-emerald-500'} flex items-center justify-center shadow-sm">
-                                    <i data-lucide="globe" class="w-6 h-6 text-white"></i>
+                                    class="w-full flex items-center gap-2.5 p-2 px-3 rounded-xl transition-all hover:opacity-90 active:scale-[0.98] border border-transparent ${_isGroupChat && !_activeGroupId ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 text-gray-500'} group">
+                                <div class="w-8 h-8 rounded-full ${_isGroupChat && !_activeGroupId ? 'bg-white/20' : 'bg-emerald-500'} flex items-center justify-center shadow-sm flex-shrink-0">
+                                    <i data-lucide="globe" class="w-4 h-4 text-white"></i>
                                 </div>
                                 <div class="text-left flex-1 min-w-0">
-                                    <p class="text-sm font-black leading-tight ${_isGroupChat && !_activeGroupId ? 'text-white' : 'text-gray-800 dark:text-gray-200'}">Global Room</p>
-                                    <p class="text-[11px] font-medium truncate ${_isGroupChat && !_activeGroupId ? 'text-white/70' : 'text-gray-400'}">Shared announcement space</p>
+                                    <p class="text-[13px] font-black leading-tight ${_isGroupChat && !_activeGroupId ? 'text-white' : 'text-gray-800 dark:text-gray-200'}">Global Room</p>
+                                    <p class="text-[9px] font-medium truncate ${_isGroupChat && !_activeGroupId ? 'text-white/70' : 'text-gray-400'}">Shared announcement space</p>
                                 </div>
                             </button>
                             <div id="groupChatList" class="space-y-1"></div>
@@ -111,13 +111,13 @@
                 const isActive = _activeGroupId === g.id;
                 return `
                     <button onclick="window.selectGroupChat('${g.id}')" 
-                            class="w-full text-left p-3 px-4 transition-all flex items-center gap-3 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
-                        <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-black text-xs ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
+                            class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
+                        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
                             ${g.name.charAt(0)}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold truncate ${isActive ? 'text-[var(--text-primary)]' : 'text-gray-500'}">${g.name}</p>
-                            <p class="text-[10px] opacity-40 truncate">Group Room</p>
+                            <p class="text-[13px] font-bold truncate ${isActive ? 'text-[var(--text-primary)]' : 'text-gray-500'}">${g.name}</p>
+                            <p class="text-[9px] opacity-40 truncate">Group Room</p>
                         </div>
                     </button>
                 `;
@@ -146,18 +146,18 @@
                 const isActive = _activeBranchId === b.id && !_isGroupChat;
                 return `
                     <button onclick="window.selectChatBranch('${b.id}')" 
-                            class="w-full text-left p-4 transition-all flex items-center gap-4 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
-                        <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center font-black text-sm ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
+                            class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
+                        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
                             ${b.name.charAt(0)}
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="flex justify-between items-center mb-1">
-                                <p class="text-[15px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
-                                <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap">9:41 AM</span>
+                            <div class="flex justify-between items-center mb-0.5">
+                                <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
+                                <span class="text-[9px] text-gray-400 font-medium whitespace-nowrap">9:41 AM</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <p class="text-sm text-gray-500 dark:text-gray-400 truncate opacity-80">${b.location || 'Branch'}</p>
-                                ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
+                                <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80">${b.location || 'Branch'}</p>
+                                ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
                             </div>
                         </div>
                     </button>
@@ -171,18 +171,18 @@
 
             list.innerHTML = `
                 <button onclick="window.selectChatBranch('${state.branchId}')" 
-                        class="w-full text-left p-4 transition-all flex items-center gap-4 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
-                    <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center font-black text-sm ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
+                        class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
+                    <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
                         A
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div class="flex justify-between items-center mb-1">
-                            <p class="text-[15px] font-bold truncate text-[var(--text-primary)]">${enterpriseName}</p>
-                            <span class="text-[10px] text-gray-400 font-medium whitespace-nowrap">online</span>
+                        <div class="flex justify-between items-center mb-0.5">
+                            <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${enterpriseName}</p>
+                            <span class="text-[9px] text-gray-400 font-medium whitespace-nowrap">online</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate opacity-80">Enterprise Support</p>
-                            ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
+                            <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80">Enterprise Support</p>
+                            ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
                         </div>
                     </div>
                 </button>
