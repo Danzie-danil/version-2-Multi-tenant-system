@@ -388,6 +388,9 @@ window.saveSettings = async function () {
         // Update username globally in sidebar if changed
         document.getElementById('currentUser').textContent = updatedProfile.full_name || state.currentUser;
 
+        // Update sidebar avatar in real-time
+        window.updateSidebarAvatar?.();
+
         showToast('Settings saved successfully', 'success');
 
         // Re-render to show updated currency symbols immediately if changed

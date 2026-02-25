@@ -410,6 +410,9 @@ window.setupDashboard = function () {
         ? 'All Branches'
         : (state.branches.find(b => b.id === state.branchId)?.name || 'Branch');
 
+    // Update the sidebar avatar
+    window.updateSidebarAvatar();
+
     if (isOwner) {
         document.getElementById('ownerNav').classList.remove('hidden');
 
@@ -429,6 +432,26 @@ window.setupDashboard = function () {
     // Start the live WebSocket sync after the dashboard is fully ready
     setTimeout(() => window.initRealtimeSync?.(), 300);
 };
+
+/** Update the sidebar footer avatar — call this after profile photo changes */
+window.updateSidebarAvatar = function () {
+    const wrap = document.getElementById('sidebarAvatarWrap');
+    if (!wrap) return;
+
+    const avatarUrl = state.profile?.avatar_url;
+    if (avatarUrl) {
+        wrap.innerHTML = `<img src="${avatarUrl}" alt="Profile" class="w-full h-full object-cover rounded-full"
+            onerror="this.parentElement.innerHTML='<i data-lucide=\\'user\\' class=\\'w-4 h-4 text-indigo-600\\'></i>'; lucide.createIcons();">`;
+    } else {
+        // Fallback: initials or user icon
+        const initials = (state.currentUser || '').charAt(0).toUpperCase();
+        wrap.innerHTML = initials
+            ? `<span class="text-sm font-black text-indigo-600">${initials}</span>`
+            : `<i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>`;
+        lucide.createIcons();
+    }
+};
+
 
 /* ── Role Toggle Logic ────────────────────────────────────────────────── */
 /* ── Role Toggle Logic ────────────────────────────────────────────────── */

@@ -218,8 +218,11 @@ window.dbBranches = {
             tax_rate: profileData.tax_rate,
             opening_time: profileData.opening_time,
             closing_time: profileData.closing_time,
-            low_stock_notifications: profileData.low_stock_notifications
+            low_stock_notifications: profileData.low_stock_notifications,
+            avatar_url: profileData.avatar_url ?? undefined
         };
+        // Remove undefined keys to avoid overwriting existing values with null
+        Object.keys(safeData).forEach(k => safeData[k] === undefined && delete safeData[k]);
         const res = await _db
             .from('branches')
             .update(safeData)

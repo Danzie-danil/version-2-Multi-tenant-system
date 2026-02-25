@@ -5,6 +5,7 @@
     'use strict';
 
     let _activeBranchId = null;
+    let _counterpartAvatarUrl = null; // Avatar URL of the person we are chatting with
     let _isGroupChat = false;
     let _replyingTo = null;
     let _activeMessages = [];
@@ -133,6 +134,7 @@
         if (!list) return;
 
         const isOwner = state.role === 'owner';
+        const onlineMap = window.onlineUsers || {};
 
         if (isOwner) {
             const branches = state.branches;
@@ -144,16 +146,25 @@
             list.innerHTML = branches.map(b => {
                 const unread = unreadCounts.find(u => u.id === b.id)?.count || 0;
                 const isActive = _activeBranchId === b.id && !_isGroupChat;
+                const isOnline = !!onlineMap[b.id];
+
+                // Avatar: real photo if available, else initial letter fallback
+                const avatarInner = b.avatar_url
+                    ? `<img src="${b.avatar_url}" alt="${b.name}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                       <span class="w-8 h-8 rounded-full hidden items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">${b.name.charAt(0)}</span>`
+                    : `<span class="w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">${b.name.charAt(0)}</span>`;
+
                 return `
                     <button onclick="window.selectChatBranch('${b.id}')" 
                             class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
-                        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
-                            ${b.name.charAt(0)}
+                        <div class="relative flex-shrink-0">
+                            ${avatarInner}
+                            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--chat-sidebar)] ${isOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-white/10'}"></span>
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="flex justify-between items-center mb-0.5">
                                 <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
-                                <span class="text-[9px] text-gray-400 font-medium whitespace-nowrap">9:41 AM</span>
+                                <span class="text-[9px] ${isOnline ? 'text-emerald-500 animate-pulse' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : '9:41 AM'}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80">${b.location || 'Branch'}</p>
@@ -169,16 +180,28 @@
             const isActive = _activeBranchId === state.branchId && !_isGroupChat;
             const enterpriseName = state.enterpriseName || 'Administrator';
 
+            // Branch user talking to Admin. Need Owner ID.
+            const targetId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
+            const isOnline = !!onlineMap[targetId];
+
+            // Owner's avatar from their profile
+            const ownerAvatarUrl = state.profile?.avatar_url;
+            const ownerAvatarInner = ownerAvatarUrl
+                ? `<img src="${ownerAvatarUrl}" alt="Admin" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                   <span class="w-8 h-8 rounded-full hidden items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">A</span>`
+                : `<span class="w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">A</span>`;
+
             list.innerHTML = `
                 <button onclick="window.selectChatBranch('${state.branchId}')" 
                         class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
-                    <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} transition-colors uppercase">
-                        A
+                    <div class="relative flex-shrink-0">
+                        ${ownerAvatarInner}
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--chat-sidebar)] ${isOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-white/10'}"></span>
                     </div>
                     <div class="min-w-0 flex-1">
                         <div class="flex justify-between items-center mb-0.5">
                             <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${enterpriseName}</p>
-                            <span class="text-[9px] text-gray-400 font-medium whitespace-nowrap">online</span>
+                            <span class="text-[9px] ${isOnline ? 'text-emerald-500 animate-pulse' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : 'offline'}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80">Enterprise Support</p>
@@ -236,6 +259,21 @@
             }
         }
 
+        // Compute the counterpart's avatar for this conversation
+        _counterpartAvatarUrl = null;
+        if (!isGroup) {
+            _counterpartAvatarUrl = state.role === 'owner'
+                ? (state.branches.find(b => b.id === branchId)?.avatar_url || null)
+                : (state.profile?.avatar_url || null);
+        }
+
+        // Build the header avatar element
+        const headerAvatarHtml = isGroup
+            ? `<div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm"><i data-lucide="users" class="w-5 h-5 text-white"></i></div>`
+            : (_counterpartAvatarUrl
+                ? `<img src="${_counterpartAvatarUrl}" alt="${title}" class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-emerald-500/20" onerror="this.style.display='none'">`
+                : `<div class="w-10 h-10 rounded-full bg-gray-400 dark:bg-white/10 flex items-center justify-center shadow-sm"><i data-lucide="building-2" class="w-5 h-5 text-white"></i></div>`);
+
         chatWindow.innerHTML = `
             <!-- Chat Header -->
             <div class="h-16 px-6 bg-[var(--chat-header)] flex items-center justify-between border-l border-gray-200 dark:border-white/5 relative z-20">
@@ -243,9 +281,7 @@
                     <button onclick="window.toggleMobileChatView('list')" class="md:hidden p-2 -ml-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full text-gray-500 transition-all active:scale-90">
                         <i data-lucide="chevron-left" class="w-6 h-6"></i>
                     </button>
-                    <div class="w-10 h-10 rounded-full ${isGroup ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-white/10'} flex items-center justify-center shadow-sm">
-                        <i data-lucide="${isGroup ? 'users' : 'building-2'}" class="w-5 h-5 text-white"></i>
-                    </div>
+                    ${headerAvatarHtml}
                     <div>
                         <h4 class="text-[15px] font-bold text-[var(--text-primary)] leading-none">${title}</h4>
                         <div id="chatPresenceIndicator" class="flex items-center gap-1.5 mt-1">
@@ -640,10 +676,25 @@
                 const attachment = msg.metadata?.attachment;
                 const attachmentHtml = attachment ? renderAttachment(attachment, isMine) : '';
 
+                // Avatar shown beside incoming messages
+                const avatarEl = !isMine
+                    ? (isNewGroup
+                        ? (isGroup
+                            // Group chat: show sender initial in emerald
+                            ? `<div class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 self-end mb-1 text-[10px] font-black text-emerald-600 uppercase shadow-sm">${(msg.sender_name || '?').charAt(0)}</div>`
+                            // DM: real avatar photo or initial fallback
+                            : (_counterpartAvatarUrl
+                                ? `<img src="${_counterpartAvatarUrl}" alt="Avatar" class="w-7 h-7 rounded-full object-cover flex-shrink-0 self-end mb-1 shadow-sm" onerror="this.style.display='none'">`
+                                : `<div class="w-7 h-7 rounded-full bg-gray-300 dark:bg-white/10 flex items-center justify-center flex-shrink-0 self-end mb-1 text-[10px] font-black text-gray-500 uppercase shadow-sm">${(msg.sender_name || '?').charAt(0)}</div>`))
+                        // Same-sender sequence: invisible spacer to keep alignment
+                        : `<div class="w-7 flex-shrink-0"></div>`)
+                    : '';
+
                 return `
                     <div class="flex flex-col ${isMine ? 'items-end' : 'items-start'} ${isNewGroup ? 'pt-4' : 'pt-0.5'}" 
                          id="msg-${msg.id}">
-                        
+                        <div class="${!isMine ? 'flex items-end gap-1.5' : ''}">
+                            ${avatarEl}
                         <div class="group relative max-w-[85%] md:max-w-[70%]">
                             <!-- Options Dropdown (Desktop) -->
                             <button onclick="window.showContextMenu(event, '${msg.id}')" 
@@ -696,6 +747,7 @@
                                  <!-- Floating Reactions -->
                                  ${reactionHtml ? `<div class="absolute -bottom-3.5 ${isMine ? 'right-2' : 'left-2'} flex gap-1 z-10">${reactionHtml}</div>` : ''}
                             </div>
+                        </div>
                         </div>
                     </div>
                 `;

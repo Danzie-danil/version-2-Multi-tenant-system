@@ -198,6 +198,7 @@
             // Trigger UI update if chat is open
             if (localStorage.getItem('lastOwnerView') === 'chat' || localStorage.getItem('lastBranchView') === 'chat') {
                 window.updateChatPresenceUI?.();
+                window.updateBranchList?.();
             }
         });
 
