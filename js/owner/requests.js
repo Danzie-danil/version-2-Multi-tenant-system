@@ -82,9 +82,14 @@ window.renderRequestsList = async function (highlightId = null) {
                 </div>
 
                 ${req.admin_response ? `
-                <div class="bg-indigo-50/50 rounded-xl p-4 mb-4 border border-indigo-100/30">
-                    <p class="text-[10px] text-indigo-600 font-black uppercase mb-1">Admin Response</p>
-                    <p class="text-sm text-indigo-800 italic">${req.admin_response}</p>
+                <div class="bg-indigo-50/50 rounded-xl p-4 mb-4 border border-indigo-100/30 relative group/resp">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[10px] text-indigo-600 font-black uppercase">Admin Response</p>
+                        <button onclick="openAdminResponseModal('${req.id}')" class="opacity-0 group-hover/resp:opacity-100 transition-opacity text-[10px] font-bold text-indigo-500 hover:text-indigo-700 flex items-center gap-1">
+                            <i data-lucide="edit-2" class="w-2.5 h-2.5"></i> Edit
+                        </button>
+                    </div>
+                    <p class="text-sm text-indigo-800 italic font-medium leading-normal">"${req.admin_response}"</p>
                 </div>` : ''}
 
                 ${req.status === 'pending' ? `
@@ -114,13 +119,19 @@ window.renderRequestsList = async function (highlightId = null) {
 };
 window.handleRequestAction = async function (id, status) {
     const isApprove = status === 'approved';
-    const confirmed = await confirmModal(
-        isApprove ? 'Approve Request' : 'Reject Request',
-        `Are you sure you want to mark this request as ${status}?`,
-        isApprove ? 'Approve' : 'Reject',
-        'Cancel'
-    );
-    if (!confirmed) return;
+    let adminResponse = null;
+    if (status === 'rejected') {
+        adminResponse = await promptModal('Reject Request', 'Please enter a reason for rejection (optional):', 'e.g. Price is too high, out of stock...');
+        if (adminResponse === null) return; // Cancelled prompt
+    } else {
+        const confirmed = await confirmModal(
+            isApprove ? 'Approve Request' : 'Reject Request',
+            `Are you sure you want to mark this request as ${status}?`,
+            isApprove ? 'Approve' : 'Reject',
+            'Cancel'
+        );
+        if (!confirmed) return;
+    }
 
     try {
         const allRequests = await dbRequests.fetchAll(state.profile.id);
@@ -166,7 +177,10 @@ window.handleRequestAction = async function (id, status) {
             }
         }
 
-        await dbRequests.update(id, { status });
+        const updatePayload = { status };
+        if (adminResponse) updatePayload.admin_response = adminResponse;
+
+        await dbRequests.update(id, updatePayload);
         showToast(`Request ${status} successfully!`, 'success');
         renderRequestsList();
     } catch (err) {
@@ -175,11 +189,21 @@ window.handleRequestAction = async function (id, status) {
 };
 
 window.openAdminResponseModal = async function (id) {
-    const response = await promptModal('Admin Response', 'Enter your response/comment for the branch:', 'e.g. Please provide more details...');
+    // Fetch current request to get existing response
+    const allRequests = await dbRequests.fetchAll(state.profile.id);
+    const req = allRequests.find(r => r.id === id);
+    const existingResponse = req?.admin_response || '';
+
+    const response = await promptModal(
+        existingResponse ? 'Edit Response' : 'Add Admin Response',
+        'Enter your response/comment for the branch:',
+        'e.g. Please provide more details...',
+        existingResponse
+    );
     if (response === null) return;
 
     dbRequests.update(id, { admin_response: response }).then(() => {
-        showToast('Response sent!');
+        showToast('Response updated!');
         renderRequestsList();
     }).catch(err => {
         showToast('Failed to send response: ' + err.message, 'error');

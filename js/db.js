@@ -78,6 +78,19 @@ window.dbProfile = {
             .update({ theme })
             .eq('id', ownerId);
         return _check(res, 'updateProfileTheme');
+    },
+
+    /** Update security policies */
+    updateSecurity: async (ownerId, data) => {
+        const res = await _db
+            .from('profiles')
+            .update({
+                pin_expiry_days: data.pin_expiry_days,
+                session_duration_hrs: data.session_duration_hrs,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', ownerId);
+        return _check(res, 'updateSecurityPolicies');
     }
 };
 
@@ -147,7 +160,16 @@ window.dbBranches = {
 
     /** Create a new branch */
     add: async (ownerId, { name, location, manager, pin, target, owner_email, currency }) => {
-        const payload = { owner_id: ownerId, name, location, manager, pin, target, owner_email };
+        const payload = {
+            owner_id: ownerId,
+            name,
+            location,
+            manager,
+            pin,
+            target,
+            owner_email,
+            pin_updated_at: new Date().toISOString()
+        };
         if (currency) payload.currency = currency;
 
         const res = await _db
@@ -176,7 +198,10 @@ window.dbBranches = {
     updatePin: async (branchId, newPin) => {
         const res = await _db
             .from('branches')
-            .update({ pin: newPin })
+            .update({
+                pin: newPin,
+                pin_updated_at: new Date().toISOString()
+            })
             .eq('id', branchId);
         return _check(res, 'updateBranchPin');
     },

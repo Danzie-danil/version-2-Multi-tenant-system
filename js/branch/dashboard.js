@@ -1,5 +1,13 @@
 // ── Branch: Dashboard ─────────────────────────────────────────────────────
 
+window.dismissDashboardNotice = function (id) {
+    const el = document.getElementById(`dash-notif-${id}`);
+    if (el) {
+        el.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => el.remove(), 300);
+    }
+};
+
 window.renderBranchDashboard = function () {
     const container = document.getElementById('mainContent');
 
@@ -67,6 +75,7 @@ window.renderBranchDashboard = function () {
             </div>
         </div>
 
+        <div id="dashApprovals"></div>
         <div id="dashTasksSection"></div>
         <div id="dashInventoryAlerts"></div>
     </div>`;
@@ -86,8 +95,9 @@ window.renderBranchDashboard = function () {
         dbSales.fetchAll(state.branchId, { pageSize: 1000 }),
         dbExpenses.fetchAll(state.branchId, { pageSize: 1000 }),
         dbTasks.fetchAll(state.branchId, { pageSize: 1000 }),
-        dbInventory.fetchAll(state.branchId, { pageSize: 1000 })
-    ]).then(([salesRes, expensesRes, tasksRes, inventoryRes]) => {
+        dbInventory.fetchAll(state.branchId, { pageSize: 1000 }),
+        dbRequests.fetchByBranch(state.branchId)
+    ]).then(([salesRes, expensesRes, tasksRes, inventoryRes, requests]) => {
         const sales = salesRes.items || [];
         const expenses = expensesRes.items || [];
         const tasks = tasksRes.items || [];
@@ -136,6 +146,46 @@ window.renderBranchDashboard = function () {
                     </div>`).join('')}
                 </div>
             </div>`;
+        }
+
+        // Approval Notices (View-once logic)
+        const approvals = (requests || []).filter(r => r.status !== 'pending' && r.admin_response);
+        if (approvals.length > 0) {
+            const seenApprovals = JSON.parse(localStorage.getItem(`seen_approvals_${state.branchId}`) || '[]');
+            const newApprovals = approvals.filter(r => !seenApprovals.includes(r.id));
+
+            if (newApprovals.length > 0) {
+                const container = document.getElementById('dashApprovals');
+                if (container) {
+                    container.innerHTML = `
+                    <div class="space-y-3 mb-6">
+                        ${newApprovals.map(req => `
+                        <div id="dash-notif-${req.id}" class="bg-gradient-to-r ${req.status === 'approved' ? 'from-indigo-600 to-violet-500' : 'from-rose-600 to-pink-500'} rounded-2xl shadow-lg p-5 text-white relative overflow-hidden group slide-in">
+                            <div class="flex items-start gap-4 relative z-10">
+                                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="${req.status === 'approved' ? 'check-circle' : 'x-circle'}" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-black uppercase tracking-widest text-[10px] text-white/70 mb-1">Status Update</h4>
+                                    <p class="text-sm font-bold mb-2">${req.subject}</p>
+                                    <div class="bg-black/10 rounded-xl p-3 border border-white/10">
+                                        <p class="text-xs italic leading-relaxed opacity-90">${req.admin_response}</p>
+                                    </div>
+                                </div>
+                                <button onclick="dismissDashboardNotice('${req.id}')" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <!-- Background decoration -->
+                            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-colors"></div>
+                        </div>`).join('')}
+                    </div>`;
+
+                    // Mark as seen immediately so it won't show on next navigation to dashboard
+                    const updatedSeen = [...new Set([...seenApprovals, ...newApprovals.map(r => r.id)])];
+                    localStorage.setItem(`seen_approvals_${state.branchId}`, JSON.stringify(updatedSeen));
+                }
+            }
         }
 
         // Inventory Alerts

@@ -62,19 +62,62 @@ window.renderSecurity = function () {
                 <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <i data-lucide="settings" class="w-5 h-5 text-indigo-600"></i> Security Policies
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    ${[
-            ['PIN Expiry', '90 days', 'Auto-expire branch PINs'],
-            ['Max Login Attempts', '5 tries', 'Lock after failed attempts'],
-            ['Session Duration', '8 hours', 'Auto-logout idle sessions']
-        ].map(([title, value, desc]) => `
-                    <div class="p-4 border border-gray-100 rounded-xl">
-                        <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">${title}</p>
-                        <p class="text-lg font-bold text-indigo-600">${value}</p>
-                        <p class="text-xs text-gray-400 mt-1">${desc}</p>
-                    </div>`).join('')}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div onclick="editPinExpiry()" class="p-4 border border-gray-100 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/30 cursor-pointer transition-all group">
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">PIN Expiry</p>
+                            <i data-lucide="edit-2" class="w-3 h-3 text-gray-300 group-hover:text-indigo-400"></i>
+                        </div>
+                        <p class="text-lg font-bold text-indigo-600">${state.profile.pin_expiry_days || 90} days</p>
+                        <p class="text-xs text-gray-400 mt-1">Auto-expire branch PINs for rotating security.</p>
+                    </div>
+                    
+                    <div onclick="editSessionDuration()" class="p-4 border border-gray-100 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/30 cursor-pointer transition-all group">
+                        <div class="flex items-center justify-between mb-1">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Session Duration</p>
+                            <i data-lucide="edit-2" class="w-3 h-3 text-gray-300 group-hover:text-indigo-400"></i>
+                        </div>
+                        <p class="text-lg font-bold text-indigo-600">${state.profile.session_duration_hrs || 8} hours</p>
+                        <p class="text-xs text-gray-400 mt-1">Force logout idle sessions to protect data.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>`;
+};
+
+window.editPinExpiry = async function () {
+    const current = state.profile.pin_expiry_days || 90;
+    const val = await promptModal('PIN Expiry', 'Enter number of days before a branch PIN expires:', 'e.g. 90, 180...', current);
+    if (val === null || val == current) return;
+
+    const days = parseInt(val);
+    if (isNaN(days) || days < 1) return showToast('Please enter a valid number of days', 'error');
+
+    dbProfile.updateSecurity(state.profile.id, {
+        pin_expiry_days: days,
+        session_duration_hrs: state.profile.session_duration_hrs || 8
+    }).then(() => {
+        state.profile.pin_expiry_days = days;
+        showToast('PIN Expiry policy updated');
+        switchView('security');
+    }).catch(err => showToast(err.message, 'error'));
+};
+
+window.editSessionDuration = async function () {
+    const current = state.profile.session_duration_hrs || 8;
+    const val = await promptModal('Session Duration', 'Enter session length in hours (auto-logout):', 'e.g. 8, 12, 24...', current);
+    if (val === null || val == current) return;
+
+    const hrs = parseInt(val);
+    if (isNaN(hrs) || hrs < 1) return showToast('Please enter a valid number of hours', 'error');
+
+    dbProfile.updateSecurity(state.profile.id, {
+        pin_expiry_days: state.profile.pin_expiry_days || 90,
+        session_duration_hrs: hrs
+    }).then(() => {
+        state.profile.session_duration_hrs = hrs;
+        showToast('Session Duration policy updated');
+        switchView('security');
+    }).catch(err => showToast(err.message, 'error'));
 };

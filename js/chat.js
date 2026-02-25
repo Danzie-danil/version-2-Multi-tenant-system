@@ -12,6 +12,7 @@
     let _longPressTimer = null;
     let _activeContextMenu = null;
     let _isSearchOpen = false;
+    let _activeGroup = null; // Store current group details including members
 
     // Recording State
     let _mediaRecorder = null;
@@ -78,7 +79,7 @@
                             <div class="w-24 h-24 bg-white/5 dark:bg-black/20 backdrop-blur rounded-full flex items-center justify-center mb-6 shadow-sm border border-white/10">
                                 <i data-lucide="send" class="w-10 h-10 text-emerald-500 opacity-40"></i>
                             </div>
-                            <h4 class="text-xl font-bold text-gray-500">BMS Communiqué</h4>
+                            <h4 class="text-xl font-bold text-gray-500">Chat Space</h4>
                             <p class="text-sm font-medium max-w-xs mt-3 opacity-60">Send and receive messages across branches in real-time.</p>
                             <div class="mt-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-500/20">
                                 <i data-lucide="lock" class="w-3 h-3"></i> End-to-end Encrypted
@@ -95,7 +96,7 @@
         updateGroupList();
     }
 
-    async function updateGroupList() {
+    window.updateGroupList = async function () {
         const list = document.getElementById('groupChatList');
         if (!list) return;
 
@@ -127,7 +128,7 @@
         }
     }
 
-    async function updateBranchList() {
+    window.updateBranchList = async function () {
         const list = document.getElementById('branchChatList');
         if (!list) return;
 
@@ -191,10 +192,22 @@
 
     let _activeGroupId = null;
 
-    window.selectGroupChat = function (groupId = null) {
+    window.selectGroupChat = async function (groupId = null) {
         _isGroupChat = true;
         _activeBranchId = null;
         _activeGroupId = groupId;
+
+        if (groupId) {
+            try {
+                const groups = await dbMessages.fetchGroups(); // This handles both roles or filtered internally
+                _activeGroup = groups.find(g => g.id === groupId);
+            } catch (e) {
+                console.error('Failed to fetch group details:', e);
+            }
+        } else {
+            _activeGroup = { name: 'Global Room', is_global: true };
+        }
+
         updateBranchList();
         renderConversation(null, true, groupId);
     };
@@ -235,9 +248,8 @@
                     </div>
                     <div>
                         <h4 class="text-[15px] font-bold text-[var(--text-primary)] leading-none">${title}</h4>
-                        <div class="flex items-center gap-1.5 mt-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <p class="text-[11px] text-emerald-500 font-medium tracking-tight">online</p>
+                        <div id="chatPresenceIndicator" class="flex items-center gap-1.5 mt-1">
+                            <!-- Populated by updateChatPresenceUI -->
                         </div>
                     </div>
                 </div>
@@ -476,7 +488,57 @@
             });
         }
         else if (groupId) { /* group read status logic */ }
+
+        window.updateChatPresenceUI();
     }
+
+    // ─── Presence UI Update ───────────────────────────────────────────────────
+    window.updateChatPresenceUI = function () {
+        const indicator = document.getElementById('chatPresenceIndicator');
+        if (!indicator) return;
+
+        const onlineMap = window.onlineUsers || {};
+
+        if (_isGroupChat) {
+            if (_activeGroup?.is_global) {
+                const onlineCount = Object.keys(onlineMap).length;
+                indicator.innerHTML = `
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ${onlineCount > 0 ? 'animate-pulse' : 'opacity-20'}"></span>
+                    <p class="text-[11px] text-emerald-500 font-medium tracking-tight">${onlineCount} online</p>
+                `;
+            } else if (_activeGroup) {
+                const members = _activeGroup.group_members || [];
+                // Owner is always a participant implicitly or explicitly? 
+                // Let's assume group_members has all participants.
+                const onlineCount = members.filter(m => onlineMap[m.branch_id] || onlineMap[m.owner_id]).length;
+                // Add owner if they are not in members but are in the group
+                // For now, let's just count how many of the known members are online
+                indicator.innerHTML = `
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ${onlineCount > 0 ? 'animate-pulse' : 'opacity-20'}"></span>
+                    <p class="text-[11px] text-emerald-500 font-medium tracking-tight">${onlineCount} online</p>
+                `;
+            }
+        } else {
+            // DM
+            let targetId = _activeBranchId;
+            if (state.role === 'branch') {
+                // Branch user talking to Admin. We need Owner ID.
+                // Owner ID is usually in state.profile.id but we need the counterparty.
+                // For simplicity, let's assume if owner is online, we show online.
+                // We might need to find the owner's ID from state.
+                targetId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
+            }
+
+            const isOnline = onlineMap[targetId];
+            indicator.innerHTML = isOnline ? `
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p class="text-[11px] text-emerald-500 font-medium tracking-tight">online</p>
+            ` : `
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400 opacity-40"></span>
+                <p class="text-[11px] text-gray-400 font-medium tracking-tight">offline</p>
+            `;
+        }
+    };
 
     // ─── Branch UI ────────────────────────────────────────────────────────────
     async function renderBranchChat(container) {
@@ -1438,7 +1500,7 @@
     window.toggleHeaderMenu = function (e) {
         e.stopPropagation();
         const menuItems = [
-            { label: 'Branch Details', icon: 'info' },
+            { label: 'Participants', icon: 'users' },
             { label: 'Mute Notifications', icon: 'bell-off' },
             { label: 'Clear Messages', icon: 'trash-2' },
             { label: 'Search Messages', icon: 'search' },
@@ -1499,10 +1561,33 @@
         document.getElementById('globalDropdown')?.classList.add('hidden');
 
         switch (label) {
-            case 'Branch Details':
-                const branch = state.branches.find(b => b.id === _activeBranchId);
-                if (branch) openModal('chatBranchInfo', branch);
-                else showToast('Please select a branch first', 'warning');
+            case 'Participants':
+                let participants = [];
+                if (_isGroupChat) {
+                    if (_activeGroup?.is_global) {
+                        // All branches + Admin
+                        participants = state.branches.map(b => ({ id: b.id, name: b.name, role: 'Branch' }));
+                        const ownerId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
+                        participants.unshift({ id: ownerId, name: state.enterpriseName || 'Administrator', role: 'Owner' });
+                    } else if (_activeGroup) {
+                        // Map group members to display info
+                        participants = (_activeGroup.group_members || []).map(m => {
+                            const b = state.branches.find(br => br.id === m.branch_id);
+                            return { id: m.branch_id, name: b?.name || 'Unknown Branch', role: 'Branch' };
+                        });
+                        const ownerId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
+                        participants.unshift({ id: ownerId, name: state.enterpriseName || 'Administrator', role: 'Owner' });
+                    }
+                } else {
+                    // DM
+                    const ownerId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
+                    participants.push({ id: ownerId, name: state.enterpriseName || 'Administrator', role: 'Owner' });
+
+                    const branch = state.branches.find(b => b.id === _activeBranchId);
+                    if (branch) participants.push({ id: branch.id, name: branch.name, role: 'Branch' });
+                }
+
+                openModal('chatParticipants', { participants });
                 break;
             case 'Mute Notifications':
                 window.toggleMute();

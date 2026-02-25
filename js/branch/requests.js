@@ -5,8 +5,19 @@ window.renderBranchRequestsModule = function () {
     container.innerHTML = `
     <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
-            <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
-                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">My Approval Requests</div>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">My Approval Requests</div>
+                </div>
+                <!-- Status Filter -->
+                <div class="hidden md:flex items-center gap-2">
+                    <select id="reqFilterStatus" onchange="renderBranchRequestsList()" class="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+                        <option value="pending">Pending Only</option>
+                        <option value="all">All Requests</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
             </div>
             <button onclick="openModal('requestAttention', { type: 'general', id: null, summary: 'General Inquiry' })" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 font-bold">
                 <i data-lucide="plus" class="w-4 h-4"></i> New Request
@@ -23,11 +34,31 @@ window.renderBranchRequestsModule = function () {
     renderBranchRequestsList();
 };
 
-window.renderBranchRequestsList = async function () {
-    const listContainer = document.getElementById('branchRequestsList');
-
+window.editBranchComment = async function (reqId) {
     try {
         const requests = await dbRequests.fetchByBranch(state.branchId);
+        const req = requests.find(r => r.id === reqId);
+        if (!req) return showToast("Request not found.", "error");
+
+        const newMessage = await promptModal('Edit My Comment', 'Update your message for this request:', 'Describe your request...', req.message);
+        if (newMessage === null || newMessage === req.message) return;
+
+        await dbRequests.update(reqId, { message: newMessage });
+        showToast("Comment updated!");
+        renderBranchRequestsList();
+    } catch (err) {
+        showToast("Failed to update comment: " + err.message, "error");
+    }
+};
+window.renderBranchRequestsList = async function () {
+    const listContainer = document.getElementById('branchRequestsList');
+    const filter = document.getElementById('reqFilterStatus')?.value || 'pending';
+
+    try {
+        const allRequests = await dbRequests.fetchByBranch(state.branchId);
+        const requests = filter === 'all'
+            ? allRequests
+            : allRequests.filter(r => r.status === filter);
 
         if (requests.length === 0) {
             listContainer.innerHTML = `
@@ -66,8 +97,15 @@ window.renderBranchRequestsList = async function () {
                     <span class="badge ${badgeColors[req.status]} uppercase font-black tracking-tighter">${req.status}</span>
                 </div>
 
-                <div class="p-4 bg-gray-50/80 rounded-xl border border-gray-100/50 mb-3">
-                    <p class="text-sm text-gray-700 font-medium">${req.message}</p>
+                <div class="p-4 bg-gray-50/80 rounded-xl border border-gray-100/50 mb-3 relative group/msg">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase">My Comment</p>
+                        ${req.status === 'pending' ? `
+                        <button onclick="editBranchComment('${req.id}')" class="opacity-0 group-hover/msg:opacity-100 transition-opacity text-[10px] font-bold text-indigo-500 hover:text-indigo-700 flex items-center gap-1">
+                            <i data-lucide="edit-2" class="w-2.5 h-2.5"></i> Edit
+                        </button>` : ''}
+                    </div>
+                    <p class="text-sm text-gray-700 font-medium leading-normal">${req.message}</p>
                 </div>
 
                 ${req.admin_response ? `

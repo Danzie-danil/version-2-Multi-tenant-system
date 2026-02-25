@@ -46,6 +46,55 @@ window.getModalHTML = function (type, data) {
             </div>
         </div>`;
 
+        case 'chatParticipants': {
+            const participants = data.participants || [];
+            return `
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chat Participants</h3>
+                            <p class="text-xs text-gray-500">${participants.length} members in this conversation</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 flex items-center justify-center text-gray-400">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="max-h-[60vh] overflow-y-auto space-y-2 pr-2 scroller-custom">
+                    ${participants.map(p => {
+                const isOnline = window.onlineUsers && window.onlineUsers[p.id];
+                return `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 transition-all hover:border-emerald-500/30">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full ${isOnline ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} flex items-center justify-center font-black text-xs transition-colors">
+                                    ${p.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-900 dark:text-white">${p.name}</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${p.role}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300 dark:bg-white/10'}"></span>
+                                    <span class="text-[10px] font-black ${isOnline ? 'text-emerald-500' : 'text-gray-400'} uppercase">${isOnline ? 'Online' : 'Offline'}</span>
+                                </div>
+                                ${isOnline ? `<p class="text-[9px] text-emerald-500/60 font-medium">Currently active</p>` : ''}
+                            </div>
+                        </div>
+                        `;
+            }).join('')}
+                </div>
+                <button onclick="closeModal()" class="w-full mt-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-500/20">
+                    Close Details
+                </button>
+            </div>`;
+        }
+
         case 'chatPreferences': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-8">

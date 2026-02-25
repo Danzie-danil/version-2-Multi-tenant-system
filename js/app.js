@@ -26,6 +26,9 @@ window.toggleSidebar = function () {
 };
 
 window.switchView = function (viewId, context = null) {
+    // Enforcement: check session expiry during navigation
+    if (typeof checkSessionExpiry === 'function') checkSessionExpiry();
+
     let btnElement = null;
     let extraData = null;
 
@@ -166,8 +169,21 @@ window.checkNotifications = async function (shush = false) {
         ]);
 
         currentUnreadChat = unreadChat || 0;
-        const totalPending = (reqs.count || 0) + (access.count || 0) + currentUnreadChat;
+        const pendingActions = (reqs.count || 0) + (access.count || 0);
+        const totalPending = pendingActions + currentUnreadChat;
         state.pendingRequestCount = totalPending;
+
+        // Update Sidebar Approval Badge
+        const approvalBadge = document.getElementById('approvalBadge');
+        if (approvalBadge) {
+            if (pendingActions > 0) {
+                approvalBadge.textContent = pendingActions > 99 ? '99+' : pendingActions;
+                approvalBadge.classList.remove('hidden');
+            } else {
+                approvalBadge.classList.add('hidden');
+            }
+        }
+
         if (totalPending > oldRequestCount) hasNew = true;
 
         if (totalPending > 0) {
@@ -177,7 +193,6 @@ window.checkNotifications = async function (shush = false) {
         }
     }
     else if (state.role === 'branch') {
-        // For branches, check for pending tasks, low inventory, AND new responses
         const [tasksRes, stockRes, reqsRes, unreadChat] = await Promise.all([
             supabaseClient.from('tasks').select('id', { count: 'exact', head: true }).eq('branch_id', state.branchId).eq('status', 'pending'),
             dbInventory.fetchAll(state.branchId),
@@ -189,9 +204,9 @@ window.checkNotifications = async function (shush = false) {
         const pendingTasks = tasksRes.count || 0;
         const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold).length;
 
-        // Response tracking logic
+        // Response tracking logic (Cross-device via DB)
         const responses = reqsRes.filter(r => r.status !== 'pending' || r.admin_response);
-        const lastChecked = localStorage.getItem(`last_checked_reqs_${state.branchId}`) || '0';
+        const lastChecked = state.branchProfile?.last_notif_check || '1970-01-01T00:00:00Z';
         const newResponses = responses.filter(r => new Date(r.updated_at || r.created_at) > new Date(lastChecked)).length;
 
         if (newResponses > 0 || currentUnreadChat > 0) hasNew = true;
@@ -250,34 +265,9 @@ window.showNotificationHint = function (message = 'New Notification') {
     }, 2000);
 };
 
-window.initNotificationPolling = function () {
-    if (window.notifInterval) clearInterval(window.notifInterval);
-    // Initial check
-    checkNotifications(true);
+// Unified Notification check is now triggered by realtime.js hub
+checkNotifications(true);
 
-    // Set up Realtime WebSockets instead of polling
-    if (window.notifChannel) {
-        window.supabaseClient.removeChannel(window.notifChannel);
-    }
-
-    window.notifChannel = window.supabaseClient.channel('realtime-notifications');
-
-    if (state.role === 'owner') {
-        window.notifChannel
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'access_requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'access_requests', filter: `owner_id=eq.${state.profile.id}` }, payload => checkNotifications())
-            .subscribe();
-    } else if (state.role === 'branch') {
-        window.notifChannel
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'requests', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'requests', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks', filter: `branch_id=eq.${state.branchId}` }, payload => checkNotifications())
-            .subscribe();
-    }
-};
 
 window.showNotifications = async function () {
     const overlay = document.getElementById('notifOverlay');
@@ -288,10 +278,15 @@ window.showNotifications = async function () {
     overlay.classList.remove('hidden', 'opacity-0');
     panel.classList.remove('translate-x-[calc(100%+2rem)]');
 
-    // Update last checked timestamp for branch responses
+    // Update last checked timestamp for cross-device notification sync
+    const now = new Date().toISOString();
     if (state.role === 'branch') {
-        localStorage.setItem(`last_checked_reqs_${state.branchId}`, new Date().toISOString());
-        // Hide badge immediately on panel open if it was only because of responses
+        supabaseClient.from('branches').update({ last_notif_check: now }).eq('id', state.branchId);
+        if (state.branchProfile) state.branchProfile.last_notif_check = now;
+        checkNotifications(true);
+    } else if (state.role === 'owner') {
+        supabaseClient.from('profiles').update({ last_notif_check: now }).eq('id', state.profile.id);
+        if (state.profile) state.profile.last_notif_check = now;
         checkNotifications(true);
     }
 
@@ -353,8 +348,17 @@ window.showNotifications = async function () {
                     </div>`).join('');
             }
 
-            // Render Activities
+            // Render Activities (Filtered to one per branch)
             if (activities && activities.length > 0) {
+                const uniqueActivities = [];
+                const seenBranches = new Set();
+                for (const a of activities) {
+                    if (!seenBranches.has(a.branch)) {
+                        uniqueActivities.push(a);
+                        seenBranches.add(a.branch);
+                    }
+                }
+
                 html += `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6 px-1">Recent Activity</h4>`;
                 const typeMap = {
                     sale: { bg: 'bg-emerald-100', icon: 'shopping-cart', ic: 'text-emerald-600', view: 'overview' },
@@ -363,7 +367,7 @@ window.showNotifications = async function () {
                     task_assigned: { bg: 'bg-amber-100', icon: 'clipboard-list', ic: 'text-amber-600', view: 'tasks' }
                 };
 
-                html += activities.map(a => {
+                html += uniqueActivities.map(a => {
                     const t = typeMap[a.type] || typeMap.task_completed;
                     return `
                     <div onclick="switchView('${t.view}'); closeNotifications();" class="notif-item flex items-start gap-3 p-3 bg-white border border-gray-100 shadow-sm mb-2">
@@ -544,4 +548,21 @@ window.togglePasswordVisibility = function (inputId, btn) {
     // Update icon
     btn.innerHTML = `<i data-lucide="${isPassword ? 'eye-off' : 'eye'}" class="w-4 h-4 text-gray-400"></i>`;
     lucide.createIcons();
+};
+
+window.checkSessionExpiry = function () {
+    if (!state.profile) return;
+    const sessionStart = localStorage.getItem('bms_session_start');
+    if (!sessionStart) return;
+
+    const maxHrs = state.profile.session_duration_hrs || 8;
+    const ageMs = Date.now() - parseInt(sessionStart);
+
+    if (ageMs > (maxHrs * 3600000)) {
+        console.warn('Runtime session expiry triggered');
+        // Prevent recursive calls and multiple toasts
+        localStorage.removeItem('bms_session_start');
+        alert('Your session has expired for security. You will be logged out.');
+        if (typeof logout === 'function') logout();
+    }
 };

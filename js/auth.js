@@ -49,12 +49,15 @@ window.login = async function () {
             state.profile = { currency: 'USD' }; // Fallback
         }
 
-        // Load all branches for this owner
+        // Load branches
         try {
             state.branches = await dbBranches.fetchAll(state.ownerId);
         } catch (e) {
             state.branches = [];
         }
+
+        // Store session start for timeout policy
+        localStorage.setItem('bms_session_start', Date.now());
 
     } else {
         // Branch manager: Owner Email + Branch Name + PIN
@@ -102,6 +105,28 @@ window.login = async function () {
             return;
         }
 
+        // --- POLICY ENFORCEMENT: PIN EXPIRY ---
+        try {
+            const profile = await dbProfile.fetch(branch.owner_id);
+            const expiryDays = profile?.pin_expiry_days || 90;
+            const lastUpdate = new Date(branch.pin_updated_at || branch.created_at);
+            const now = new Date();
+            const diffDays = Math.floor((now - lastUpdate) / (1000 * 60 * 60 * 24));
+
+            if (diffDays >= expiryDays) {
+                showToast(`PIN Security Alert: Your branch PIN has expired (${diffDays} days old). Please contact your administrator to reset it.`, 'error');
+                if (branchBtn) {
+                    branchBtn.disabled = false;
+                    branchBtn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
+                    lucide.createIcons();
+                }
+                return;
+            }
+        } catch (err) {
+            console.warn('Failed to check PIN expiry during login:', err);
+        }
+        // --------------------------------------
+
         state.role = 'branch';
         state.branchId = branch.id;
         state.currentUser = `${branch.name} (Manager)`;
@@ -116,7 +141,8 @@ window.login = async function () {
             branch_tin: branch.branch_tin || '',
             phone: branch.phone || '',
             email: branch.email || '',
-            address: branch.address || ''
+            address: branch.address || '',
+            last_notif_check: branch.last_notif_check
         };
 
         // Fetch the Enterprise Name (from owner's profile)
@@ -142,6 +168,7 @@ window.login = async function () {
             name: branch.name,
             enterpriseName: state.enterpriseName
         }));
+        localStorage.setItem('bms_session_start', Date.now());
     }
 
     // Apply theme from profile/branch before showing app
@@ -477,8 +504,22 @@ window.setLoginRole = function (role) {
 window.initAuth = async function () {
     // 1. Check for Owner Session (Supabase)
     const { data: { session } } = await dbAuth.getSession();
+    const sessionStart = localStorage.getItem('bms_session_start');
 
     if (session) {
+        // --- POLICY ENFORCEMENT: SESSION DURATION ---
+        try {
+            const profile = await dbProfile.fetch(session.user.id);
+            const maxHrs = profile?.session_duration_hrs || 8;
+            if (sessionStart && (Date.now() - parseInt(sessionStart)) > (maxHrs * 3600000)) {
+                console.warn('Session expired based on enterprise policy');
+                showToast('Your session has expired. Please log in again.', 'info');
+                await logout();
+                return;
+            }
+        } catch (e) { }
+        // --------------------------------------------
+
         console.log('Restoring Owner Session...');
         state.role = 'owner';
         state.ownerId = session.user.id;
@@ -529,6 +570,19 @@ window.initAuth = async function () {
             state.branchId = data.branchId;
             state.ownerId = data.ownerId;
             state.currentUser = `${data.name} (Manager)`;
+
+            // --- POLICY ENFORCEMENT: SESSION DURATION ---
+            try {
+                const profile = await dbProfile.fetch(data.ownerId);
+                const maxHrs = profile?.session_duration_hrs || 8;
+                if (sessionStart && (Date.now() - parseInt(sessionStart)) > (maxHrs * 3600000)) {
+                    console.warn('Branch session expired based on enterprise policy');
+                    showToast('Branch session has expired. Please log in again.', 'info');
+                    await logout();
+                    return;
+                }
+            } catch (e) { }
+            // --------------------------------------------
 
             // Must re-fetch branch and global profile data on reload
             try {

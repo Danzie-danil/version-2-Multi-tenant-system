@@ -415,7 +415,10 @@
                         </button>
                         <button onclick="switchView('requests',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
-                            <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i> Approval Queue
+                            <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i>
+                            <span class="flex-1">Approval Queue</span>
+                            <span id="approvalBadge"
+                                class="hidden bg-indigo-600 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full">0</span>
                         </button>
                         <button onclick="switchView('chat',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
