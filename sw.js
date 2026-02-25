@@ -66,26 +66,35 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // Network First for HTML and JS to ensure fresh code during development
-    // Fallback to cache if offline
-    if (event.request.mode === 'navigate' || event.request.destination === 'script' || event.request.destination === 'document') {
+    // ALWAYS Network First for HTML and JS to ensure fresh code during development/production pushing
+    // Fallback to cache ONLY if offline
+    if (event.request.mode === 'navigate' || event.request.destination === 'script' || event.request.destination === 'document' || event.request.destination === 'style') {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    return caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, response.clone());
-                        return response;
+                    // Clone response to put in cache
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseClone);
                     });
+                    return response;
                 })
                 .catch(() => {
                     return caches.match(event.request);
                 })
         );
     } else {
-        // Cache First for other assets (images, css, etc.)
+        // Cache First ONLY for non-critical assets (images, fonts, etc.)
         event.respondWith(
             caches.match(event.request).then((response) => {
-                return response || fetch(event.request);
+                if (response) {
+                    // Update cache in the background even if we return cache hit
+                    fetch(event.request).then(res => {
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, res));
+                    }).catch(() => { });
+                    return response;
+                }
+                return fetch(event.request);
             })
         );
     }

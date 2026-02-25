@@ -12,16 +12,29 @@ window.filterList = function (listId, query) {
 };
 
 /* ── Audio Feedback ─────────────────────────────── */
-window._audioCache = {};
+// Wait a moment for dynamic SVGs to exist before replacing
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+});
+
+// Sound Management
+let _lastSoundTime = {};
 window.playSound = function (name) {
-    try {
-        if (!window._audioCache[name]) {
-            window._audioCache[name] = new Audio(`audio/${name}.mp3`);
-        }
-        const snd = window._audioCache[name].cloneNode();
-        snd.volume = 0.5;
-        snd.play().catch(() => { }); // silently ignore autoplay blocks
-    } catch (e) { }
+    if (localStorage.getItem('bms_sound_pref') === 'false') return;
+
+    // Simple throttle to prevent barrage of the same sound
+    const now = Date.now();
+    if (_lastSoundTime[name] && now - _lastSoundTime[name] < 500) {
+        return; // Filter sound if played within last 500ms
+    }
+    _lastSoundTime[name] = now;
+
+    const audio = new window.Audio(`audio/${name}.mp3`);
+    audio.volume = 0.5;
+    audio.play().catch(e => {
+        // Only log if it's not a generic auto-play permission error
+        if (e.name !== 'NotAllowedError') console.warn('Audio play failed:', e);
+    });
 };
 
 /* ── Toast Notifications ────────────────────────── */

@@ -370,8 +370,8 @@
                                     <p class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-3 sticky top-0 bg-white dark:bg-[#232d36] py-1 whitespace-nowrap z-10">${cat.name}</p>
                                     <div class="grid grid-cols-7 gap-1 emoji-grid">
                                         ${cat.emojis.map(e => `
-                                            <button onclick="window.addEmoji('${e}')" title="${e}" data-emoji="${e}" class="emoji-item group p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all active:scale-125 flex items-center justify-center">
-                                                <img src="https://emojicdn.elk.sh/${encodeURIComponent(e)}?style=apple" class="w-6 h-6 object-contain pointer-events-none" loading="lazy">
+                                            <button onclick="window.addEmoji('${e}')" title="${e}" data-emoji="${e}" class="emoji-item text-xl p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all active:scale-125 flex items-center justify-center">
+                                                ${e}
                                             </button>
                                         `).join('')}
                                     </div>
@@ -470,7 +470,11 @@
             }
         });
 
-        if (branchId) dbMessages.markRead(branchId, state.role);
+        if (branchId) {
+            dbMessages.markRead(branchId, state.role).then(() => {
+                if (window.checkNotifications) window.checkNotifications(true);
+            });
+        }
         else if (groupId) { /* group read status logic */ }
     }
 
@@ -516,12 +520,14 @@
         const groupBtn = document.getElementById('groupBtn');
 
         if (isGroup) {
+            _activeBranchId = null;
             groupBtn?.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
             groupBtn?.classList.remove('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
             dmBtn?.classList.add('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
             dmBtn?.classList.remove('bg-emerald-500', 'text-white', 'shadow-lg');
             renderConversation(null, true);
         } else {
+            if (state.role === 'branch') _activeBranchId = state.branchId;
             dmBtn?.classList.add('bg-emerald-500', 'text-white', 'shadow-lg');
             dmBtn?.classList.remove('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
             groupBtn?.classList.add('text-gray-500', 'hover:bg-black/5', 'dark:hover:bg-white/5');
@@ -600,26 +606,27 @@
 
                                 ${attachmentHtml}
 
-                                <div class="flex flex-wrap items-end gap-2">
-                                    <p class="text-[14.5px] leading-relaxed flex-1">${msg.content}</p>
-                                    <div class="flex items-center gap-1.5 pb-0.5 min-w-[50px] opacity-60">
+                                <div class="block w-full">
+                                    <span class="text-[14.5px] leading-relaxed break-words whitespace-pre-wrap">${msg.content}</span>
+                                    <span class="float-right inline-flex items-center gap-1.5 opacity-60 ml-4 mt-1 relative top-[3px]">
                                         <span class="text-[9px] font-black uppercase tracking-tight">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         ${isMine ? `
-                                            <div class="flex items-center gap-1">
-                                                <span class="text-[7px] font-black uppercase tracking-tighter opacity-80">
+                                            <span class="flex items-center gap-1">
+                                                <span class="text-[7px] font-black uppercase tracking-tighter opacity-80 mt-[1px]">
                                                     ${(msg.metadata?.attachment && localStorage.getItem(`dl_${msg.metadata.attachment.url}`)) ?
                             'Opened' :
                             (msg.is_read ? 'Read' : (msg.is_delivered ? 'Delivered' : 'Sent'))}
                                                 </span>
                                                 ${msg.is_read ?
-                            '<i data-lucide="check-check" class="w-3.5 h-3.5 text-blue-400"></i>' :
+                            '<i data-lucide="check-check" class="w-[14px] h-[14px] text-blue-400"></i>' :
                             (msg.is_delivered ?
-                                '<i data-lucide="check-check" class="w-3.5 h-3.5 text-gray-400/70"></i>' :
-                                '<i data-lucide="check" class="w-3.5 h-3.5 text-gray-400/70"></i>')
+                                '<i data-lucide="check-check" class="w-[14px] h-[14px] text-gray-400/80"></i>' :
+                                '<i data-lucide="check" class="w-[14px] h-[14px] text-gray-400/80"></i>')
                         }
-                                            </div>
+                                            </span>
                                         ` : ''}
-                                    </div>
+                                    </span>
+                                    <div class="clear-both"></div>
                                 </div>
 
                                  <!-- Floating Reactions -->
@@ -1220,18 +1227,29 @@
             return;
         }
 
-        const isMsgTarget = (_isGroupChat && payload.new.is_group) ||
-            (!_isGroupChat && !payload.new.is_group && payload.new.branch_id === _activeBranchId);
+        const row = payload.new || payload.old;
+        if (!row) return;
+
+        // --- NEW LOGIC: Instantly mark direct messages as delivered if we are the online recipient
+        if (payload.eventType === 'INSERT' && row && !row.is_group && row.sender_role !== state.role) {
+            dbMessages.markDelivered(row.branch_id, state.role);
+        }
+
+        const isMsgTarget = (_isGroupChat && row.is_group && row.group_id == _activeGroupId) ||
+            (!_isGroupChat && !row.is_group && row.branch_id === _activeBranchId);
 
         if (isMsgTarget) {
-            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
-            if (payload.new.sender_role !== state.role) {
+            // Check if this is a newly inserted message that is NOT from us so we can play the sound
+            if (payload.eventType === 'INSERT' && row.sender_role !== state.role) {
                 playSound('notification');
-                if (!payload.new.is_group && !_isGroupChat) {
-                    dbMessages.markDelivered(_activeBranchId, state.role); // Mark as delivered upon realtime arrival
-                    dbMessages.markRead(_activeBranchId, state.role);
+                if (!row.is_group && !_isGroupChat) {
+                    dbMessages.markRead(_activeBranchId, state.role).then(() => {
+                        if (window.checkNotifications) window.checkNotifications(true);
+                    });
                 }
             }
+            // Always reload history to capture INSERT, UPDATE (read/delivered), or DELETE
+            loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
         } else if (state.role === 'owner') {
             updateBranchList();
         }

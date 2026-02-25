@@ -156,6 +156,7 @@ window.checkNotifications = async function (shush = false) {
 
     let hasNew = false;
     const oldRequestCount = state.pendingRequestCount || 0;
+    let currentUnreadChat = 0;
 
     if (state.role === 'owner') {
         const [reqs, access, unreadChat] = await Promise.all([
@@ -164,7 +165,8 @@ window.checkNotifications = async function (shush = false) {
             dbMessages.getUnreadCount(null, 'admin')
         ]);
 
-        const totalPending = (reqs.count || 0) + (access.count || 0) + (unreadChat || 0);
+        currentUnreadChat = unreadChat || 0;
+        const totalPending = (reqs.count || 0) + (access.count || 0) + currentUnreadChat;
         state.pendingRequestCount = totalPending;
         if (totalPending > oldRequestCount) hasNew = true;
 
@@ -183,6 +185,7 @@ window.checkNotifications = async function (shush = false) {
             dbMessages.getUnreadCount(state.branchId, 'branch')
         ]);
 
+        currentUnreadChat = unreadChat || 0;
         const pendingTasks = tasksRes.count || 0;
         const lowStock = (stockRes.items || []).filter(i => i.quantity <= i.min_threshold).length;
 
@@ -191,14 +194,24 @@ window.checkNotifications = async function (shush = false) {
         const lastChecked = localStorage.getItem(`last_checked_reqs_${state.branchId}`) || '0';
         const newResponses = responses.filter(r => new Date(r.updated_at || r.created_at) > new Date(lastChecked)).length;
 
-        if (newResponses > 0 || (unreadChat || 0) > 0) hasNew = true;
+        if (newResponses > 0 || currentUnreadChat > 0) hasNew = true;
 
-        if (pendingTasks > 0 || lowStock > 0 || newResponses > 0 || (unreadChat || 0) > 0) {
+        if (pendingTasks > 0 || lowStock > 0 || newResponses > 0 || currentUnreadChat > 0) {
             document.getElementById('notifBadge')?.classList.remove('hidden');
         } else {
             document.getElementById('notifBadge')?.classList.add('hidden');
         }
     }
+
+    // Update Chat Badge
+    document.querySelectorAll('.chat-unread-badge').forEach(badge => {
+        if (currentUnreadChat > 0) {
+            badge.textContent = currentUnreadChat > 99 ? '99+' : currentUnreadChat;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    });
 
     if (hasNew && !shush) {
         showNotificationHint('New Notification');

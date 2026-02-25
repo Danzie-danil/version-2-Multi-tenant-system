@@ -974,7 +974,7 @@ window.dbMessages = {
     getUnreadCount: async (branchId, role) => {
         const query = _db
             .from('messages')
-            .select('id', { count: 'exact', head: true })
+            .select('branch_id, group_id')
             .neq('sender_role', role)
             .eq('is_read', false);
 
@@ -983,7 +983,21 @@ window.dbMessages = {
         }
 
         const res = await query;
-        return res.count || 0;
+        const messages = res.data || [];
+
+        if (messages.length === 0) return 0;
+
+        // Count distinct conversations (either a distinct branch ID or a distinct group ID)
+        const distinctConvos = new Set();
+        messages.forEach(msg => {
+            if (msg.group_id) {
+                distinctConvos.add(`group_${msg.group_id}`);
+            } else if (msg.branch_id) {
+                distinctConvos.add(`branch_${msg.branch_id}`);
+            }
+        });
+
+        return distinctConvos.size;
     },
 
     /** Toggle an emoji reaction on a message */
