@@ -55,7 +55,8 @@ window.updateInventoryBulkActionBar = function () {
 window.bulkDeleteSelectedInventory = async function () {
     const count = window.inventorySelection.size;
     if (count === 0) return;
-    if (!confirm(`Are you sure you want to delete ${count} selected items?`)) return;
+    const confirmed = await window.confirmModal('Confirm Deletion', 'Are you sure you want to delete the selected items?', 'Yes, Delete', 'Cancel');
+    if (!confirmed) return;
 
     try {
         const ids = Array.from(window.inventorySelection);
@@ -344,3 +345,4 @@ window.renderInventoryModule = function () {
 
     return '';
 };
+

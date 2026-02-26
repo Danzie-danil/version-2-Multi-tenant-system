@@ -377,7 +377,8 @@ window.bulkDeleteSelectedSales = async function () {
     const count = window.salesSelection.size;
     if (count === 0) return;
 
-    if (!confirm(`Are you sure you want to delete ${count} selected sales?`)) return;
+    const confirmed = await window.confirmModal('Confirm Deletion', 'Are you sure you want to delete the selected items?', 'Yes, Delete', 'Cancel');
+    if (!confirmed) return;
 
     try {
         const ids = Array.from(window.salesSelection);
@@ -800,3 +801,4 @@ window.updateSaleTotal = function () {
         amountInput.value = (price * qty).toFixed(2);
     }
 };
+

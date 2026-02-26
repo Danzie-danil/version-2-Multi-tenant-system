@@ -250,6 +250,27 @@ window.dbBranches = {
         return _check(res, 'updateBranchTheme');
     },
 
+    /** Fetch a single branch by ID */
+    fetchOne: async (branchId) => {
+        const res = await _db
+            .from('branches')
+            .select('*')
+            .eq('id', branchId)
+            .single();
+        return _check(res, 'fetchOneBranch');
+    },
+
+    /** Update branch-level action preferences (allowlist toggles) */
+    updatePreferences: async (branchId, preferences) => {
+        const res = await _db
+            .from('branches')
+            .update({ preferences })
+            .eq('id', branchId)
+            .select()
+            .single();
+        return _check(res, 'updateBranchPreferences');
+    },
+
     /** Delete a branch */
     delete: async (branchId) => {
         const res = await _db
@@ -649,6 +670,16 @@ window.dbTasks = {
         return { items: data, count: res.count || 0 };
     },
 
+    /** Fetch a single task by ID (used by openDetailsModal) */
+    fetchOne: async (id) => {
+        const res = await _db
+            .from('tasks')
+            .select('*, branch:branches(name)')
+            .eq('id', id)
+            .single();
+        return _check(res, 'fetchOneTask');
+    },
+
     add: async (branchId, { title, description, priority, deadline }) => {
         const res = await _db
             .from('tasks')
@@ -683,6 +714,41 @@ window.dbTaskTags = {
     delete: async (tagId) => {
         const res = await _db.from('task_tags').delete().eq('id', tagId);
         return _check(res, 'deleteTaskTag');
+    }
+};
+
+// ── Task Comments (Admin ↔ Branch reminder thread) ───────────────────────
+window.dbTaskComments = {
+    /** Fetch all comments for a task, oldest first */
+    fetchAll: async (taskId) => {
+        const res = await _db
+            .from('task_comments')
+            .select('*')
+            .eq('task_id', taskId)
+            .order('created_at', { ascending: true });
+        return _check(res, 'fetchTaskComments');
+    },
+
+    /** Post a new comment/reminder */
+    add: async (taskId, senderRole, senderName, message) => {
+        const res = await _db
+            .from('task_comments')
+            .insert({ task_id: taskId, sender_role: senderRole, sender_name: senderName, message })
+            .select()
+            .single();
+        return _check(res, 'addTaskComment');
+    },
+
+    /** Delete a comment by ID */
+    delete: async (commentId) => {
+        const res = await _db.from('task_comments').delete().eq('id', commentId);
+        return _check(res, 'deleteTaskComment');
+    },
+
+    /** Mark a comment as read */
+    markAsRead: async (commentId) => {
+        const res = await _db.from('task_comments').update({ is_read: true }).eq('id', commentId);
+        return _check(res, 'markTaskCommentRead');
     }
 };
 

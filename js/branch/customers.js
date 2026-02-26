@@ -58,7 +58,8 @@ window.updateCustomerBulkActionBar = function () {
 window.bulkDeleteSelectedCustomers = async function () {
     const count = window.customersSelection.size;
     if (count === 0) return;
-    if (!confirm(`Are you sure you want to delete ${count} selected customers?`)) return;
+    const confirmed = await window.confirmModal('Confirm Deletion', 'Are you sure you want to delete the selected items?', 'Yes, Delete', 'Cancel');
+    if (!confirmed) return;
 
     try {
         const ids = Array.from(window.customersSelection);
@@ -334,3 +335,4 @@ window.renderCustomersModule = function () {
 
     return '';
 };
+

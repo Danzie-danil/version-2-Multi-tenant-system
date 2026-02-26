@@ -1,5 +1,26 @@
 // ── Utility Helpers ───────────────────────────────────────────────────────
 
+/* ── Branch Action Permission Helper ────────────── */
+/**
+ * Checks if the currently logged-in branch is allowed to perform
+ * a specific action directly (without requiring admin approval).
+ *
+ * @param {string} action - One of: 'inventory_add', 'inventory_update',
+ *                          'expenses_add', 'sales_add', 'customers_add', 'loans_add'
+ * @returns {boolean} true = allowed directly; false = needs approval
+ */
+window.branchCanDo = function (action) {
+    // Only applies to branch sessions
+    if (!window.state || state.role !== 'branch') return false;
+
+    // state.branchProfile holds the full branch row (including preferences JSONB)
+    const branch = state.branchProfile;
+    if (!branch) return false;
+
+    const prefs = branch.preferences || {};
+    return prefs[action] === true;
+};
+
 /* ── Client-Side List Search ─────────────────────── */
 window.filterList = function (listId, query) {
     const list = document.getElementById(listId);
@@ -134,7 +155,17 @@ window.openDetailsModal = async function (type, id) {
             case 'note': data = await dbNotes.fetchOne(id); break;
             case 'customer': data = await dbCustomers.fetchOne(id); break;
             case 'loan': data = await dbLoans.fetchOne(id); break;
-            case 'task': data = await dbTasks.fetchOne ? await dbTasks.fetchOne(id) : (state.tasks ? state.tasks.find(t => t.id === id) : null); break;
+            case 'task': {
+                data = await dbTasks.fetchOne(id);
+                if (data) {
+                    try {
+                        data._comments = await dbTaskComments.fetchAll(id);
+                    } catch (e) {
+                        data._comments = [];
+                    }
+                }
+                break;
+            }
             case 'branch': data = state.branches ? state.branches.find(b => b.id === id) : await dbBranches.fetchOne(id); break;
         }
         if (data) openModal(type + 'Details', data);

@@ -769,13 +769,17 @@ window.getModalHTML = function (type, data) {
             </form>
         </div>`;
 
-        /* ── Add Inventory Item (Request Approval) ─── */
-        case 'addInventoryItem': return `
+        /* ── Add Inventory Item (Request Approval OR Direct if allowed) ─── */
+        case 'addInventoryItem': {
+            const canAddDirect = window.branchCanDo && branchCanDo('inventory_add');
+            return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-900">Request New Stock</h3>
-                    <p class="text-xs text-gray-500 font-medium">Additions require approval</p>
+                    <h3 class="text-xl font-bold text-gray-900">${canAddDirect ? 'Add New Stock' : 'Request New Stock'}</h3>
+                    <p class="text-xs font-medium ${canAddDirect ? 'text-emerald-600' : 'text-gray-500'}">
+                        ${canAddDirect ? '✅ Allowed — will be added directly' : 'Additions require admin approval'}
+                    </p>
                 </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -801,8 +805,8 @@ window.getModalHTML = function (type, data) {
                                     <option value="Electronics">Electronics</option>
                                     <option value="Clothing">Clothing</option>
                                     <option value="Groceries">Groceries</option>
-                                    <option value="Home & Garden">Home & Garden</option>
-                                    <option value="Health & Beauty">Health & Beauty</option>
+                                    <option value="Home &amp; Garden">Home &amp; Garden</option>
+                                    <option value="Health &amp; Beauty">Health &amp; Beauty</option>
                                     <option value="Stationery">Stationery</option>
                                     <option value="Services">Services</option>
                                     <option value="Other">Other</option>
@@ -813,7 +817,7 @@ window.getModalHTML = function (type, data) {
                 </div>
 
                 <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50 mb-4">
-                    <p class="text-[10px] text-amber-600 uppercase font-black tracking-wider mb-2">Purchase & Supplier Details</p>
+                    <p class="text-[10px] text-amber-600 uppercase font-black tracking-wider mb-2">Purchase &amp; Supplier Details</p>
                     <div class="space-y-3">
                         <div>
                             <label for="itemSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
@@ -842,18 +846,21 @@ window.getModalHTML = function (type, data) {
 
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center font-black">Submit for Approval</button>
+                    <button type="submit" class="flex-1 ${canAddDirect ? 'bg-emerald-600 hover:bg-emerald-700' : 'btn-primary'} text-white px-4 py-2 rounded-lg font-black justify-center">${canAddDirect ? 'Add to Inventory' : 'Submit for Approval'}</button>
                 </div>
             </form>
         </div>`;
+        }
 
-        /* ── Restock Stock (Request Approval) ───────── */
-        case 'restockStock': return `
+        /* ── Restock Stock (Direct OR Approval depending on preference) ───── */
+        case 'restockStock': {
+            const canRestockDirect = window.branchCanDo && branchCanDo('inventory_update');
+            return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-900">Request Stock Addition</h3>
-                    <p class="text-xs text-gray-500 font-medium">${data.name} (SKU: ${data.sku || 'N/A'})</p>
+                    <h3 class="text-xl font-bold text-gray-900">${canRestockDirect ? 'Restock Item' : 'Request Stock Addition'}</h3>
+                    <p class="text-xs font-medium ${canRestockDirect ? 'text-emerald-600' : 'text-gray-500'}">${data.name} (SKU: ${data.sku || 'N/A'}) ${canRestockDirect ? '— ✅ Allowed directly' : ''}</p>
                 </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
@@ -884,10 +891,11 @@ window.getModalHTML = function (type, data) {
 
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center font-black">Submit Request</button>
+                    <button type="submit" class="flex-1 ${canRestockDirect ? 'bg-emerald-600 hover:bg-emerald-700' : 'btn-primary'} text-white px-4 py-2 rounded-lg font-black justify-center">${canRestockDirect ? 'Restock Now' : 'Submit Request'}</button>
                 </div>
             </form>
         </div>`;
+        }
 
         /* ── Edit General Request (Branch) ─── */
         case 'editGeneralRequest': return `
@@ -1505,65 +1513,348 @@ window.getModalHTML = function (type, data) {
                     <p class="text-sm font-semibold uppercase w-2/3">${data.currency || 'Not set'}</p>
                 </div>
             </div>
-            <div class="grid grid-cols-3 gap-2 mt-8">
+            <div class="grid grid-cols-2 gap-2 mt-4">
                 <button onclick='openModal("editBranch", ${JSON.stringify(data).replace(/'/g, "&apos;")})' class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
                     <i data-lucide="settings" class="w-4 h-4"></i> Settings
                 </button>
                 <button onclick="openModal('resetPin','${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-violet-50 text-violet-700 rounded-xl font-bold text-xs hover:bg-violet-100 transition-colors">
                     <i data-lucide="key" class="w-4 h-4"></i> PIN
                 </button>
-                <button onclick="deleteBranchRow('${data.id}', '${data.name}')" class="flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-                </button>
             </div>
+            <button onclick='openBranchPreferencesModal(${JSON.stringify(data).replace(/'/g, "&apos;")})' class="w-full mt-2 flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors border border-amber-100">
+                <i data-lucide="toggle-left" class="w-4 h-4"></i> Branch Preferences &amp; Allowlist
+            </button>
+            <button onclick="deleteBranchRow('${data.id}', '${data.name}')" class="w-full mt-2 flex items-center justify-center gap-2 p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Branch
+            </button>
         </div>`;
 
-        case 'taskDetails': return `
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Task Details</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="space-y-3">
-                <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 mb-2">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Task</span>
-                        ${priorityBadge(data.priority)}
+
+        /* ── Branch Preferences / Action Allowlist (Owner Sets Per-Branch) ─── */
+        case 'branchPreferences': {
+            const prefs = data.preferences || {};
+            const ACTIONS = [
+                {
+                    key: 'inventory_add',
+                    label: 'Add New Stock',
+                    desc: 'Branch can add new inventory items directly without approval',
+                    icon: 'package-plus',
+                    color: 'indigo'
+                },
+                {
+                    key: 'inventory_update',
+                    label: 'Restock Items',
+                    desc: 'Branch can restock / increase quantities directly without approval',
+                    icon: 'refresh-ccw',
+                    color: 'violet'
+                },
+                {
+                    key: 'expenses_add',
+                    label: 'Add Expenses',
+                    desc: 'Branch can record expenses without requiring approval',
+                    icon: 'receipt',
+                    color: 'rose'
+                },
+                {
+                    key: 'sales_add',
+                    label: 'Record Sales',
+                    desc: 'Branch can record sales directly (default: allowed)',
+                    icon: 'shopping-cart',
+                    color: 'emerald'
+                },
+                {
+                    key: 'customers_add',
+                    label: 'Add Customers',
+                    desc: 'Branch can add new customers directly',
+                    icon: 'user-plus',
+                    color: 'cyan'
+                },
+                {
+                    key: 'loans_add',
+                    label: 'Record Loans / Income',
+                    desc: 'Branch can record loans and other income directly',
+                    icon: 'landmark',
+                    color: 'amber'
+                }
+            ];
+
+            const colorMap = {
+                indigo: { on: 'bg-indigo-500', ring: 'ring-indigo-200', badge: 'bg-indigo-100 text-indigo-700', icon: 'bg-indigo-50 text-indigo-600' },
+                violet: { on: 'bg-violet-500', ring: 'ring-violet-200', badge: 'bg-violet-100 text-violet-700', icon: 'bg-violet-50 text-violet-600' },
+                rose: { on: 'bg-rose-500', ring: 'ring-rose-200', badge: 'bg-rose-100 text-rose-700', icon: 'bg-rose-50 text-rose-600' },
+                emerald: { on: 'bg-emerald-500', ring: 'ring-emerald-200', badge: 'bg-emerald-100 text-emerald-700', icon: 'bg-emerald-50 text-emerald-600' },
+                cyan: { on: 'bg-cyan-500', ring: 'ring-cyan-200', badge: 'bg-cyan-100 text-cyan-700', icon: 'bg-cyan-50 text-cyan-600' },
+                amber: { on: 'bg-amber-500', ring: 'ring-amber-200', badge: 'bg-amber-100 text-amber-700', icon: 'bg-amber-50 text-amber-600' }
+            };
+
+            return `
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center">
+                            <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Branch Preferences</h3>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${data.name}</p>
+                        </div>
                     </div>
-                    <h4 class="text-lg font-bold text-indigo-900">${data.title}</h4>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-start">
-                    <div class="flex flex-col w-full">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Instructions</p>
-                        <p class="text-sm text-gray-700">${data.description || 'No description provided.'}</p>
-                    </div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Status</p>
-                    <div class="w-2/3 flex justify-end">
-                        ${statusBadge(data.status)}
-                    </div>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
-                    <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Deadline</p>
-                    <p class="text-sm font-bold text-red-600 w-2/3">${fmt.date(data.deadline)}</p>
-                </div>
-                </div>
-            </div>
-            <div class="mt-8">
-                ${data.status !== 'completed' ? `
-                    <button onclick="window.updateTaskStatus ? updateTaskStatus('${data.id}', 'completed') : showToast('Status update pending branch implementation')" class="w-full flex items-center justify-center gap-2 p-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
-                        <i data-lucide="check-circle" class="w-5 h-5"></i> Mark as Completed
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                        <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
-                ` : `
-                    <div class="text-center py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm border border-emerald-100">
-                        <i data-lucide="check-circle" class="w-5 h-5 inline-block mr-1"></i> Task Completed
+                </div>
+
+                <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-3 mb-5 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+                    <p class="text-xs text-amber-800 font-medium">Toggle which actions this branch can perform <strong>directly</strong> without requiring admin approval. Off = requires approval (default).</p>
+                </div>
+
+                <div class="space-y-3" id="prefActionList">
+                    ${ACTIONS.map(act => {
+                const isOn = prefs[act.key] === true;
+                const c = colorMap[act.color];
+                return `
+                        <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow" id="pref-row-${act.key}">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <div class="w-9 h-9 ${c.icon} rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="${act.icon}" class="w-4.5 h-4.5"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 leading-tight">${act.label}</p>
+                                    <p class="text-[10px] text-gray-400 font-medium leading-tight mt-0.5 truncate">${act.desc}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+                                <span class="text-[9px] font-black uppercase tracking-widest ${isOn ? c.badge : 'bg-gray-100 text-gray-400'}" id="pref-badge-${act.key}">
+                                    ${isOn ? 'Allowed' : 'Approval'}
+                                </span>
+                                <button
+                                    type="button"
+                                    id="pref-toggle-${act.key}"
+                                    data-key="${act.key}"
+                                    data-on="${isOn ? '1' : '0'}"
+                                    data-color-on="${c.on}"
+                                    data-color-badge-on="${c.badge}"
+                                    onclick="toggleBranchPrefUI(this)"
+                                    class="relative w-12 h-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 ${isOn ? c.on + ' ' + c.ring : 'bg-gray-200'}"
+                                    aria-checked="${isOn}"
+                                >
+                                    <span class="absolute top-1 transition-all duration-200 w-4 h-4 bg-white rounded-full shadow-sm ${isOn ? 'left-7' : 'left-1'}"></span>
+                                </button>
+                            </div>
+                        </div>`;
+            }).join('')}
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl font-bold hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="button" onclick="handleSaveBranchPreferences('${data.id}')" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-100 active:scale-95 transition-all">
+                        Save Preferences
+                    </button>
+                </div>
+            </div>`;
+        }
+
+        case 'taskDetails': {
+            const comments = data._comments || [];
+            const isOwner = window.state && state.role === 'owner';
+
+            if (isOwner) {
+                /* ── ADMIN VIEW ─────────────────────────────────────────── */
+                const statusOpts = ['pending', 'in_progress', 'completed'].map(s =>
+                    `<option value="${s}" ${data.status === s ? 'selected' : ''}>${s.replace('_', ' ')}</option>`
+                ).join('');
+
+                const commentThread = comments.length === 0
+                    ? `<div class="text-center py-4 text-xs text-gray-400 italic">No reminders sent yet. Send one below.</div>`
+                    : comments.map(c => {
+                        const isAdmin = c.sender_role === 'owner';
+                        return `
+                        <div class="flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-2">
+                            <div class="max-w-[80%] ${isAdmin
+                                ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm'
+                                : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
+                            } px-4 py-2.5 shadow-sm">
+                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1 ${isAdmin ? 'text-indigo-200' : 'text-gray-500'}">
+                                    ${isAdmin ? '👤 You' : `🏪 ${c.sender_name || 'Branch'}`}
+                                </p>
+                                <p class="text-sm leading-snug">${c.message}</p>
+                                <p class="text-[9px] mt-1 ${isAdmin ? 'text-indigo-300' : 'text-gray-400'}">${fmt.dateTime(c.created_at)}</p>
+                            </div>
+                        </div>`;
+                    }).join('');
+
+                return `
+                <div class="p-5 flex flex-col max-h-[90vh]">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="clipboard-list" class="w-5 h-5 text-indigo-600"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="text-base font-black text-gray-900 leading-tight truncate">${data.title}</h3>
+                                <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-widest">
+                                    <i data-lucide="building-2" class="w-3 h-3 inline mr-0.5"></i>
+                                    ${data.branch?.name || 'Branch'}
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 flex-shrink-0 ml-2">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
                     </div>
-                `}
-            </div>
-        </div>`;
+
+                    <!-- Task Meta -->
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Priority</p>
+                            ${priorityBadge(data.priority)}
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Status</p>
+                            ${statusBadge(data.status)}
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+                            <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Deadline</p>
+                            <p class="text-[11px] font-bold text-red-600">${data.deadline ? fmt.date(data.deadline) : '—'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    ${data.description ? `
+                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 mb-4">
+                        <p class="text-[9px] text-blue-500 uppercase font-black mb-1">Instructions</p>
+                        <p class="text-sm text-gray-700 leading-relaxed">${data.description}</p>
+                    </div>` : ''}
+
+                    <!-- Admin Actions Row -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[9px] text-gray-400 uppercase font-black">Change Status</label>
+                            <select id="adminTaskStatusSelect" class="form-input text-sm py-2 font-semibold" onchange="handleAdminUpdateTaskStatus('${data.id}', this.value)">
+                                ${statusOpts}
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[9px] text-gray-400 uppercase font-black">Actions</label>
+                            <button onclick="handleAdminDeleteTask('${data.id}')" class="flex items-center justify-center gap-1.5 p-2 bg-red-50 text-red-600 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors border border-red-100 h-full">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete Task
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Comment Thread -->
+                    <div class="flex-1 bg-gray-50 rounded-2xl border border-gray-100 p-3 mb-3 overflow-y-auto max-h-48" id="taskCommentThread">
+                        <p class="text-[9px] text-gray-400 uppercase font-black mb-3 flex items-center gap-1.5">
+                            <i data-lucide="message-square" class="w-3 h-3"></i> Reminders &amp; Replies
+                            <span class="ml-auto bg-indigo-100 text-indigo-600 rounded-full px-2 py-0.5">${comments.length}</span>
+                        </p>
+                        ${commentThread}
+                    </div>
+
+                    <!-- Send Reminder -->
+                    <div class="flex gap-2">
+                        <input type="text" id="adminReminderInput" placeholder="Type a reminder to the branch…"
+                            class="flex-1 form-input text-sm py-2.5"
+                            onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();handleSendTaskReminder('${data.id}');}">
+                        <button onclick="handleSendTaskReminder('${data.id}')"
+                            class="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 active:scale-95">
+                            <i data-lucide="send" class="w-4 h-4"></i> Send
+                        </button>
+                    </div>
+                </div>`;
+
+            } else {
+                /* ── BRANCH VIEW ────────────────────────────────────────── */
+                const adminComments = comments.filter(c => c.sender_role === 'owner');
+                const hasReminders = adminComments.length > 0;
+
+                const commentThread = comments.length === 0
+                    ? ''
+                    : `<div class="space-y-2 mb-4" id="taskCommentThread">
+                        <p class="text-[9px] text-indigo-500 uppercase font-black flex items-center gap-1.5">
+                            <i data-lucide="bell" class="w-3 h-3"></i> Admin Reminders &amp; Thread
+                        </p>
+                        ${comments.map(c => {
+                        const isBranch = c.sender_role === 'branch';
+                        return `
+                            <div class="flex ${isBranch ? 'justify-end' : 'justify-start'}">
+                                <div class="max-w-[85%] ${isBranch
+                                ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm'
+                                : 'bg-amber-50 text-gray-800 border border-amber-100 rounded-2xl rounded-tl-sm'
+                            } px-4 py-2.5 shadow-sm">
+                                    <p class="text-[9px] font-black uppercase tracking-widest mb-1 ${isBranch ? 'text-indigo-200' : 'text-amber-600'}">
+                                        ${isBranch ? '🏪 You' : '👤 Admin'}
+                                    </p>
+                                    <p class="text-sm leading-snug">${c.message}</p>
+                                    <p class="text-[9px] mt-1 ${isBranch ? 'text-indigo-300' : 'text-amber-400'}">${fmt.dateTime(c.created_at)}</p>
+                                </div>
+                            </div>`;
+                    }).join('')}
+                    </div>`;
+
+                return `
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Task Details</h3>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 mb-2">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Task</span>
+                                ${priorityBadge(data.priority)}
+                            </div>
+                            <h4 class="text-lg font-bold text-indigo-900">${data.title}</h4>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-start">
+                            <div class="flex flex-col w-full">
+                                <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Instructions</p>
+                                <p class="text-sm text-gray-700">${data.description || 'No description provided.'}</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                            <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Status</p>
+                            <div class="w-2/3 flex justify-end">${statusBadge(data.status)}</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center text-right">
+                            <p class="text-[10px] text-gray-500 uppercase font-bold text-left w-1/3">Deadline</p>
+                            <p class="text-sm font-bold text-red-600 w-2/3">${fmt.date(data.deadline)}</p>
+                        </div>
+
+                        ${commentThread}
+
+                        ${hasReminders ? `
+                        <!-- Branch reply -->
+                        <div class="flex gap-2 mt-2">
+                            <input type="text" id="branchReplyInput" placeholder="Reply to admin…"
+                                class="flex-1 form-input text-sm py-2.5"
+                                onkeydown="if(event.key==='Enter'){event.preventDefault();handleBranchReplyToTask('${data.id}');}">
+                            <button onclick="handleBranchReplyToTask('${data.id}')"
+                                class="flex items-center gap-1.5 px-3 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors active:scale-95">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>` : ''}
+                    </div>
+
+                    <div class="mt-6">
+                        ${data.status !== 'completed' ? `
+                            <button onclick="handleBranchCompleteTask('${data.id}')"
+                                class="w-full flex items-center justify-center gap-2 p-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i> Mark as Completed
+                            </button>
+                        ` : `
+                            <div class="text-center py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm border border-emerald-100">
+                                <i data-lucide="check-circle" class="w-5 h-5 inline-block mr-1"></i> Task Completed
+                            </div>
+                        `}
+                    </div>
+                </div>`;
+            }
+        }
 
         default: return null;
     }
@@ -1651,6 +1942,91 @@ function _setSubmitLoading(form, loading, originalText) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Form Submit Handlers  (all async — write to Supabase)
 // ═══════════════════════════════════════════════════════════════════════════
+
+// ── Branch Preferences Handlers ──────────────────────────────────────────
+
+/**
+ * Opens the branch preferences modal with fresh data from the server.
+ * Called when admin clicks "Branch Preferences & Allowlist" on a branch card.
+ */
+window.openBranchPreferencesModal = async function (branchData) {
+    try {
+        // Re-fetch branch to ensure we have the latest preferences
+        const freshBranch = await dbBranches.fetchOne(branchData.id);
+        openModal('branchPreferences', freshBranch || branchData);
+    } catch (err) {
+        // Fallback: open with the data we already have
+        openModal('branchPreferences', branchData);
+    }
+};
+
+/**
+ * Handles the live UI toggle inside the branchPreferences modal.
+ * Does NOT save to DB — the save happens on "Save Preferences" click.
+ */
+window.toggleBranchPrefUI = function (btn) {
+    const isCurrentlyOn = btn.dataset.on === '1';
+    const key = btn.dataset.key;
+    const colorOn = btn.dataset.colorOn;
+    const badgeColorOn = btn.dataset.colorBadgeOn;
+    const thumb = btn.querySelector('span');
+    const badge = document.getElementById(`pref-badge-${key}`);
+
+    if (isCurrentlyOn) {
+        // Turn OFF
+        btn.dataset.on = '0';
+        btn.className = btn.className.replace(colorOn, 'bg-gray-200').replace(/ring-\S+/, '');
+        if (thumb) { thumb.classList.remove('left-7'); thumb.classList.add('left-1'); }
+        if (badge) {
+            badge.className = 'text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-400';
+            badge.textContent = 'Approval';
+        }
+    } else {
+        // Turn ON
+        btn.dataset.on = '1';
+        btn.className = btn.className.replace('bg-gray-200', colorOn);
+        if (thumb) { thumb.classList.remove('left-1'); thumb.classList.add('left-7'); }
+        if (badge) {
+            badge.className = `text-[9px] font-black uppercase tracking-widest ${badgeColorOn}`;
+            badge.textContent = 'Allowed';
+        }
+    }
+};
+
+/**
+ * Reads the current toggle states in the modal and saves them to the DB.
+ * Also updates `state.branches` so the owner's view is immediately fresh.
+ */
+window.handleSaveBranchPreferences = async function (branchId) {
+    const toggles = document.querySelectorAll('[id^="pref-toggle-"]');
+    const preferences = {};
+    toggles.forEach(t => {
+        preferences[t.dataset.key] = t.dataset.on === '1';
+    });
+
+    const saveBtn = document.querySelector('[onclick*="handleSaveBranchPreferences"]');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+    try {
+        const updatedBranch = await dbBranches.updatePreferences(branchId, preferences);
+
+        // Update local state so changes take effect immediately without reload
+        if (state.branches) {
+            const idx = state.branches.findIndex(b => b.id === branchId);
+            if (idx > -1) state.branches[idx] = { ...state.branches[idx], preferences };
+        }
+        // Also update branchProfile if this is the currently-logged-in branch
+        if (state.branchProfile && state.branchProfile.id === branchId) {
+            state.branchProfile.preferences = preferences;
+        }
+
+        showToast('Branch preferences saved!', 'success');
+        closeModal();
+    } catch (err) {
+        showToast('Failed to save preferences: ' + err.message, 'error');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Preferences'; }
+    }
+};
 
 window.handleAssignTask = async function (e) {
     e.preventDefault();
@@ -1875,7 +2251,31 @@ window.handleAddInventoryItem = async function (e) {
         supplier: document.getElementById('itemSupplier').value
     };
 
-    // Mandatory Approval Flow
+    // Check if this branch is allowed to add inventory directly
+    if (window.branchCanDo && branchCanDo('inventory_add')) {
+        // ── DIRECT ADD (no approval required) ──────────────────────────────
+        try {
+            _setSubmitLoading(btn, true, 'Adding...');
+            await dbInventory.add(state.branchId, {
+                name: itemData.name,
+                sku: itemData.sku,
+                category: itemData.category,
+                price: itemData.price,
+                quantity: itemData.quantity,
+                min_threshold: itemData.min_threshold
+            });
+            showToast(`${itemData.name} added to inventory!`, 'success');
+            closeModal();
+            if (window.renderInventoryModule) renderInventoryModule();
+        } catch (err) {
+            showToast('Failed to add item: ' + err.message, 'error');
+        } finally {
+            _setSubmitLoading(btn, false, 'Add to Inventory');
+        }
+        return;
+    }
+
+    // ── APPROVAL FLOW (default) ─────────────────────────────────────────
     const requestPayload = {
         branch_id: state.branchId,
         owner_id: state.profile.id,
@@ -1912,6 +2312,30 @@ window.handleRestockStock = async function (e, id) {
         supplier: document.getElementById('restockSupplier').value
     };
 
+    // Check if this branch is allowed to restock directly
+    if (window.branchCanDo && branchCanDo('inventory_update')) {
+        // ── DIRECT RESTOCK (no approval required) ──────────────────────────
+        try {
+            _setSubmitLoading(btn, true, 'Restocking...');
+            // Fetch current quantity and add to it
+            const currentItem = await dbInventory.fetchOne(id);
+            if (currentItem) {
+                await dbInventory.updateQty(id, currentItem.quantity + restockData.quantity);
+                showToast(`${restockData.name} restocked with ${restockData.quantity} units!`, 'success');
+                closeModal();
+                if (window.renderInventoryModule) renderInventoryModule();
+            } else {
+                showToast('Could not find inventory item.', 'error');
+            }
+        } catch (err) {
+            showToast('Failed to restock: ' + err.message, 'error');
+        } finally {
+            _setSubmitLoading(btn, false, 'Restock Now');
+        }
+        return;
+    }
+
+    // ── APPROVAL FLOW (default) ─────────────────────────────────────────
     const requestPayload = {
         branch_id: state.branchId,
         owner_id: state.profile.id,
@@ -1934,6 +2358,7 @@ window.handleRestockStock = async function (e, id) {
         _setSubmitLoading(btn, false, 'Submit Request');
     }
 };
+
 
 window.handleEditSale = async function (e, id) {
     e.preventDefault();
@@ -2163,6 +2588,94 @@ window.handleEditRestockRequest = async function (e, id) {
     }
 };
 
+// ── Admin Task Actions ───────────────────────────────────────────────────────
+window.handleAdminUpdateTaskStatus = async function (taskId, newStatus) {
+    try {
+        await dbTasks.updateStatus(taskId, newStatus);
+        showToast('Task status updated', 'success');
+        if (window.renderTasksManagement) window.renderTasksManagement();
+    } catch (err) {
+        showToast('Failed to update status', 'error');
+    }
+};
+
+window.handleAdminDeleteTask = async function (taskId) {
+    const confirmed = await window.confirmModal('Delete Task', 'Are you sure you want to delete this task?', 'Yes, Delete', 'Cancel', 'bg-red-600 hover:bg-red-700');
+    if (!confirmed) return;
+    try {
+        await dbTasks.bulkDelete([taskId]);
+        showToast('Task deleted', 'success');
+        closeModal();
+        if (window.renderTasksManagement) window.renderTasksManagement();
+    } catch (err) {
+        showToast('Failed to delete task', 'error');
+    }
+};
+
+// ── Task Reminders & Replies ─────────────────────────────────────────────────
+window.handleSendTaskReminder = async function (taskId) {
+    const input = document.getElementById('adminReminderInput');
+    if (!input || !input.value.trim()) return;
+    const msg = input.value.trim();
+
+    try {
+        input.disabled = true;
+        await dbTaskComments.add(taskId, 'owner', state.profile?.name || 'Admin', msg);
+        showToast('Reminder sent', 'success');
+
+        // Refresh the modal to show the new comment
+        const freshTask = await dbTasks.fetchOne(taskId);
+        if (freshTask) {
+            freshTask._comments = await dbTaskComments.fetchAll(taskId);
+            openModal('taskDetails', freshTask);
+        }
+    } catch (err) {
+        showToast('Failed to send reminder', 'error');
+        input.disabled = false;
+    }
+};
+
+window.handleBranchReplyToTask = async function (taskId) {
+    const input = document.getElementById('branchReplyInput');
+    if (!input || !input.value.trim()) return;
+    const msg = input.value.trim();
+
+    try {
+        input.disabled = true;
+        await dbTaskComments.add(taskId, 'branch', state.branchProfile?.name || 'Branch', msg);
+        showToast('Reply sent', 'success');
+
+        // Refresh the modal 
+        const freshTask = await dbTasks.fetchOne(taskId);
+        if (freshTask) {
+            freshTask._comments = await dbTaskComments.fetchAll(taskId);
+            openModal('taskDetails', freshTask);
+        }
+    } catch (err) {
+        showToast('Failed to send reply', 'error');
+        input.disabled = false;
+    }
+};
+
+// ── Branch Task Completion ─────────────────────────────────────────────────
+window.handleBranchCompleteTask = async function (taskId) {
+    const confirmed = await window.confirmModal('Complete Task', 'Are you sure you want to mark this task as completed?', 'Yes, Complete', 'Cancel', 'bg-emerald-600 hover:bg-emerald-700');
+    if (!confirmed) return;
+    try {
+        await dbTasks.updateStatus(taskId, 'completed');
+
+        const branchName = state.branchProfile?.name || 'Branch';
+        if (typeof addActivity === 'function') {
+            addActivity('task_completed', `Task completed`, branchName);
+        }
+
+        showToast('Task completed! 🎉', 'success');
+        closeModal();
+        if (window.renderBranchTasks) renderBranchTasks();
+    } catch (err) {
+        showToast('Failed to complete task: ' + err.message, 'error');
+    }
+};
 
 /* ── Close modal on backdrop click ──────────────── */
 document.addEventListener('DOMContentLoaded', () => {

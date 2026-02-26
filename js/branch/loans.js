@@ -58,7 +58,8 @@ window.updateLoanBulkActionBar = function () {
 window.bulkDeleteSelectedLoans = async function () {
     const count = window.loansSelection.size;
     if (count === 0) return;
-    if (!confirm(`Are you sure you want to delete ${count} selected records?`)) return;
+    const confirmed = await window.confirmModal('Confirm Deletion', 'Are you sure you want to delete the selected items?', 'Yes, Delete', 'Cancel');
+    if (!confirmed) return;
 
     try {
         const ids = Array.from(window.loansSelection);
@@ -347,3 +348,4 @@ window.renderLoansModule = function () {
 
     return '';
 };
+

@@ -58,7 +58,8 @@ window.updateNoteBulkActionBar = function () {
 window.bulkDeleteSelectedNotes = async function () {
     const count = window.notesSelection.size;
     if (count === 0) return;
-    if (!confirm(`Are you sure you want to delete ${count} selected notes?`)) return;
+    const confirmed = await window.confirmModal('Confirm Deletion', 'Are you sure you want to delete the selected items?', 'Yes, Delete', 'Cancel');
+    if (!confirmed) return;
 
     try {
         const ids = Array.from(window.notesSelection);
@@ -328,3 +329,4 @@ window.deleteNote = async function (noteId) {
         showToast('Failed to delete note: ' + err.message, 'error');
     }
 };
+

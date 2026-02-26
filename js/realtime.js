@@ -232,15 +232,18 @@
             setupListener();
         });
 
-        _channel.on('broadcast', { event: 'sync' }, (payload) => {
+        _channel.on('broadcast', { event: 'sync' }, (msg) => {
+            // Supabase wraps the user-supplied payload inside msg.payload
+            const payload = msg?.payload || msg;
             console.log('[Realtime] Broadcast SYNC received:', payload);
             if (payload.table === 'messages') {
-                window.refreshChat?.({ ...payload, eventType: 'BROADCAST' });
+                window.refreshChat?.({ ...payload, eventType: payload.eventType || 'BROADCAST' });
             }
         });
 
-        _channel.on('broadcast', { event: 'typing' }, (payload) => {
-            if (window.handleTypingIndicator) window.handleTypingIndicator(payload);
+        _channel.on('broadcast', { event: 'typing' }, (event) => {
+            // Pass full event; handleTypingIndicator will unwrap the nested payload
+            if (window.handleTypingIndicator) window.handleTypingIndicator(event);
         });
 
         _channel.subscribe(async (status) => {

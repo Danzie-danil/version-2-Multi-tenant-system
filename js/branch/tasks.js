@@ -58,7 +58,8 @@ window.updateTaskBulkActionBar = function () {
 window.bulkDeleteSelectedTasks = async function () {
     const count = window.tasksSelection.size;
     if (count === 0) return;
-    if (!confirm(`Are you sure you want to delete ${count} selected tasks?`)) return;
+    const confirmed = await window.confirmModal('Confirm Deletion', 'Are you sure you want to delete the selected items?', 'Yes, Delete', 'Cancel');
+    if (!confirmed) return;
 
     try {
         const ids = Array.from(window.tasksSelection);
@@ -334,3 +335,4 @@ window.advanceTask = async function (taskId, currentStatus) {
         showToast('Failed to update task: ' + err.message, 'error');
     }
 };
+

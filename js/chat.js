@@ -14,6 +14,9 @@
     let _activeContextMenu = null;
     let _isSearchOpen = false;
     let _activeGroup = null; // Store current group details including members
+    let _typingTimeout = null;    // Timer to clear chat-header typing indicator
+    let _typingState = {};        // { [branchId|groupKey]: boolean } — who is typing
+    let _typingListTimers = {};   // Timers to auto-clear sidebar typing state
 
     // Recording State
     let _mediaRecorder = null;
@@ -149,16 +152,28 @@
             list.innerHTML = branchData.map(b => {
                 const isActive = _activeBranchId === b.id && !_isGroupChat;
                 const isOnline = !!onlineMap[b.id];
+                const isTyping = !!_typingState[b.id];
                 const timeStr = b.lastMsg ? new Date(b.lastMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                const snippet = b.lastMsg ? b.lastMsg.content : (b.location || 'Branch');
+                const snippet = b.lastMsg ? (b.lastMsg.content || (b.lastMsg.metadata?.attachment ? '📎 Attachment' : '')) : (b.location || 'Branch');
 
                 const avatarInner = b.avatar_url
                     ? `<img src="${b.avatar_url}" alt="${b.name}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                        <span class="w-8 h-8 rounded-full hidden items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">${b.name.charAt(0)}</span>`
                     : `<span class="w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">${b.name.charAt(0)}</span>`;
 
+                const snippetHtml = isTyping
+                    ? `<span class="flex items-center gap-1 text-emerald-500">
+                            <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                            <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                            <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                            <span class="text-[9px] font-bold ml-0.5">typing...</span>
+                       </span>`
+                    : `<span class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${snippet}</span>`;
+
                 return `
-                    <button onclick="window.selectChatBranch('${b.id}')" 
+                    <button onclick="window.selectChatBranch('${b.id}')"
+                            data-typing-key="${b.id}"
+                            data-snippet="${snippet.replace(/"/g, '&quot;')}"
                             class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
                         <div class="relative flex-shrink-0">
                             ${avatarInner}
@@ -167,11 +182,11 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex justify-between items-center mb-0.5">
                                 <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
-                                <span class="text-[9px] ${isOnline ? 'text-emerald-500' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : (timeStr || '9:41 AM')}</span>
+                                <span class="text-[9px] ${isOnline ? 'text-emerald-500' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : (timeStr || '')}</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${snippet}</p>
-                                ${b.unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full shadow-sm">${b.unread}</span>` : ''}
+                                <div class="typing-snippet min-w-0 flex-1 mr-1">${snippetHtml}</div>
+                                ${b.unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full shadow-sm flex-shrink-0">${b.unread}</span>` : ''}
                             </div>
                         </div>
                     </button>
@@ -186,7 +201,7 @@
             const isActive = _activeBranchId === state.branchId && !_isGroupChat;
             const enterpriseName = state.enterpriseName || 'Administrator';
             const timeStr = lastMsg ? new Date(lastMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-            const snippet = lastMsg ? lastMsg.content : 'Enterprise Support';
+            const snippet = (lastMsg ? (lastMsg.content || (lastMsg.metadata?.attachment ? '📎 Attachment' : '🎤 Voice note')) : 'Enterprise Support') || '';
 
             // Branch user talking to Admin. Need Owner ID.
             const targetId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
@@ -199,8 +214,21 @@
                    <span class="w-8 h-8 rounded-full hidden items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">A</span>`
                 : `<span class="w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">A</span>`;
 
+            // Branch: typing key for DM is own branchId (same key handleChatInput uses)
+            const isTyping = !!_typingState[state.branchId];
+            const snippetHtml = isTyping
+                ? `<span class="flex items-center gap-1 text-emerald-500">
+                        <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                        <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                        <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                        <span class="text-[9px] font-bold ml-0.5">typing...</span>
+                   </span>`
+                : `<span class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${snippet}</span>`;
+
             list.innerHTML = `
-                <button onclick="window.selectChatBranch('${state.branchId}')" 
+                <button onclick="window.selectChatBranch('${state.branchId}')"
+                        data-typing-key="${state.branchId}"
+                        data-snippet="${snippet.replace(/"/g, '&quot;')}"
                         class="w-full text-left p-2 px-3 transition-all flex items-center gap-2.5 group rounded-xl ${isActive ? 'bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20' : 'bg-gray-100 dark:bg-white/5 border-transparent'} border">
                     <div class="relative flex-shrink-0">
                         ${ownerAvatarInner}
@@ -209,11 +237,11 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex justify-between items-center mb-0.5">
                             <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${enterpriseName}</p>
-                            <span class="text-[9px] ${isOnline ? 'text-emerald-500' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : (timeStr || 'online')}</span>
+                            <span class="text-[9px] ${isOnline ? 'text-emerald-500' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : (timeStr || '')}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${snippet}</p>
-                            ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
+                            <div class="typing-snippet min-w-0 flex-1 mr-1">${snippetHtml}</div>
+                            ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full shadow-sm flex-shrink-0">${unread}</span>` : ''}
                         </div>
                     </div>
                 </button>
@@ -1100,7 +1128,8 @@
                     id: state.role === 'owner' ? state.ownerId : state.branchId,
                     name: state.currentUser,
                     is_typing: input.value.length > 0,
-                    group_id: _isGroupChat ? _activeGroupId : null
+                    is_group: _isGroupChat,
+                    group_id: _isGroupChat ? _activeGroupId : undefined
                 }
             });
         }
@@ -1119,41 +1148,92 @@
         }
     };
 
-    window.handleTypingIndicator = function (payload) {
-        const indicator = document.getElementById('chatStatusIndicator');
-        if (!indicator) return;
+    window.handleTypingIndicator = function (event) {
+        // Supabase broadcast wraps user payload inside event.payload
+        const payload = event?.payload || event;
+        const indicator = document.getElementById('chatPresenceIndicator');
 
-        // Logic Check: Counterpart is typing to US
-        // In DM: US = activeTarget (BranchID for both), THEM = payload.id
-        // For Branch: they look for payload.id === OwnerID
-        // For Owner: they look for payload.id === BranchID
-        const ownerId = state.role === 'owner' ? state.ownerId : (state.ownerId || state.profile?.id);
-        const myTargetId = _isGroupChat ? _activeGroupId : (_activeBranchId);
+        // Determine which direction this typing event belongs to
+        const ownerId = state.ownerId || state.profile?.id;
 
         let isMatch = false;
-        if (_isGroupChat) {
-            isMatch = String(payload.group_id) === String(_activeGroupId);
+        // Key used to track typing in the sidebar (_typingState)
+        // For DMs: the branch_id. For groups: 'group_GLOBAL' or 'group_<uuid>'
+        let typingKey = null;
+
+        if (payload.is_group && payload.group_id) {
+            // Named group
+            typingKey = `group_${payload.group_id}`;
+            isMatch = _isGroupChat && String(_activeGroupId) === String(payload.group_id);
+        } else if (payload.is_group && !payload.group_id) {
+            // Global room (is_group=true, group_id=null)
+            typingKey = 'group_GLOBAL';
+            isMatch = _isGroupChat && _activeGroupId === null;
         } else {
-            // If I am Owner, I see typing if payload.id is the branch I selected
-            // If I am Branch, I see typing if payload.id is the Owner
-            isMatch = (state.role === 'owner' && String(payload.id) === String(_activeBranchId)) ||
-                (state.role === 'branch' && String(payload.id) === String(ownerId));
+            // DM (is_group=false or not set)
+            if (state.role === 'owner') {
+                typingKey = payload.id; // branch ID of the typer
+                isMatch = String(payload.id) === String(_activeBranchId);
+            } else {
+                typingKey = state.branchId; // for branch, the DM key is own branchId
+                isMatch = String(payload.id) === String(ownerId);
+            }
         }
 
-        if (isMatch && payload.is_typing) {
+        // ── Update sidebar typing state ──────────────────────────────────────
+        if (typingKey) {
+            _typingState[typingKey] = !!payload.is_typing;
+            clearTimeout(_typingListTimers[typingKey]);
+
+            if (payload.is_typing) {
+                // Auto-clear sidebar after 4s if no further typing event arrives
+                _typingListTimers[typingKey] = setTimeout(() => {
+                    _typingState[typingKey] = false;
+                    _patchSidebarTyping(typingKey, false, payload.name);
+                }, 4000);
+            }
+            _patchSidebarTyping(typingKey, !!payload.is_typing, payload.name);
+        }
+
+        // ── Update active chat header ────────────────────────────────────────
+        if (!indicator || !isMatch) return;
+
+        if (payload.is_typing) {
             indicator.innerHTML = `
-                <span class="flex items-center gap-1">
-                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"></span>
-                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce delay-75"></span>
-                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce delay-150"></span>
-                    <p class="text-[11px] text-emerald-500 font-bold ml-1">typing...</p>
+                <span class="flex items-center gap-1.5">
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                    <p class="text-[11px] text-emerald-500 font-bold ml-0.5 tracking-tight">typing...</p>
                 </span>`;
             clearTimeout(_typingTimeout);
-            _typingTimeout = setTimeout(() => updateChatPresenceUI(), 3000);
-        } else if (isMatch && !payload.is_typing) {
-            updateChatPresenceUI();
+            _typingTimeout = setTimeout(() => window.updateChatPresenceUI?.(), 3000);
+        } else {
+            clearTimeout(_typingTimeout);
+            window.updateChatPresenceUI?.();
         }
     };
+
+    // ── Patch sidebar list item without a full re-render ──────────────────────
+    function _patchSidebarTyping(typingKey, isTyping, senderName) {
+        // Find the snippet element. We embed a data attr on each list item.
+        const snippetEl = document.querySelector(`[data-typing-key="${typingKey}"] .typing-snippet`);
+        if (!snippetEl) return;
+
+        if (isTyping) {
+            snippetEl.innerHTML = `
+                <span class="flex items-center gap-1 text-emerald-500">
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                    <span class="text-[9px] font-bold ml-0.5">typing...</span>
+                </span>`;
+        } else {
+            // Restore original snippet — we stored it in a data attr
+            const btn = snippetEl.closest('[data-typing-key]');
+            snippetEl.innerHTML = `<span class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${btn?.dataset.snippet || ''}</span>`;
+        }
+    }
 
     // ─── Recording Logic ──────────────────────────────────────────────────────
     window.startRecording = async function () {
@@ -1446,10 +1526,12 @@
         }
 
         // --- Status Updates (Delivered/Read) ---
-        const isNewIncoming = (eventType === 'INSERT' || eventType === 'BROADCAST') && !isSelf;
-        if (isNewIncoming && !row.is_group) {
+        // Only genuine INSERT events should trigger mark-delivered + broadcast.
+        // UPDATE/BROADCAST events are tick-status updates — don't re-broadcast to avoid loops.
+        const isGenuineNewIncoming = eventType === 'INSERT' && !isSelf && isForUs;
+        if (isGenuineNewIncoming && !row.is_group) {
             dbMessages.markDelivered(row.branch_id, state.role);
-            // Immediate feedback: Tell the sender we received it 
+            // Notify sender immediately of delivery (double grey ticks)
             window.realtimeChannel?.send({
                 type: 'broadcast',
                 event: 'sync',
@@ -1458,28 +1540,43 @@
         }
 
         // --- Active History Match ---
+        // Determine which conversation is currently open
         const activeTargetId = _isGroupChat ? _activeGroupId : _activeBranchId;
-        const rowTargetId = row.is_group ? row.group_id : row.branch_id;
+        // Determine which conversation this message belongs to
+        const rowTargetId = row.is_group ? (row.group_id || null) : row.branch_id;
 
-        const isMsgActive = (String(activeTargetId) === String(rowTargetId)) ||
-            (_activeMessages.some(m => String(m.id) === String(row.id)));
+        // For group messages: match by group_id (null == null for global room)
+        // For DMs: match by branch_id
+        let isMsgActive = false;
+        if (row.is_group && _isGroupChat) {
+            // Both are group contexts — match group IDs (null = global room)
+            const aId = activeTargetId === null ? 'GLOBAL' : String(activeTargetId);
+            const rId = rowTargetId === null ? 'GLOBAL' : String(rowTargetId);
+            isMsgActive = aId === rId;
+        } else if (!row.is_group && !_isGroupChat) {
+            // Both are DM contexts — match branch IDs
+            isMsgActive = activeTargetId != null && rowTargetId != null &&
+                String(activeTargetId) === String(rowTargetId);
+        }
+        // Also catch tick-update broadcasts that may carry a message id we already have open
+        if (!isMsgActive && row.id) {
+            isMsgActive = _activeMessages.some(m => String(m.id) === String(row.id));
+        }
 
         if (isMsgActive) {
-            // Local Patching for faster tick updates (WhatsApp style)
+            // Local Patch for instant tick updates (WhatsApp style)
             if (eventType === 'UPDATE' || eventType === 'BROADCAST') {
                 const idx = _activeMessages.findIndex(m => String(m.id) === String(row.id));
                 if (idx > -1) {
                     _activeMessages[idx] = { ..._activeMessages[idx], ...row };
-                    // If we just updated a status, we can skip full loadHistory for extreme speed
-                    // but we still need to re-render. For now, reload is safer but we've patched the data.
                 }
             }
 
-            if (isNewIncoming) {
+            if (isGenuineNewIncoming) {
                 if (localStorage.getItem('chatMuted') !== 'true' && localStorage.getItem('chatPref_sounds') !== 'false') playSound('notification');
-                if (!row.is_group && !_isGroupChat) {
+                if (!row.is_group && !_isGroupChat && _activeBranchId) {
                     dbMessages.markRead(_activeBranchId, state.role);
-                    // Immediate feedback: Tell the sender we read it
+                    // Notify sender of read (double blue ticks)
                     window.realtimeChannel?.send({
                         type: 'broadcast',
                         event: 'sync',
@@ -1487,6 +1584,8 @@
                     });
                 }
             }
+
+            // Reload the conversation history to render the latest state
             loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
         }
     };

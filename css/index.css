@@ -889,9 +889,15 @@ select.form-input:disabled {
     opacity: 0.7;
 }
 
-/* Ensure inputs also have white background explicitly to match */
+/* Ensure inputs have white background in light mode, card bg in dark */
 .form-input {
     background-color: #fff;
+}
+
+.dark .form-input {
+    background-color: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
 }
 
 /* ── Responsive Tables ─────────────────────────── */
@@ -998,7 +1004,8 @@ select.form-input:disabled {
 
 .receipt-format-dialog {
     position: relative;
-    background: #ffffff;
+    background: var(--bg-card);
+    color: var(--text-primary);
     border-radius: 1.5rem;
     padding: 1.75rem;
     width: 100%;
@@ -1073,6 +1080,16 @@ select.form-input:disabled {
 
 .chat-bubble-other {
     background-color: #ffffff !important;
+}
+
+.dark .chat-bubble-mine {
+    background-color: var(--chat-bubble-mine) !important;
+    color: var(--chat-text-mine) !important;
+}
+
+.dark .chat-bubble-other {
+    background-color: var(--chat-bubble-other) !important;
+    color: var(--chat-text-other) !important;
 }
 
 .msg-animate {
@@ -1219,4 +1236,62 @@ select.form-input:disabled {
     .chat-active #chatWindow {
         display: flex !important;
     }
+}
+
+/* ── Login Card Dark Mode Overrides ──────────────── */
+/* Role toggle container */
+.dark .login-role-toggle {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Role slider pill (the white moving indicator) */
+.dark #roleSlider {
+    background-color: var(--bg-card) !important;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Active role button text */
+.dark #btn-owner,
+.dark #btn-branch {
+    color: var(--text-secondary) !important;
+}
+
+/* Login card label text */
+.dark .login-label {
+    color: var(--text-secondary) !important;
+}
+
+/* Welcome / subtitle text in login card */
+.dark .login-subtitle {
+    color: var(--text-muted) !important;
+}
+
+/* Notification panel dark mode */
+.dark #notifPanel {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+.dark #notifPanel .border-b {
+    border-color: var(--border-color) !important;
+}
+
+.dark #notifPanel h3 {
+    color: var(--text-primary) !important;
+}
+
+/* Modal content panel */
+.dark #modalContent {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Receipt format cancel button */
+.dark .receipt-fmt-cancel {
+    color: var(--text-muted) !important;
+}
+
+.dark .receipt-fmt-cancel:hover {
+    color: var(--text-secondary) !important;
 }
