@@ -500,3 +500,9 @@ window.confirmUpdateApp = async function () {
         window.updateApp();
     }
 };
+/* ── Debounce Utility ────────────────────────────── */
+let _globalDebounceTimers = {};
+window.debounce = function (key, fn, delay = 400) {
+    clearTimeout(_globalDebounceTimers[key]);
+    _globalDebounceTimers[key] = setTimeout(fn, delay);
+};

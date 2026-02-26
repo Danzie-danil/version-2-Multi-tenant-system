@@ -75,13 +75,9 @@
     ];
 
     let _channel = null;
-    let _debounceTimers = {};
 
-    // ─── Debounced re-render to avoid rapid-fire re-renders ──────────────────
-    function debounce(key, fn, delay = 400) {
-        clearTimeout(_debounceTimers[key]);
-        _debounceTimers[key] = setTimeout(fn, delay);
-    }
+
+
 
     // ─── Get the active view for the current role ─────────────────────────────
     function getActiveView() {
@@ -181,7 +177,7 @@
         _channel = supabaseClient.channel('bms-live', {
             config: {
                 broadcast: { self: false },
-                presence: { key: state.role === 'owner' ? state.profile.id : state.branchId }
+                presence: { key: state.role === 'owner' ? state.ownerId : state.branchId }
             }
         });
 
@@ -236,13 +232,25 @@
             setupListener();
         });
 
+        _channel.on('broadcast', { event: 'sync' }, (payload) => {
+            console.log('[Realtime] Broadcast SYNC received:', payload);
+            if (payload.table === 'messages') {
+                window.refreshChat?.({ ...payload, eventType: 'BROADCAST' });
+            }
+        });
+
+        _channel.on('broadcast', { event: 'typing' }, (payload) => {
+            if (window.handleTypingIndicator) window.handleTypingIndicator(payload);
+        });
+
         _channel.subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
                 console.log('[Realtime] ✅ Connected — live sync active');
+                window.realtimeChannel = _channel; // Expose globally for broadcasts
 
                 // Track presence
                 await _channel.track({
-                    id: state.role === 'owner' ? state.profile.id : state.branchId,
+                    id: state.role === 'owner' ? state.ownerId : state.branchId,
                     name: state.currentUser,
                     role: state.role,
                     online_at: new Date().toISOString()

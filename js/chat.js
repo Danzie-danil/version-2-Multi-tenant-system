@@ -653,9 +653,19 @@
             const messages = await dbMessages.fetchConversation(branchId, isGroup, groupId);
             _activeMessages = messages;
 
-            // Mark visible messages as delivered if we are the recipient
+            // Mark visible messages as READ if we are the recipient
             if (!isGroup && branchId) {
-                dbMessages.markDelivered(branchId, state.role);
+                await dbMessages.markRead(branchId, state.role);
+                // Notify the sender that we've read the conversation
+                window.realtimeChannel?.send({
+                    type: 'broadcast',
+                    event: 'sync',
+                    payload: {
+                        table: 'messages',
+                        eventType: 'UPDATE',
+                        new: { branch_id: branchId, is_read: true, is_delivered: true, is_group: false }
+                    }
+                });
             }
 
             if (messages.length === 0) {
@@ -1035,44 +1045,113 @@
         }
 
         // If mic is visible, start recording instead of submitting text
-        const mic = document.getElementById('micIcon');
+        const mic = document.getElementById('micIcon') || document.querySelector('#sendChatBtn #micIcon');
         if (mic && !mic.classList.contains('hidden')) {
             window.startRecording();
             return;
         }
 
         const content = input.value.trim();
-        if (!content) return;
+        if (!content && !window._pendingAttachment) return;
 
         const payload = {
             branch_id: _activeBranchId,
             is_group: _isGroupChat,
             group_id: _activeGroupId,
             parent_id: _replyingTo?.id || null,
+            sender_id: state.role === 'owner' ? state.ownerId : state.branchId,
             sender_role: state.role,
             sender_name: state.currentUser,
             content: content,
-            metadata: {
-                attachment: window._pendingAttachment || null
-            }
+            metadata: { attachment: window._pendingAttachment || null }
         };
 
         const autoPinTarget = (_isGroupChat && _replyingTo && _replyingTo.branch_id) ? _replyingTo.branch_id : null;
-
         input.value = '';
         input.style.height = '';
         window.cancelReply();
 
         try {
             const res = await dbMessages.send(payload);
-            if (autoPinTarget && state.role === 'owner') {
-                await dbMessages.pinForBranch(res.id, autoPinTarget);
-            }
+
+            // Fast-Sync Broadcast
+            window.realtimeChannel?.send({
+                type: 'broadcast',
+                event: 'sync',
+                payload: { table: 'messages', eventType: 'INSERT', new: res }
+            });
+
+            if (autoPinTarget && state.role === 'owner') await dbMessages.pinForBranch(res.id, autoPinTarget);
             window._pendingAttachment = null;
             loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
             if (localStorage.getItem('chatPref_sounds') !== 'false') playSound('pop-alert');
         } catch (e) {
             showToast('Failed to send', 'error');
+        }
+    };
+
+    window.handleChatInput = function (input) {
+        // Typing Broadcast
+        if (window.realtimeChannel) {
+            window.realtimeChannel.send({
+                type: 'broadcast',
+                event: 'typing',
+                payload: {
+                    id: state.role === 'owner' ? state.ownerId : state.branchId,
+                    name: state.currentUser,
+                    is_typing: input.value.length > 0,
+                    group_id: _isGroupChat ? _activeGroupId : null
+                }
+            });
+        }
+
+        input.style.height = 'auto';
+        input.style.height = (input.scrollHeight) + 'px';
+        const btn = document.getElementById('sendChatBtn');
+        const mic = btn?.querySelector('#micIcon') || document.getElementById('micIcon');
+        const send = btn?.querySelector('#sendIcon') || document.getElementById('sendIcon');
+        if (input.value.length > 0) {
+            mic?.classList.add('hidden');
+            send?.classList.remove('hidden');
+        } else {
+            mic?.classList.remove('hidden');
+            send?.classList.add('hidden');
+        }
+    };
+
+    window.handleTypingIndicator = function (payload) {
+        const indicator = document.getElementById('chatStatusIndicator');
+        if (!indicator) return;
+
+        // Logic Check: Counterpart is typing to US
+        // In DM: US = activeTarget (BranchID for both), THEM = payload.id
+        // For Branch: they look for payload.id === OwnerID
+        // For Owner: they look for payload.id === BranchID
+        const ownerId = state.role === 'owner' ? state.ownerId : (state.ownerId || state.profile?.id);
+        const myTargetId = _isGroupChat ? _activeGroupId : (_activeBranchId);
+
+        let isMatch = false;
+        if (_isGroupChat) {
+            isMatch = String(payload.group_id) === String(_activeGroupId);
+        } else {
+            // If I am Owner, I see typing if payload.id is the branch I selected
+            // If I am Branch, I see typing if payload.id is the Owner
+            isMatch = (state.role === 'owner' && String(payload.id) === String(_activeBranchId)) ||
+                (state.role === 'branch' && String(payload.id) === String(ownerId));
+        }
+
+        if (isMatch && payload.is_typing) {
+            indicator.innerHTML = `
+                <span class="flex items-center gap-1">
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"></span>
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce delay-75"></span>
+                    <span class="w-1 h-1 bg-emerald-500 rounded-full animate-bounce delay-150"></span>
+                    <p class="text-[11px] text-emerald-500 font-bold ml-1">typing...</p>
+                </span>`;
+            clearTimeout(_typingTimeout);
+            _typingTimeout = setTimeout(() => updateChatPresenceUI(), 3000);
+        } else if (isMatch && !payload.is_typing) {
+            updateChatPresenceUI();
         }
     };
 
@@ -1343,25 +1422,19 @@
     window.refreshChat = function (payload) {
         if (!window.state || !state.profile) return;
 
-        console.log('[Chat] Realtime Event:', payload.eventType, payload.table, payload.new?.id || payload.old?.id);
-
-        if (payload.table === 'pinned_messages' && payload.new && String(payload.new.branch_id) === String(state.branchId)) {
-            refreshPins();
-            if (localStorage.getItem('chatMuted') !== 'true' && localStorage.getItem('chatPref_sounds') !== 'false') {
-                playSound('notification');
-            }
-            return;
-        }
-
+        const eventType = payload.eventType || 'INSERT';
         const row = payload.new || payload.old;
         if (!row) return;
 
-        // --- 1. Notification badge & Sidebar refresh (Always happen for relevant messages) ---
-        // A message is relevant if: 
-        // - It belongs to our branch (if we are a branch)
-        // - Or it arrived in a group
-        // - Or we are the owner (we see everything)
-        const isSelf = row.sender_role === state.role && (state.role === 'owner' || String(row.sender_id) === String(state.branchId));
+        console.log('[Chat] Event:', eventType, payload.table, row.id);
+
+        if (payload.table === 'pinned_messages' && payload.new && String(payload.new.branch_id) === String(state.branchId)) {
+            refreshPins();
+            return;
+        }
+
+        const myId = state.role === 'owner' ? state.ownerId : state.branchId;
+        const isSelf = String(row.sender_id) === String(myId) && row.sender_role === state.role;
         const isForUs = state.role === 'owner' || String(row.branch_id) === String(state.branchId) || row.is_group;
 
         if (isForUs) {
@@ -1372,61 +1445,53 @@
             }, 300);
         }
 
-        // --- 2. Marking Delivered (Only for incoming DMs) ---
-        if (payload.eventType === 'INSERT' && row && !row.is_group && !isSelf) {
+        // --- Status Updates (Delivered/Read) ---
+        const isNewIncoming = (eventType === 'INSERT' || eventType === 'BROADCAST') && !isSelf;
+        if (isNewIncoming && !row.is_group) {
             dbMessages.markDelivered(row.branch_id, state.role);
+            // Immediate feedback: Tell the sender we received it 
+            window.realtimeChannel?.send({
+                type: 'broadcast',
+                event: 'sync',
+                payload: { table: 'messages', eventType: 'UPDATE', new: { ...row, is_delivered: true } }
+            });
         }
 
-        // --- 3. Active Conversation Sync ---
-        // We match if:
-        // - We are in the specific group mentioned
-        // - OR we are in the DM matching the branch_id
-        const isMsgTarget = (_isGroupChat && row.is_group && String(row.group_id) === String(_activeGroupId)) ||
-            (!_isGroupChat && !row.is_group && String(row.branch_id) === String(_activeBranchId));
+        // --- Active History Match ---
+        const activeTargetId = _isGroupChat ? _activeGroupId : _activeBranchId;
+        const rowTargetId = row.is_group ? row.group_id : row.branch_id;
 
-        if (isMsgTarget) {
-            console.log('[Chat] Active chat match! Reloading history...');
+        const isMsgActive = (String(activeTargetId) === String(rowTargetId)) ||
+            (_activeMessages.some(m => String(m.id) === String(row.id)));
 
-            // Sound and Read Receipt (Only for NEW incoming messages)
-            if (payload.eventType === 'INSERT' && !isSelf) {
-                if (localStorage.getItem('chatMuted') !== 'true' && localStorage.getItem('chatPref_sounds') !== 'false') {
-                    playSound('notification');
-                }
-                if (!row.is_group && !_isGroupChat) {
-                    dbMessages.markRead(_activeBranchId, state.role);
+        if (isMsgActive) {
+            // Local Patching for faster tick updates (WhatsApp style)
+            if (eventType === 'UPDATE' || eventType === 'BROADCAST') {
+                const idx = _activeMessages.findIndex(m => String(m.id) === String(row.id));
+                if (idx > -1) {
+                    _activeMessages[idx] = { ..._activeMessages[idx], ...row };
+                    // If we just updated a status, we can skip full loadHistory for extreme speed
+                    // but we still need to re-render. For now, reload is safer but we've patched the data.
                 }
             }
 
-            // Re-render history (Always for INSERT, UPDATE, DELETE in active chat)
+            if (isNewIncoming) {
+                if (localStorage.getItem('chatMuted') !== 'true' && localStorage.getItem('chatPref_sounds') !== 'false') playSound('notification');
+                if (!row.is_group && !_isGroupChat) {
+                    dbMessages.markRead(_activeBranchId, state.role);
+                    // Immediate feedback: Tell the sender we read it
+                    window.realtimeChannel?.send({
+                        type: 'broadcast',
+                        event: 'sync',
+                        payload: { table: 'messages', eventType: 'UPDATE', new: { ...row, is_read: true, is_delivered: true } }
+                    });
+                }
+            }
             loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
         }
     };
 
-    // ─── Interactive Features Logic ───────────────────────────────────────────
-    window.handleChatInput = function (input) {
-        if (!input) return;
 
-        // Toggle mic/send
-        const mic = document.getElementById('micIcon');
-        const send = document.getElementById('sendIcon');
-
-        // Prevent toggling icons if we are in recording or review mode
-        const reviewBar = document.getElementById('reviewBar');
-        const recordingBar = document.getElementById('recordingBar');
-        if ((reviewBar && !reviewBar.classList.contains('hidden')) ||
-            (recordingBar && !recordingBar.classList.contains('hidden'))) return;
-
-        if (input.value.trim().length > 0) {
-            mic?.classList.add('hidden');
-            send?.classList.remove('hidden');
-        } else {
-            mic?.classList.remove('hidden');
-            send?.classList.add('hidden');
-        }
-
-        input.style.height = '';
-        input.style.height = input.scrollHeight + 'px';
-    };
 
     window.toggleEmojiPicker = function (e) {
         if (e) e.stopPropagation();
