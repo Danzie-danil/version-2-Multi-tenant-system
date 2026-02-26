@@ -138,17 +138,20 @@
 
         if (isOwner) {
             const branches = state.branches;
-            const unreadCounts = await Promise.all(branches.map(async b => {
-                const count = await dbMessages.getUnreadCount(b.id, 'owner');
-                return { id: b.id, count };
+            const branchData = await Promise.all(branches.map(async b => {
+                const [unread, lastMsg] = await Promise.all([
+                    dbMessages.getUnreadCount(b.id, 'owner'),
+                    dbMessages.fetchLast(b.id, false)
+                ]);
+                return { ...b, unread, lastMsg };
             }));
 
-            list.innerHTML = branches.map(b => {
-                const unread = unreadCounts.find(u => u.id === b.id)?.count || 0;
+            list.innerHTML = branchData.map(b => {
                 const isActive = _activeBranchId === b.id && !_isGroupChat;
                 const isOnline = !!onlineMap[b.id];
+                const timeStr = b.lastMsg ? new Date(b.lastMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const snippet = b.lastMsg ? b.lastMsg.content : (b.location || 'Branch');
 
-                // Avatar: real photo if available, else initial letter fallback
                 const avatarInner = b.avatar_url
                     ? `<img src="${b.avatar_url}" alt="${b.name}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                        <span class="w-8 h-8 rounded-full hidden items-center justify-center font-black text-[10px] ${isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-white/10 text-gray-500'} uppercase">${b.name.charAt(0)}</span>`
@@ -164,11 +167,11 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex justify-between items-center mb-0.5">
                                 <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${b.name}</p>
-                                <span class="text-[9px] ${isOnline ? 'text-emerald-500 animate-pulse' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : '9:41 AM'}</span>
+                                <span class="text-[9px] ${isOnline ? 'text-emerald-500' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : (timeStr || '9:41 AM')}</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80">${b.location || 'Branch'}</p>
-                                ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
+                                <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${snippet}</p>
+                                ${b.unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full shadow-sm">${b.unread}</span>` : ''}
                             </div>
                         </div>
                     </button>
@@ -176,9 +179,14 @@
             }).join('');
         } else {
             // Branch user: Show only the Administrator (Owner)
-            const unread = await dbMessages.getUnreadCount(state.branchId, 'branch');
+            const [unread, lastMsg] = await Promise.all([
+                dbMessages.getUnreadCount(state.branchId, 'branch'),
+                dbMessages.fetchLast(state.branchId, false)
+            ]);
             const isActive = _activeBranchId === state.branchId && !_isGroupChat;
             const enterpriseName = state.enterpriseName || 'Administrator';
+            const timeStr = lastMsg ? new Date(lastMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            const snippet = lastMsg ? lastMsg.content : 'Enterprise Support';
 
             // Branch user talking to Admin. Need Owner ID.
             const targetId = state.ownerId || (state.branches && state.branches[0]?.owner_id);
@@ -201,11 +209,11 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex justify-between items-center mb-0.5">
                             <p class="text-[13px] font-bold truncate text-[var(--text-primary)]">${enterpriseName}</p>
-                            <span class="text-[9px] ${isOnline ? 'text-emerald-500 animate-pulse' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : 'offline'}</span>
+                            <span class="text-[9px] ${isOnline ? 'text-emerald-500' : 'text-gray-400'} font-black uppercase tracking-tight">${isOnline ? 'online' : (timeStr || 'online')}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80">Enterprise Support</p>
-                            ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
+                            <p class="text-[9px] text-gray-500 dark:text-gray-400 truncate opacity-80 font-medium">${snippet}</p>
+                            ${unread > 0 ? `<span class="bg-emerald-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full shadow-sm">${unread}</span>` : ''}
                         </div>
                     </div>
                 </button>
@@ -1335,7 +1343,9 @@
     window.refreshChat = function (payload) {
         if (!window.state || !state.profile) return;
 
-        if (payload.table === 'pinned_messages' && payload.new && payload.new.branch_id === state.branchId) {
+        console.log('[Chat] Realtime Event:', payload.eventType, payload.table, payload.new?.id || payload.old?.id);
+
+        if (payload.table === 'pinned_messages' && payload.new && String(payload.new.branch_id) === String(state.branchId)) {
             refreshPins();
             if (localStorage.getItem('chatMuted') !== 'true' && localStorage.getItem('chatPref_sounds') !== 'false') {
                 playSound('notification');
@@ -1346,28 +1356,49 @@
         const row = payload.new || payload.old;
         if (!row) return;
 
-        // --- NEW LOGIC: Instantly mark direct messages as delivered if we are the online recipient
-        if (payload.eventType === 'INSERT' && row && !row.is_group && row.sender_role !== state.role) {
+        // --- 1. Notification badge & Sidebar refresh (Always happen for relevant messages) ---
+        // A message is relevant if: 
+        // - It belongs to our branch (if we are a branch)
+        // - Or it arrived in a group
+        // - Or we are the owner (we see everything)
+        const isSelf = row.sender_role === state.role && (state.role === 'owner' || String(row.sender_id) === String(state.branchId));
+        const isForUs = state.role === 'owner' || String(row.branch_id) === String(state.branchId) || row.is_group;
+
+        if (isForUs) {
+            debounce('chat-list-refresh', () => {
+                window.updateBranchList?.();
+                window.updateGroupList?.();
+                if (window.checkNotifications) window.checkNotifications(true);
+            }, 300);
+        }
+
+        // --- 2. Marking Delivered (Only for incoming DMs) ---
+        if (payload.eventType === 'INSERT' && row && !row.is_group && !isSelf) {
             dbMessages.markDelivered(row.branch_id, state.role);
         }
 
-        const isMsgTarget = (_isGroupChat && row.is_group && row.group_id == _activeGroupId) ||
-            (!_isGroupChat && !row.is_group && row.branch_id === _activeBranchId);
+        // --- 3. Active Conversation Sync ---
+        // We match if:
+        // - We are in the specific group mentioned
+        // - OR we are in the DM matching the branch_id
+        const isMsgTarget = (_isGroupChat && row.is_group && String(row.group_id) === String(_activeGroupId)) ||
+            (!_isGroupChat && !row.is_group && String(row.branch_id) === String(_activeBranchId));
 
         if (isMsgTarget) {
-            // Check if this is a newly inserted message that is NOT from us so we can play the sound
-            if (payload.eventType === 'INSERT' && row.sender_role !== state.role) {
-                playSound('notification');
+            console.log('[Chat] Active chat match! Reloading history...');
+
+            // Sound and Read Receipt (Only for NEW incoming messages)
+            if (payload.eventType === 'INSERT' && !isSelf) {
+                if (localStorage.getItem('chatMuted') !== 'true' && localStorage.getItem('chatPref_sounds') !== 'false') {
+                    playSound('notification');
+                }
                 if (!row.is_group && !_isGroupChat) {
-                    dbMessages.markRead(_activeBranchId, state.role).then(() => {
-                        if (window.checkNotifications) window.checkNotifications(true);
-                    });
+                    dbMessages.markRead(_activeBranchId, state.role);
                 }
             }
-            // Always reload history to capture INSERT, UPDATE (read/delivered), or DELETE
+
+            // Re-render history (Always for INSERT, UPDATE, DELETE in active chat)
             loadHistory(_activeBranchId, _isGroupChat, _activeGroupId);
-        } else if (state.role === 'owner') {
-            updateBranchList();
         }
     };
 

@@ -224,31 +224,16 @@
                     if (filter) opts.filter = filter;
 
                     _channel.on('postgres_changes', opts, (payload) => {
+                        console.log(`[Realtime] ${event} on ${table}:`, payload);
                         handleChange(table, payload);
                     });
                 });
             };
 
-            if (state.role === 'branch' && state.branchId) {
-                if (table === 'messages') {
-                    // Branch needs both DMs (where branch_id matches) and all Group messages (is_group=true)
-                    // Then client filters group membership locally in refreshChat or render functions.
-                    setupListener(`branch_id=eq.${state.branchId}`);
-                    setupListener(`is_group=eq.true`);
-                } else if (['sales', 'expenses', 'inventory', 'customers', 'tasks', 'notes', 'loans', 'requests'].includes(table)) {
-                    setupListener(`branch_id=eq.${state.branchId}`);
-                } else {
-                    setupListener(); // Listen broadly (e.g. branches, groups)
-                }
-            } else if (state.role === 'owner' && state.profile?.id) {
-                if (table === 'requests' || table === 'access_requests') {
-                    setupListener(`owner_id=eq.${state.profile.id}`);
-                } else {
-                    setupListener(); // Broad listen for owner (branches, sales, expenses across all)
-                }
-            } else {
-                setupListener();
-            }
+            // Simplified: Always use broad listeners and let Supabase RLS + JS local logic
+            // handle the filtering. This is much more robust than client-side UUID filters
+            // which can be flaky on different devices/browsers.
+            setupListener();
         });
 
         _channel.subscribe(async (status) => {
@@ -262,9 +247,15 @@
                     role: state.role,
                     online_at: new Date().toISOString()
                 });
-            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
                 console.warn('[Realtime] ⚠️ Connection issue, retrying…', status);
-                setTimeout(() => window.initRealtimeSync?.(), 5000);
+
+                // Aggressive fallback for mobile connectivity issues
+                setTimeout(() => {
+                    if (!_channel || _channel.state !== 'joined') {
+                        window.initRealtimeSync?.();
+                    }
+                }, 3000);
             }
         });
     };

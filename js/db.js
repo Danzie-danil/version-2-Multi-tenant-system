@@ -947,6 +947,26 @@ window.dbMessages = {
         return _check(res, 'sendMessage');
     },
 
+    /** Fetch most recent message for a snippet */
+    fetchLast: async (branchId, isGroup = false, groupId = null) => {
+        let query = _db
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (groupId) {
+            query = query.eq('group_id', groupId);
+        } else if (isGroup) {
+            query = query.eq('is_group', true).is('group_id', null);
+        } else {
+            query = query.eq('branch_id', branchId).eq('is_group', false);
+        }
+
+        const res = await query;
+        return res.data?.[0] || null;
+    },
+
     /** Fetch conversation history */
     fetchConversation: async (branchId, isGroup = false, groupId = null) => {
         let query = _db
