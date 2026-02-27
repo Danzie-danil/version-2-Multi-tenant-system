@@ -480,6 +480,10 @@ window.dbExpenses = {
     bulkDelete: async (ids) => {
         const res = await _db.from('expenses').delete().in('id', ids);
         return _check(res, 'bulkDeleteExpenses');
+    },
+    bulkAdd: async (records) => {
+        const res = await _db.from('expenses').insert(records);
+        return _check(res, 'bulkAddExpenses');
     }
 };
 
@@ -548,6 +552,10 @@ window.dbCustomers = {
     bulkDelete: async (ids) => {
         const res = await _db.from('customers').delete().in('id', ids);
         return _check(res, 'bulkDeleteCustomers');
+    },
+    bulkAdd: async (records) => {
+        const res = await _db.from('customers').insert(records);
+        return _check(res, 'bulkAddCustomers');
     }
 };
 
@@ -622,6 +630,10 @@ window.dbInventory = {
     bulkDelete: async (ids) => {
         const res = await _db.from('inventory').delete().in('id', ids);
         return _check(res, 'bulkDeleteInventory');
+    },
+    bulkAdd: async (records) => {
+        const res = await _db.from('inventory').insert(records);
+        return _check(res, 'bulkAddInventory');
     }
 };
 

@@ -1194,6 +1194,106 @@ window.getModalHTML = function (type, data) {
             </form>
         </div>`;
 
+        /* ── Import CSV Info Modals ─────────────────── */
+        case 'importInventoryInfo': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Import Inventory</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-sm text-gray-600 mb-6">
+                <p>To import multiple inventory items, please download the template and fill it out following these rules:</p>
+                
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-2 text-indigo-900">
+                    <p><strong><span class="text-indigo-600">name</span></strong>: (Required) Name of the product</p>
+                    <p><strong><span class="text-indigo-600">sku</span></strong>: Optional Stock Keeping Unit identifier</p>
+                    <p><strong><span class="text-indigo-600">category</span></strong>: Product category (e.g., Electronics, Groceries)</p>
+                    <p><strong><span class="text-indigo-600">price</span></strong>: (Required) Selling price (Numbers only, e.g., 150.50)</p>
+                    <p><strong><span class="text-indigo-600">quantity</span></strong>: (Required) Current stock level (Numbers only)</p>
+                    <p><strong><span class="text-indigo-600">min_threshold</span></strong>: (Required) Minimum stock level before alert (Numbers only)</p>
+                </div>
+                
+                <div class="p-3 bg-yellow-50 text-yellow-800 rounded-xl border border-yellow-200 text-xs font-medium">
+                    <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1 -mt-0.5"></i>
+                    Do not change the header names in the first row of the template.
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                <button type="button" onclick="downloadInventoryCSVTemplate(); closeModal()" class="flex-1 btn-primary justify-center">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download Template
+                </button>
+            </div>
+        </div>`;
+
+        case 'importCustomersInfo': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Import Customers</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-sm text-gray-600 mb-6">
+                <p>To import multiple customers, please download the template and fill it out following these rules:</p>
+                
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-2 text-indigo-900">
+                    <p><strong><span class="text-indigo-600">name</span></strong>: (Required) Full name of the customer</p>
+                    <p><strong><span class="text-indigo-600">phone</span></strong>: Optional phone number</p>
+                    <p><strong><span class="text-indigo-600">email</span></strong>: Optional email address</p>
+                </div>
+                
+                <div class="p-3 bg-yellow-50 text-yellow-800 rounded-xl border border-yellow-200 text-xs font-medium">
+                    <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1 -mt-0.5"></i>
+                    Do not change the header names in the first row of the template.
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                <button type="button" onclick="downloadCustomersCSVTemplate(); closeModal()" class="flex-1 btn-primary justify-center">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download Template
+                </button>
+            </div>
+        </div>`;
+
+        case 'importExpensesInfo': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Import Expenses</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-sm text-gray-600 mb-6">
+                <p>To import multiple expenses, please download the template and fill it out following these rules:</p>
+                
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-2 text-indigo-900">
+                    <p><strong><span class="text-indigo-600">category</span></strong>: Must be one of: supplies, utilities, salary, rent, maintenance, marketing, other</p>
+                    <p><strong><span class="text-indigo-600">description</span></strong>: (Required) Short description of the expense</p>
+                    <p><strong><span class="text-indigo-600">amount</span></strong>: (Required) The total amount (Numbers only, e.g., 50.00)</p>
+                </div>
+                
+                <div class="p-3 bg-yellow-50 text-yellow-800 rounded-xl border border-yellow-200 text-xs font-medium">
+                    <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1 -mt-0.5"></i>
+                    Do not change the header names in the first row of the template.
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                <button type="button" onclick="downloadExpensesCSVTemplate(); closeModal()" class="flex-1 btn-primary justify-center">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download Template
+                </button>
+            </div>
+        </div>`;
+
         /* ── Edit Expense ────────────────────────── */
         case 'editExpense': return `
         <div class="p-6">

@@ -190,6 +190,43 @@ window.openExpensesTagModal = async function (expenseId, isBulk = false) {
 window.renderExpensesModule = function () {
     window.expensesSelection.clear();
     const container = document.getElementById('mainContent');
+
+    window.importExpensesCSV = function () {
+        triggerCSVUpload(async (data) => {
+            if (!data || data.length === 0) {
+                showToast('CSV is empty or invalid', 'error');
+                return;
+            }
+
+            const records = data.map(row => ({
+                branch_id: state.branchId,
+                category: row.category || 'other',
+                description: row.description || 'Unnamed Expense',
+                amount: fmt.parseNumber(row.amount || 0)
+            })).filter(r => r.description !== 'Unnamed Expense');
+
+            if (records.length === 0) {
+                showToast('No valid records found in CSV', 'error');
+                return;
+            }
+
+            const confirmed = await window.confirmModal('Confirm Import', `Are you sure you want to import ${records.length} expenses?`, 'Yes, Import', 'Cancel');
+            if (!confirmed) return;
+
+            try {
+                await dbExpenses.bulkAdd(records);
+                showToast(`Successfully imported ${records.length} expenses`, 'success');
+                renderExpensesModule();
+            } catch (err) {
+                showToast('Import failed: ' + err.message, 'error');
+            }
+        });
+    };
+
+    window.downloadExpensesCSVTemplate = function () {
+        const headers = ['category', 'description', 'amount'];
+        downloadCSVTemplate('expenses_template.csv', headers);
+    };
     const categoryColors = {
         supplies: 'bg-blue-100 text-blue-700',
         utilities: 'bg-amber-100 text-amber-700',
@@ -206,9 +243,17 @@ window.renderExpensesModule = function () {
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
                 <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Expense Management</div>
             </div>
-            <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0">
-                <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Expense
-            </button>
+            <div class="flex gap-1.5 sm:gap-2">
+                <button onclick="openModal('importExpensesInfo')" title="Template Instructions" class="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5">
+                    <i data-lucide="download" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline-block">Template</span>
+                </button>
+                <button onclick="importExpensesCSV()" title="Import CSV" class="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline-block">Import</span>
+                </button>
+                <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline-block">Add Expense</span><span class="inline-block sm:hidden">Add</span>
+                </button>
+            </div>
         </div>
         <div class="flex items-center justify-center py-20">
             <div class="text-center">
@@ -234,11 +279,19 @@ window.renderExpensesModule = function () {
         <div class="space-y-4 slide-in">
             <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
                 <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
-                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Expense Management</div>
+                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Expense Management</div>
                 </div>
-                <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0 font-bold">
-                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Expense
-                </button>
+                <div class="flex gap-1.5 sm:gap-2">
+                    <button onclick="openModal('importExpensesInfo')" title="Template Instructions" class="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5">
+                        <i data-lucide="download" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline-block">Template</span>
+                    </button>
+                    <button onclick="importExpensesCSV()" title="Import CSV" class="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 flex-shrink-0 flex items-center justify-center gap-1 sm:gap-1.5">
+                        <i data-lucide="upload" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline-block">Import</span>
+                    </button>
+                    <button onclick="openModal('addExpense')" class="btn-primary btn-danger text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap flex-shrink-0 font-bold flex items-center justify-center gap-1 sm:gap-1.5">
+                        <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline-block">Add Expense</span><span class="inline-block sm:hidden">Add</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Stats Row -->

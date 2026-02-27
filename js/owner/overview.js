@@ -193,37 +193,37 @@ window.renderOwnerOverview = function () {
 
             if (lowStock.length > 0 && alertContainer) {
                 alertContainer.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border border-orange-100 p-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-orange-100 dark:border-orange-900/30 p-6 mb-6">
                     <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2 text-orange-600">
+                        <div class="flex items-center gap-2 text-orange-600 dark:text-orange-500">
                             <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                            <h3 class="font-bold text-gray-900">Critical Stock Alerts</h3>
+                            <h3 class="font-bold text-gray-900 dark:text-white">Critical Stock Alerts</h3>
                         </div>
-                        <span class="badge bg-orange-100 text-orange-700">${lowStock.length} items low</span>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">${lowStock.length} items low</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         ${lowStock.slice(0, 6).map(item => {
                     const branch = branches.find(b => b.id === item.branch_id);
                     return `
-                            <div class="flex items-center gap-3 p-3 bg-orange-50 border border-orange-100 rounded-xl group/stock">
+                            <div class="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/30 rounded-xl group/stock">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-1.5 mb-0.5">
-                                        <p class="text-sm font-bold text-gray-900 truncate">${item.name}</p>
-                                        <button onclick="notifyBranchStock('${item.branch_id}', '${item.name}')" class="opacity-0 group-hover/stock:opacity-100 transition-opacity p-1 bg-white border border-orange-200 rounded-md text-orange-600 hover:bg-orange-600 hover:text-white" title="Notify Branch">
+                                        <p class="text-sm font-bold text-gray-900 dark:text-white truncate">${item.name}</p>
+                                        <button onclick="notifyBranchStock('${item.branch_id}', '${item.name}')" class="opacity-0 group-hover/stock:opacity-100 transition-opacity p-1 bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-800/50 rounded-md text-orange-600 dark:text-orange-400 hover:bg-orange-600 dark:hover:bg-orange-500 hover:text-white" title="Notify Branch">
                                             <i data-lucide="message-square" class="w-3 h-3"></i>
                                         </button>
                                     </div>
-                                    <p class="text-[10px] text-orange-600 font-medium truncate">${branch?.name || 'Branch'}</p>
+                                    <p class="text-[10px] text-orange-600 dark:text-orange-400 font-medium truncate">${branch?.name || 'Branch'}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-bold text-red-600">${item.quantity}</p>
-                                    <p class="text-[10px] text-gray-400">Min: ${item.min_threshold}</p>
+                                    <p class="text-sm font-bold text-red-600 dark:text-red-400">${item.quantity}</p>
+                                    <p class="text-[10px] text-gray-400 dark:text-gray-500">Min: ${item.min_threshold}</p>
                                 </div>
                             </div>`;
                 }).join('')}
                     </div>
                     ${lowStock.length > 6 ? `
-                    <p class="text-center text-xs text-gray-400 mt-4">+ ${lowStock.length - 6} more items across branches</p>
+                    <p class="text-center text-xs text-gray-400 dark:text-gray-500 mt-4">+ ${lowStock.length - 6} more items across branches</p>
                     ` : ''}
                 </div>`;
                 lucide.createIcons();
@@ -236,17 +236,17 @@ window.renderOwnerOverview = function () {
             <p class="text-[11px] sm:text-xs text-indigo-100 uppercase tracking-tight font-bold whitespace-normal leading-tight">Total Revenue</p>
             <p class="text-dynamic-lg font-black truncate leading-none my-auto py-1" title="${fmt.currency(totalSales)}">${fmt.currency(totalSales)}</p>
         </div>
-        <div onclick="switchView('branches')" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
-            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Active Branches</p>
-            <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${branches.length}</p>
+        <div onclick="switchView('branches')" class="bg-white dark:bg-gray-800 px-3 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tight font-bold whitespace-normal leading-tight">Active Branches</p>
+            <p class="text-dynamic-lg font-black text-gray-900 dark:text-white truncate leading-none my-auto py-1">${branches.length}</p>
         </div>
-        <div onclick="switchView('tasks')" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
-            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Pending Tasks</p>
-            <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${pendingTasks}</p>
+        <div onclick="switchView('tasks')" class="bg-white dark:bg-gray-800 px-3 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tight font-bold whitespace-normal leading-tight">Pending Tasks</p>
+            <p class="text-dynamic-lg font-black text-gray-900 dark:text-white truncate leading-none my-auto py-1">${pendingTasks}</p>
         </div>
-        <div onclick="switchView('branches')" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
-            <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight font-bold whitespace-normal leading-tight">Target Progress</p>
-            <p class="text-dynamic-lg font-black text-violet-600 truncate leading-none my-auto py-1">${progress}%</p>
+        <div onclick="switchView('branches')" class="bg-white dark:bg-gray-800 px-3 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm stat-card min-w-0 cursor-pointer hover:-translate-y-1 transition-transform flex flex-col h-full">
+            <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tight font-bold whitespace-normal leading-tight">Target Progress</p>
+            <p class="text-dynamic-lg font-black text-violet-600 dark:text-violet-400 truncate leading-none my-auto py-1">${progress}%</p>
             <div class="w-full bg-gray-100 rounded-full h-1 mt-0.5">
                 <div class="bg-violet-500 h-1 rounded-full progress-bar" style="width:${Math.min(progress, 100)}%"></div>
             </div>
@@ -260,15 +260,15 @@ window.renderOwnerOverview = function () {
                 const color = pct >= 100 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500';
                 const textColor = pct >= 100 ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-red-600';
                 return `
-                <div class="p-3 bg-gray-50 rounded-xl">
+                <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <p class="font-medium text-sm text-gray-900">${branch.name}</p>
-                            <p class="text-xs text-gray-500">${fmt.currency(branch.todaySales)} / ${fmt.currency(branch.target)}</p>
+                            <p class="font-medium text-sm text-gray-900 dark:text-white">${branch.name}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${fmt.currency(branch.todaySales)} / ${fmt.currency(branch.target)}</p>
                         </div>
                         <span class="text-sm font-bold ${textColor}">${pct}%</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                         <div class="${color} h-1.5 rounded-full progress-bar" style="width:${Math.min(pct, 100)}%"></div>
                     </div>
                 </div>`;
@@ -358,13 +358,13 @@ window.renderActivities = function () {
     return state.activities.slice(0, 20).map(a => {
         const t = typeMap[a.type] || typeMap.task_completed;
         return `
-        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl slide-in">
+        <div class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl slide-in">
             <div class="w-8 h-8 rounded-full ${t.bg} flex items-center justify-center flex-shrink-0">
                 <i data-lucide="${t.icon}" class="w-4 h-4 ${t.ic}"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900">${a.message}</p>
-                <p class="text-xs text-gray-500 mt-0.5">${a.branch} · ${a.time}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">${a.message}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${a.branch} · ${a.time}</p>
             </div>
             ${a.amount ? `<span class="text-sm font-bold ${t.amt} flex-shrink-0">${t.sign}${fmt.currency(a.amount)}</span>` : ''}
         </div>`;

@@ -531,6 +531,82 @@ window.confirmUpdateApp = async function () {
         window.updateApp();
     }
 };
+/* ── CSV Parser Utility ──────────────────────────── */
+window.parseCSV = function (csvString) {
+    const lines = csvString.split(/\r?\n/).filter(line => line.trim() !== '');
+    if (lines.length === 0) return [];
+
+    const parseLine = (line) => {
+        const result = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"' && line[i + 1] === '"' && inQuotes) {
+                cur += '"';
+                i++; // Skip escaped quote
+            } else if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(cur);
+                cur = '';
+            } else {
+                cur += char;
+            }
+        }
+        result.push(cur);
+        return result.map(s => s.trim());
+    };
+
+    const headers = parseLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, ''));
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const rowData = parseLine(lines[i]);
+        // skip empty rows
+        if (rowData.join('').trim() === '') continue;
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+            obj[headers[j]] = rowData[j] || '';
+        }
+        data.push(obj);
+    }
+    return data;
+};
+
+window.downloadCSVTemplate = function (fileName, headers) {
+    const csv = headers.join(',') + '\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+/* ── File Upload Helper ───────────────────────────── */
+window.triggerCSVUpload = function (onParsedCallback) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const data = parseCSV(text);
+            if (typeof onParsedCallback === 'function') {
+                onParsedCallback(data);
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+};
+
 /* ── Debounce Utility ────────────────────────────── */
 let _globalDebounceTimers = {};
 window.debounce = function (key, fn, delay = 400) {

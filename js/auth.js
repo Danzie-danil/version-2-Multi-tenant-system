@@ -142,7 +142,8 @@ window.login = async function () {
             phone: branch.phone || '',
             email: branch.email || '',
             address: branch.address || '',
-            last_notif_check: branch.last_notif_check
+            last_notif_check: branch.last_notif_check,
+            theme: branch.theme
         };
 
         // Fetch the Enterprise Name (from owner's profile)
@@ -395,8 +396,14 @@ window.logout = async function () {
     if (state.role === 'owner') {
         await dbAuth.signOut();
     }
-    // Clear local storage for branch sessions
-    localStorage.removeItem('bms_branch_session');
+    // Clear all local storage sessions
+    localStorage.clear();
+
+    // Return default theme to light
+    localStorage.setItem('bms-theme', 'light');
+    document.documentElement.classList.remove('dark');
+    if (typeof initTheme === 'function') initTheme('light');
+
     location.reload();
 };
 
