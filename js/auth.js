@@ -445,13 +445,16 @@ window.updateSidebarAvatar = function () {
     const wrap = document.getElementById('sidebarAvatarWrap');
     if (!wrap) return;
 
-    const avatarUrl = state.profile?.avatar_url;
+    const isBranch = state.role === 'branch';
+    const avatarUrl = isBranch ? state.branchProfile?.avatar_url : state.profile?.avatar_url;
+
     if (avatarUrl) {
         wrap.innerHTML = `<img src="${avatarUrl}" alt="Profile" class="w-full h-full object-cover rounded-full"
             onerror="this.parentElement.innerHTML='<i data-lucide=\\'user\\' class=\\'w-4 h-4 text-indigo-600\\'></i>'; lucide.createIcons();">`;
     } else {
         // Fallback: initials or user icon
-        const initials = (state.currentUser || '').charAt(0).toUpperCase();
+        const initialStr = isBranch ? (state.branchProfile?.name || state.currentUser || '') : (state.currentUser || '');
+        const initials = initialStr.charAt(0).toUpperCase();
         wrap.innerHTML = initials
             ? `<span class="text-sm font-black text-indigo-600">${initials}</span>`
             : `<i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>`;

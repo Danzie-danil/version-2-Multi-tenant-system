@@ -440,6 +440,23 @@
                             <span
                                 class="chat-unread-badge hidden bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full">0</span>
                         </button>
+
+                        <!-- Module Monitoring -->
+                        <div class="pt-3 pb-1 px-4">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Monitor</p>
+                        </div>
+                        <button onclick="switchView('staff',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="user-check" class="w-4 h-4 flex-shrink-0"></i> Staff & HR
+                        </button>
+                        <button onclick="switchView('suppliers',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="truck" class="w-4 h-4 flex-shrink-0"></i> Suppliers & POs
+                        </button>
+                        <button onclick="switchView('quotations',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="file-signature" class="w-4 h-4 flex-shrink-0"></i> Quotations
+                        </button>
                     </div>
 
                     <!-- Branch Navigation -->
@@ -475,6 +492,10 @@
                         <button onclick="switchView('quotations',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
                             <i data-lucide="file-signature" class="w-4 h-4 flex-shrink-0"></i> Quotations
+                        </button>
+                        <button onclick="switchView('invoices',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i> Invoices
                         </button>
                         <button onclick="switchView('tasks',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
@@ -605,6 +626,9 @@
     <script src="js/owner/security.js"></script>
     <script src="js/owner/requests.js"></script>
     <script src="js/owner/settings.js"></script>
+    <script src="js/owner/staff.js"></script>
+    <script src="js/owner/suppliers.js"></script>
+    <script src="js/owner/quotations.js"></script>
 
     <!-- 6. Branch Modules -->
     <script src="js/branch/dashboard.js"></script>
@@ -619,6 +643,7 @@
     <script src="js/branch/staff.js"></script>
     <script src="js/branch/suppliers.js"></script>
     <script src="js/branch/quotations.js"></script>
+    <script src="js/branch/invoices.js"></script>
     <script src="js/branch/requests.js"></script>
     <script src="js/branch/settings.js"></script>
     <script src="js/chat.js"></script>

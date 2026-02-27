@@ -18,11 +18,9 @@ window.renderSettings = function () {
             </div>
             
             <div class="flex items-center gap-2 flex-shrink-0">
+                <div id="ownerSaveIndicator" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 opacity-0 mr-2"></div>
                 <button onclick="confirmUpdateApp()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl hover:bg-emerald-600 hover:text-white transition-all active:scale-95 whitespace-nowrap">
                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline">Check Updates</span>
-                </button>
-                <button onclick="saveSettings()" class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-xs sm:text-sm font-bold rounded-lg sm:rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all active:scale-95 whitespace-nowrap">
-                    <i data-lucide="save" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden xs:inline">Save</span>
                 </button>
             </div>
         </div>
@@ -301,6 +299,28 @@ window.renderSettings = function () {
     }, 10);
 
     lucide.createIcons();
+
+    // Attach auto-save listener
+    const form = document.getElementById('settingsForm');
+    if (form) {
+        form.addEventListener('input', (e) => {
+            if (e.target.matches('input, textarea, select')) {
+                window.activeSettingsInput = e.target;
+                window.saveSettings();
+            }
+        });
+        // Handle select, checkboxes, and file changes that might not trigger 'input'
+        form.addEventListener('change', (e) => {
+            if (e.target.matches('input, textarea, select')) {
+                window.activeSettingsInput = e.target;
+                window.saveSettings();
+            }
+        });
+
+        if (typeof window.attachClickToEditIndicators === 'function') {
+            window.attachClickToEditIndicators(form);
+        }
+    }
 };
 
 window.switchSettingsTab = function (tabName) {
@@ -336,72 +356,107 @@ window.switchSettingsTab = function (tabName) {
     lucide.createIcons();
 };
 
+let ownerAutoSaveTimeout = null;
+let ownerIndicatorTimeout = null;
+window.activeSettingsInput = null;
+
 window.saveSettings = async function () {
-    const notifyBtn = document.querySelector('button[onclick="saveSettings()"]');
-    const originalText = notifyBtn.innerHTML;
-    notifyBtn.innerHTML = 'Saving...';
-    notifyBtn.disabled = true;
+    const mainIndicator = document.getElementById('ownerSaveIndicator');
+    const inputIndicator = window.activeSettingsInput;
 
-    // Gather Personal Data
-    const personal = {
-        full_name: document.getElementById('set_full_name').value.trim(),
-        mobile_number: document.getElementById('set_mobile_number').value.trim(),
-        avatar_url: document.getElementById('set_avatar_url').value.trim()
-    };
-
-    // Gather Business Data
-    const business = {
-        business_name: document.getElementById('set_business_name').value.trim(),
-        industry: document.getElementById('set_industry').value,
-        tax_id: document.getElementById('set_tax_id').value.trim(),
-        currency: document.getElementById('set_currency').value,
-        timezone: document.getElementById('set_timezone').value
-    };
-
-    // Gather Preferences
-    const prefs = {
-        default_target: fmt.parseNumber(document.getElementById('set_default_target').value) || 10000,
-        receipt_text: document.getElementById('set_receipt_text').value.trim(),
-        operating_hours: JSON.stringify({
-            open: document.getElementById('set_hours_open').value || '08:00',
-            close: document.getElementById('set_hours_close').value || '18:00'
-        })
-    };
-
-    // Gather Security
-    const security = {
-        two_factor: document.getElementById('set_two_factor').checked
-    };
-
-    const payload = {
-        ...personal,
-        ...business,
-        ...prefs,
-        ...security
-    };
-
-    try {
-        const updatedProfile = await dbProfile.upsert(state.ownerId, payload);
-        // Update global state immediately
-        state.profile = updatedProfile;
-
-        // Update username globally in sidebar if changed
-        document.getElementById('currentUser').textContent = updatedProfile.full_name || state.currentUser;
-
-        // Update sidebar avatar in real-time
-        window.updateSidebarAvatar?.();
-
-        showToast('Settings saved successfully', 'success');
-
-        // Re-render to show updated currency symbols immediately if changed
-        renderSettings();
-    } catch (err) {
-        showToast('Failed to save settings: ' + err.message, 'error');
-    } finally {
-        notifyBtn.innerHTML = originalText;
-        notifyBtn.disabled = false;
-        lucide.createIcons();
+    if (mainIndicator) {
+        clearTimeout(ownerIndicatorTimeout);
+        mainIndicator.innerHTML = '<span class="text-indigo-600">Saving...</span>';
+        mainIndicator.classList.remove('opacity-0', 'bg-emerald-50', 'bg-red-50');
+        mainIndicator.classList.add('opacity-100', 'bg-indigo-50');
     }
+
+    if (inputIndicator && typeof showInlineSaveIndicator === 'function') {
+        showInlineSaveIndicator(inputIndicator, 'saving');
+    }
+
+    clearTimeout(ownerAutoSaveTimeout);
+    ownerAutoSaveTimeout = setTimeout(async () => {
+
+        // Gather Personal Data
+        const personal = {
+            full_name: document.getElementById('set_full_name').value.trim(),
+            mobile_number: document.getElementById('set_mobile_number').value.trim(),
+            avatar_url: document.getElementById('set_avatar_url').value.trim()
+        };
+
+        // Gather Business Data
+        const business = {
+            business_name: document.getElementById('set_business_name').value.trim(),
+            industry: document.getElementById('set_industry').value,
+            tax_id: document.getElementById('set_tax_id').value.trim(),
+            currency: document.getElementById('set_currency').value,
+            timezone: document.getElementById('set_timezone').value
+        };
+
+        // Gather Preferences
+        const prefs = {
+            default_target: fmt.parseNumber(document.getElementById('set_default_target').value) || 10000,
+            receipt_text: document.getElementById('set_receipt_text').value.trim(),
+            operating_hours: JSON.stringify({
+                open: document.getElementById('set_hours_open').value || '08:00',
+                close: document.getElementById('set_hours_close').value || '18:00'
+            })
+        };
+
+        // Gather Security
+        const security = {
+            two_factor: document.getElementById('set_two_factor').checked
+        };
+
+        const payload = {
+            ...personal,
+            ...business,
+            ...prefs,
+            ...security
+        };
+
+        try {
+            const updatedProfile = await dbProfile.upsert(state.ownerId, payload);
+            // Update global state immediately
+            state.profile = updatedProfile;
+
+            // Update username globally in sidebar if changed
+            document.getElementById('currentUser').textContent = updatedProfile.full_name || state.currentUser;
+
+            // Update sidebar avatar in real-time
+            window.updateSidebarAvatar?.();
+
+            if (mainIndicator) {
+                mainIndicator.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 text-emerald-500"></i> <span class="text-emerald-600">Saved!</span>';
+                mainIndicator.classList.remove('bg-indigo-50', 'bg-red-50');
+                mainIndicator.classList.add('bg-emerald-50');
+                lucide.createIcons();
+
+                ownerIndicatorTimeout = setTimeout(() => {
+                    mainIndicator.classList.remove('opacity-100');
+                    mainIndicator.classList.add('opacity-0');
+                }, 2500);
+            }
+
+            if (inputIndicator && typeof showInlineSaveIndicator === 'function') {
+                showInlineSaveIndicator(inputIndicator, 'saved');
+            }
+        } catch (err) {
+            console.error('Auto-save Settings Error:', err);
+            if (mainIndicator) {
+                mainIndicator.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-red-500"></i> <span class="text-red-600">Failed</span>';
+                mainIndicator.classList.remove('bg-indigo-50', 'bg-emerald-50');
+                mainIndicator.classList.add('bg-red-50');
+                lucide.createIcons();
+            }
+
+            if (inputIndicator && typeof showInlineSaveIndicator === 'function') {
+                showInlineSaveIndicator(inputIndicator, 'error');
+            }
+            showToast('Failed to save settings: ' + err.message, 'error');
+        }
+    }, 1000);
 };
 
 window.handleAvatarUpload = function (input) {
@@ -409,10 +464,14 @@ window.handleAvatarUpload = function (input) {
         const file = input.files[0];
 
         // Validation
-        if (file.size > 5 * 1024 * 1024) { // Increased to 5MB since we will compress/resize
-            showToast('Image size should be less than 5MB', 'error');
+        if (file.size > 20 * 1024 * 1024) {
+            showToast('Image is too large (max 20MB)', 'error');
             input.value = '';
             return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Compressing large image...', 'info');
         }
 
         const reader = new FileReader();
@@ -456,9 +515,9 @@ window.handleAvatarUpload = function (input) {
                 const hiddenInput = document.getElementById('set_avatar_url');
                 if (hiddenInput) {
                     hiddenInput.value = finalBase64;
+                    window.saveSettings(); // Auto-save for owner avatar
                 }
 
-                showToast('Photo cropped and prepared. Click "Save" to apply.', 'info');
                 updateAvatarControls(true);
             };
             img.src = e.target.result;
@@ -480,7 +539,7 @@ window.removeAvatar = function () {
     }
 
     updateAvatarControls(false);
-    showToast('Photo removed. Click "Save" to apply changes.', 'info');
+    window.saveSettings(); // Auto-save removal
 };
 
 window.updateAvatarControls = function (hasImage) {

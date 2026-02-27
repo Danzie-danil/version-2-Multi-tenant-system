@@ -1840,41 +1840,37 @@ window.getModalHTML = function (type, data) {
         case 'addStaff': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Staff Member</h3>
-                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                <h3 class="text-xl font-bold text-gray-900">Add New Staff</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <form onsubmit="handleAddStaff(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                    <input type="text" id="staffName" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required placeholder="John Doe">
+                    <label for="staffName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="staffName" required class="form-input" placeholder="Enter full name">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Role/Position</label>
-                        <input type="text" id="staffRole" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required placeholder="e.g. Sales Rep">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Monthly Salary</label>
-                        <input type="number" step="0.01" id="staffSalary" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required placeholder="0.00">
-                    </div>
+                <div>
+                    <label for="staffRole" class="block text-sm font-medium text-gray-700 mb-1">Role/Position</label>
+                    <input type="text" id="staffRole" required class="form-input" placeholder="e.g. Sales Associate">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                        <input type="tel" id="staffPhone" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" placeholder="+1...">
+                        <label for="staffPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="tel" id="staffPhone" class="form-input" placeholder="+123456789">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                        <input type="email" id="staffEmail" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" placeholder="john@example.com">
+                        <label for="staffEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="staffEmail" class="form-input" placeholder="staff@example.com">
                     </div>
                 </div>
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold py-3 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex justify-center items-center">
-                        <span>Save Staff</span>
-                    </button>
+                <div>
+                    <label for="staffSalary" class="block text-sm font-medium text-gray-700 mb-1">Base Salary</label>
+                    <input type="text" inputmode="decimal" id="staffSalary" class="form-input number-format" placeholder="0.00">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Add Staff</button>
                 </div>
             </form>
         </div>`;
@@ -1882,48 +1878,46 @@ window.getModalHTML = function (type, data) {
         case 'editStaff': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Staff Member</h3>
-                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                <h3 class="text-xl font-bold text-gray-900">Edit Staff</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <form onsubmit="handleEditStaff(event, '${data.id}')" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                    <input type="text" id="editStaffName" value="${data.name || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Role/Position</label>
-                        <input type="text" id="editStaffRole" value="${data.role || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Monthly Salary</label>
-                        <input type="number" step="0.01" id="editStaffSalary" value="${data.salary || 0}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                        <input type="tel" id="editStaffPhone" value="${data.phone || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                        <input type="email" id="editStaffEmail" value="${data.email || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all">
-                    </div>
+                    <label for="editStaffName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="editStaffName" value="${data.name || ''}" required class="form-input">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                    <select id="editStaffStatus" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white">
-                        <option value="active" ${data.status === 'active' ? 'selected' : ''}>Active</option>
-                        <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
-                    </select>
+                    <label for="editStaffRole" class="block text-sm font-medium text-gray-700 mb-1">Role/Position</label>
+                    <input type="text" id="editStaffRole" value="${data.role || ''}" required class="form-input">
                 </div>
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold py-3 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex justify-center items-center">
-                        <span>Save Changes</span>
-                    </button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="editStaffPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="tel" id="editStaffPhone" value="${data.phone || ''}" class="form-input">
+                    </div>
+                    <div>
+                        <label for="editStaffEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="editStaffEmail" value="${data.email || ''}" class="form-input">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="editStaffSalary" class="block text-sm font-medium text-gray-700 mb-1">Base Salary</label>
+                        <input type="text" inputmode="decimal" id="editStaffSalary" value="${data.salary || 0}" class="form-input number-format">
+                    </div>
+                    <div>
+                        <label for="editStaffStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="editStaffStatus" class="form-input">
+                            <option value="active" ${data.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Update Staff</button>
                 </div>
             </form>
         </div>`;
@@ -1931,58 +1925,324 @@ window.getModalHTML = function (type, data) {
         case 'markAttendance': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Record Attendance</h3>
-                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                <h3 class="text-xl font-bold text-gray-900">Mark Attendance</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <form onsubmit="handleMarkAttendance(event)" class="space-y-4">
-                <div class="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs p-3 rounded-lg flex items-start gap-2 mb-4">
-                    <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
-                    <p>Select a staff member and date to update their attendance record.</p>
+                <div>
+                    <label for="attDate" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" id="attDate" required class="form-input" value="${new Date().toISOString().split('T')[0]}">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Staff Member</label>
-                    <select id="attendanceStaffId" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white" required>
-                        <option value="">Loading Staff...</option>
+                    <label for="attStaffId" class="block text-sm font-medium text-gray-700 mb-1">Select Staff</label>
+                    <select id="attStaffId" required class="form-input">
+                        ${window._currentStaffList ? window._currentStaffList.map(s => `<option value="${s.id}">${s.name} - ${s.role}</option>`).join('') : '<option disabled>Loading staff...</option>'}
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="attStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="attStatus" class="form-input">
+                        <option value="present">Present</option>
+                        <option value="absent">Absent</option>
+                        <option value="leave">On Leave</option>
+                        <option value="half-day">Half Day</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="attNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                    <input type="text" id="attNotes" class="form-input" placeholder="e.g. Arrived late">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center bg-emerald-600 hover:bg-emerald-700">Save Attendance</button>
+                </div>
+            </form>
+        </div>`;
+
+        /* ── Suppliers & Purchase Orders Module ─────────────────────────── */
+        case 'addSupplier': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Add Supplier</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleAddSupplier(event)" class="space-y-4">
+                <div>
+                    <label for="supplierName" class="block text-sm font-medium text-gray-700 mb-1">Company/Supplier Name</label>
+                    <input type="text" id="supplierName" required class="form-input">
+                </div>
+                <div>
+                    <label for="supplierContactPerson" class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+                    <input type="text" id="supplierContactPerson" class="form-input">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Date</label>
-                        <input type="date" id="attendanceDate" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
+                        <label for="supplierPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="text" id="supplierPhone" class="form-input">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                        <select id="attendanceStatus" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white" required>
-                            <option value="present">Present</option>
-                            <option value="absent">Absent</option>
-                            <option value="half-day">Half Day</option>
-                            <option value="leave">On Leave</option>
-                        </select>
+                        <label for="supplierEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="supplierEmail" class="form-input">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
-                    <input type="text" id="attendanceNotes" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" placeholder="Reason for absence, etc.">
+                    <label for="supplierAddress" class="block text-sm font-medium text-gray-700 mb-1">Address/Notes</label>
+                    <textarea id="supplierAddress" class="form-input" rows="2"></textarea>
                 </div>
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
-                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold py-3 transition-colors shadow-lg shadow-emerald-200 dark:shadow-none flex justify-center items-center">
-                        <span>Save Attendance</span>
-                    </button>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Save Supplier</button>
                 </div>
             </form>
-            <script>
-                // Auto-fill today's date
-                document.getElementById('attendanceDate').valueAsDate = new Date();
-                // Load Staff
-                dbStaff.fetchAll(state.branchId).then(staff => {
-                    const sel = document.getElementById('attendanceStaffId');
-                    sel.innerHTML = staff.filter(s => s.status === 'active').map(s => \`<option value="\${s.id}">\${s.name} (\${s.role})\</option>\`).join('');
-                });
-            </script>
         </div>`;
+
+        case 'editSupplier': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Edit Supplier</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleEditSupplier(event, '${data.id}')" class="space-y-4">
+                <div>
+                    <label for="editSupplierName" class="block text-sm font-medium text-gray-700 mb-1">Company/Supplier Name</label>
+                    <input type="text" id="editSupplierName" value="${data.name || ''}" required class="form-input">
+                </div>
+                <div>
+                    <label for="editSupplierContactPerson" class="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
+                    <input type="text" id="editSupplierContactPerson" value="${data.contact_person || ''}" class="form-input">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="editSupplierPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="text" id="editSupplierPhone" value="${data.phone || ''}" class="form-input">
+                    </div>
+                    <div>
+                        <label for="editSupplierEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="editSupplierEmail" value="${data.email || ''}" class="form-input">
+                    </div>
+                </div>
+                <div>
+                    <label for="editSupplierAddress" class="block text-sm font-medium text-gray-700 mb-1">Address/Notes</label>
+                    <textarea id="editSupplierAddress" class="form-input" rows="2">${data.address || ''}</textarea>
+                </div>
+                <div class="pt-2">
+                     <label for="editSupplierStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                     <select id="editSupplierStatus" class="form-input">
+                         <option value="active" ${data.status !== 'inactive' ? 'selected' : ''}>Active</option>
+                         <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                     </select>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Save Changes</button>
+                </div>
+            </form>
+        </div>`;
+
+        case 'addPO': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Create Purchase Order</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleCreatePO(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="poSupplierId" class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                        <select id="poSupplierId" required class="form-input">
+                            ${window._currentSuppliersList ? window._currentSuppliersList.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option disabled>Loading...</option>'}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="poExpectedDate" class="block text-sm font-medium text-gray-700 mb-1">Expected Date</label>
+                        <input type="date" id="poExpectedDate" class="form-input">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-sm font-medium text-gray-700">Line Items</label>
+                        <button type="button" onclick="window.addPoItemRow()" class="text-xs text-indigo-600 font-bold hover:underline">
+                            + Add Item
+                        </button>
+                    </div>
+                    <div id="poItemsContainer" class="space-y-2 max-h-48 overflow-y-auto p-1">
+                        <!-- Items injected here -->
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Expected Amount</label>
+                    <input type="text" id="poTotalAmountDisplay" readonly class="form-input bg-gray-50 font-bold text-gray-600" value="${fmt.currency(0)}">
+                    <input type="hidden" id="poTotalAmountVal" value="0">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center bg-emerald-600 hover:bg-emerald-700">Create & Save PO</button>
+                </div>
+            </form>
+        </div>
+        <script>
+            // Simple logic for modal
+            if(window.initPoModal) window.initPoModal();
+        </script>
+        `;
+
+        case 'viewPO': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Purchase Order Details</h3>
+                    <p class="text-sm font-bold text-indigo-600">${data.po_number}</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-3 mb-6">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Supplier</p>
+                    <p class="text-sm font-semibold">${data.supplier_name}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Total Amount</p>
+                    <p class="text-sm font-black text-emerald-600">${fmt.currency(data.total_amount)}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Status</p>
+                    <p class="text-sm font-bold uppercase ${data.status === 'received' ? 'text-emerald-500' : 'text-amber-500'}">${data.status}</p>
+                </div>
+            </div>
+            
+            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Line Items</h4>
+            <div class="space-y-2 max-h-48 overflow-y-auto mb-6">
+                ${data.items && data.items.length > 0 ? data.items.map(item => `
+                    <div class="p-3 border border-gray-100 rounded-lg flex justify-between items-center bg-gray-50">
+                        <div>
+                            <p class="font-bold text-sm">${item.item_name}</p>
+                            <p class="text-xs text-gray-500">${item.quantity} units @ ${fmt.currency(item.unit_price)}</p>
+                        </div>
+                        <p class="font-black text-gray-700">${fmt.currency(item.quantity * item.unit_price)}</p>
+                    </div>
+                `).join('') : '<p class="text-sm text-gray-500">No items on this PO.</p>'}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <button onclick="updatePOStatus('${data.id}', 'pending')" class="p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors">Mark Pending</button>
+                <button onclick="updatePOStatus('${data.id}', 'approved')" class="p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">Mark Approved</button>
+                <button onclick="updatePOStatus('${data.id}', 'received')" class="p-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-colors">Mark Received</button>
+                <button onclick="updatePOStatus('${data.id}', 'cancelled')" class="p-2.5 bg-red-50 text-red-700 rounded-xl font-bold text-xs hover:bg-red-100 transition-colors">Cancel PO</button>
+            </div>
+        </div>`;
+
+        /* ── Quotation Module ─────────────────────────── */
+        case 'createQuotation': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Create Quotation</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleCreateQuotation(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="quoteCustomerId" class="block text-sm font-medium text-gray-700 mb-1">Customer (Optional)</label>
+                        <select id="quoteCustomerId" class="form-input">
+                            <option value="">Walk-in Customer</option>
+                            ${window._currentCustomersList ? window._currentCustomersList.map(c => `<option value="${c.id}">${c.name}</option>`).join('') : ''}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="quoteCustomerNameOverride" class="block text-sm font-medium text-gray-700 mb-1">Or Specific Name</label>
+                        <input type="text" id="quoteCustomerNameOverride" class="form-input" placeholder="e.g. Acme Corp">
+                    </div>
+                </div>
+                <div>
+                     <label for="quoteValidUntil" class="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+                     <input type="date" id="quoteValidUntil" class="form-input" value="${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-sm font-medium text-gray-700">Line Items</label>
+                        <button type="button" onclick="window.addQuoteItemRow()" class="text-xs text-indigo-600 font-bold hover:underline">
+                            + Add Item
+                        </button>
+                    </div>
+                    <div id="quoteItemsContainer" class="space-y-2 max-h-48 overflow-y-auto p-1">
+                        <!-- Items injected here -->
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Total Quote Amount</label>
+                    <input type="text" id="quoteTotalAmountDisplay" readonly class="form-input bg-gray-50 font-bold text-gray-600" value="${fmt.currency(0)}">
+                    <input type="hidden" id="quoteTotalAmountVal" value="0">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center bg-indigo-600 hover:bg-indigo-700">Save & Generate Quote</button>
+                </div>
+            </form>
+        </div>
+        <script>
+            if(window.initQuoteModal) window.initQuoteModal();
+        </script>
+        `;
+
+        case 'viewQuotation': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Quotation Details</h3>
+                    <p class="text-sm font-bold text-indigo-600">${data.quote_number}</p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">To</p>
+                    <p class="text-sm font-semibold">${data.customer_name}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Status</p>
+                    <p class="text-sm font-bold uppercase ${data.status === 'accepted' ? 'text-emerald-500' : (data.status === 'rejected' ? 'text-red-500' : 'text-amber-500')}">${data.status}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 col-span-2">
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Total Amount</p>
+                    <p class="text-xl font-black text-indigo-600">${fmt.currency(data.total_amount)}</p>
+                </div>
+            </div>
+
+            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Line Items</h4>
+            <div class="space-y-2 max-h-48 overflow-y-auto mb-6">
+                ${data.items && data.items.length > 0 ? data.items.map(item => `
+                    <div class="p-3 border border-gray-100 rounded-lg flex justify-between items-center bg-gray-50">
+                        <div>
+                            <p class="font-bold text-sm">${item.item_name}</p>
+                            <p class="text-xs text-gray-500">${item.quantity} units @ ${fmt.currency(item.unit_price)}</p>
+                        </div>
+                        <p class="font-black text-gray-700">${fmt.currency(item.quantity * item.unit_price)}</p>
+                    </div>
+                `).join('') : '<p class="text-sm text-gray-500">No items.</p>'}
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="updateQuotationStatus('${data.id}', 'sent')" class="p-2 bg-blue-50 text-blue-700 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-blue-100">Mark Sent</button>
+                <button onclick="updateQuotationStatus('${data.id}', 'accepted')" class="p-2 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-emerald-100">Mark Accepted</button>
+                <button onclick="updateQuotationStatus('${data.id}', 'rejected')" class="p-2 bg-red-50 text-red-700 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-red-100">Mark Rejected</button>
+                <button onclick="downloadQuotationPDF('${data.id}')" class="p-2 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-[10px] uppercase tracking-wider hover:bg-indigo-100 flex items-center justify-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> PDF</button>
+            </div>
+        </div>`;
+        /* ── END ENHANCEMENTS ──────────────────────────────────────────── */
 
         case 'taskDetails': {
             const comments = data._comments || [];
@@ -1991,31 +2251,31 @@ window.getModalHTML = function (type, data) {
             if (isOwner) {
                 /* ── ADMIN VIEW ─────────────────────────────────────────── */
                 const statusOpts = ['pending', 'in_progress', 'completed'].map(s =>
-                    `<option value="${s}" ${data.status === s ? 'selected' : ''}>${s.replace('_', ' ')}</option>`
+                    `< option value = "${s}" ${data.status === s ? 'selected' : ''}> ${s.replace('_', ' ')}</option > `
                 ).join('');
 
                 const commentThread = comments.length === 0
-                    ? `<div class="text-center py-4 text-xs text-gray-400 italic">No reminders sent yet. Send one below.</div>`
+                    ? `< div class="text-center py-4 text-xs text-gray-400 italic" > No reminders sent yet.Send one below.</div > `
                     : comments.map(c => {
                         const isAdmin = c.sender_role === 'owner';
                         return `
-                        <div class="flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-2">
-                            <div class="max-w-[80%] ${isAdmin
+                < div class="flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-2" >
+                    <div class="max-w-[80%] ${isAdmin
                                 ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm'
                                 : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
                             } px-4 py-2.5 shadow-sm">
-                                <p class="text-[10px] font-bold uppercase tracking-widest mb-1 ${isAdmin ? 'text-indigo-200' : 'text-gray-500'}">
-                                    ${isAdmin ? '👤 You' : `🏪 ${c.sender_name || 'Branch'}`}
-                                </p>
-                                <p class="text-sm leading-snug">${c.message}</p>
-                                <p class="text-[9px] mt-1 ${isAdmin ? 'text-indigo-300' : 'text-gray-400'}">${fmt.dateTime(c.created_at)}</p>
-                            </div>
-                        </div>`;
+                        <p class="text-[10px] font-bold uppercase tracking-widest mb-1 ${isAdmin ? 'text-indigo-200' : 'text-gray-500'}">
+                            ${isAdmin ? '👤 You' : `🏪 ${c.sender_name || 'Branch'}`}
+                        </p>
+                        <p class="text-sm leading-snug">${c.message}</p>
+                        <p class="text-[9px] mt-1 ${isAdmin ? 'text-indigo-300' : 'text-gray-400'}">${fmt.dateTime(c.created_at)}</p>
+                    </div>
+                        </div > `;
                     }).join('');
 
                 return `
-                <div class="p-5 flex flex-col max-h-[90vh]">
-                    <!-- Header -->
+                < div class="p-5 flex flex-col max-h-[90vh]" >
+                    < !--Header -->
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -2034,7 +2294,7 @@ window.getModalHTML = function (type, data) {
                         </button>
                     </div>
 
-                    <!-- Task Meta -->
+                    <!--Task Meta-- >
                     <div class="grid grid-cols-3 gap-2 mb-4">
                         <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
                             <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Priority</p>
@@ -2050,14 +2310,15 @@ window.getModalHTML = function (type, data) {
                         </div>
                     </div>
 
-                    <!-- Instructions -->
-                    ${data.description ? `
+                    <!--Instructions -->
+                ${data.description ? `
                     <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 mb-4">
                         <p class="text-[9px] text-blue-500 uppercase font-black mb-1">Instructions</p>
                         <p class="text-sm text-gray-700 leading-relaxed">${data.description}</p>
-                    </div>` : ''}
+                    </div>` : ''
+                    }
 
-                    <!-- Admin Actions Row -->
+                    < !--Admin Actions Row-- >
                     <div class="grid grid-cols-2 gap-2 mb-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-[9px] text-gray-400 uppercase font-black">Change Status</label>
@@ -2073,7 +2334,7 @@ window.getModalHTML = function (type, data) {
                         </div>
                     </div>
 
-                    <!-- Comment Thread -->
+                    <!--Comment Thread-- >
                     <div class="flex-1 bg-gray-50 rounded-2xl border border-gray-100 p-3 mb-3 overflow-y-auto max-h-48" id="taskCommentThread">
                         <p class="text-[9px] text-gray-400 uppercase font-black mb-3 flex items-center gap-1.5">
                             <i data-lucide="message-square" class="w-3 h-3"></i> Reminders &amp; Replies
@@ -2082,17 +2343,17 @@ window.getModalHTML = function (type, data) {
                         ${commentThread}
                     </div>
 
-                    <!-- Send Reminder -->
-                    <div class="flex gap-2">
-                        <input type="text" id="adminReminderInput" placeholder="Type a reminder to the branch…"
-                            class="flex-1 form-input text-sm py-2.5"
-                            onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();handleSendTaskReminder('${data.id}');}">
+                    <!--Send Reminder-- >
+                <div class="flex gap-2">
+                    <input type="text" id="adminReminderInput" placeholder="Type a reminder to the branch…"
+                        class="flex-1 form-input text-sm py-2.5"
+                        onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();handleSendTaskReminder('${data.id}');}">
                         <button onclick="handleSendTaskReminder('${data.id}')"
                             class="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 active:scale-95">
                             <i data-lucide="send" class="w-4 h-4"></i> Send
                         </button>
-                    </div>
-                </div>`;
+                </div>
+                </div > `;
 
             } else {
                 /* ── BRANCH VIEW ────────────────────────────────────────── */
@@ -2101,10 +2362,10 @@ window.getModalHTML = function (type, data) {
 
                 const commentThread = comments.length === 0
                     ? ''
-                    : `<div class="space-y-2 mb-4" id="taskCommentThread">
-                        <p class="text-[9px] text-indigo-500 uppercase font-black flex items-center gap-1.5">
-                            <i data-lucide="bell" class="w-3 h-3"></i> Admin Reminders &amp; Thread
-                        </p>
+                    : `< div class="space-y-2 mb-4" id = "taskCommentThread" >
+                <p class="text-[9px] text-indigo-500 uppercase font-black flex items-center gap-1.5">
+                    <i data-lucide="bell" class="w-3 h-3"></i> Admin Reminders &amp; Thread
+                </p>
                         ${comments.map(c => {
                         const isBranch = c.sender_role === 'branch';
                         return `
@@ -2120,11 +2381,12 @@ window.getModalHTML = function (type, data) {
                                     <p class="text-[9px] mt-1 ${isBranch ? 'text-indigo-300' : 'text-amber-400'}">${fmt.dateTime(c.created_at)}</p>
                                 </div>
                             </div>`;
-                    }).join('')}
-                    </div>`;
+                    }).join('')
+                    }
+                    </div > `;
 
                 return `
-                <div class="p-6">
+                < div class="p-6" >
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-xl font-bold text-gray-900">Task Details</h3>
                         <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
@@ -2181,7 +2443,7 @@ window.getModalHTML = function (type, data) {
                             </div>
                         `}
                     </div>
-                </div>`;
+                </div > `;
             }
         }
 
@@ -2192,7 +2454,7 @@ window.getModalHTML = function (type, data) {
 /* ── Edit Customer ───────────────────────── */
 function _getEditCustomerHTML(data) {
     return `
-        <div class="p-6">
+                < div class="p-6" >
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">Edit Customer</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
@@ -2217,13 +2479,13 @@ function _getEditCustomerHTML(data) {
                     <button type="submit" class="flex-1 btn-primary justify-center">Update Customer</button>
                 </div>
             </form>
-        </div>`;
+        </div > `;
 }
 
 /* ── Edit Loan ───────────────────────────── */
 function _getEditLoanHTML(data) {
     return `
-        <div class="p-6">
+                < div class="p-6" >
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">Edit Record</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
@@ -2257,7 +2519,7 @@ function _getEditLoanHTML(data) {
                     <button type="submit" class="flex-1 btn-primary justify-center">Update Record</button>
                 </div>
             </form>
-        </div>`;
+        </div > `;
 }
 
 // ── Shared loading button helper ──────────────────────────────────────────
@@ -2299,7 +2561,7 @@ window.toggleBranchPrefUI = function (btn) {
     const colorOn = btn.dataset.colorOn;
     const badgeColorOn = btn.dataset.colorBadgeOn;
     const thumb = btn.querySelector('span');
-    const badge = document.getElementById(`pref-badge-${key}`);
+    const badge = document.getElementById(`pref - badge - ${key} `);
 
     if (isCurrentlyOn) {
         // Turn OFF
@@ -2316,7 +2578,7 @@ window.toggleBranchPrefUI = function (btn) {
         btn.className = btn.className.replace('bg-gray-200', colorOn);
         if (thumb) { thumb.classList.remove('left-1'); thumb.classList.add('left-7'); }
         if (badge) {
-            badge.className = `text-[9px] font-black uppercase tracking-widest ${badgeColorOn}`;
+            badge.className = `text - [9px] font - black uppercase tracking - widest ${badgeColorOn} `;
             badge.textContent = 'Allowed';
         }
     }
@@ -2369,7 +2631,7 @@ window.handleAssignTask = async function (e) {
         await dbTasks.add(branchId, { title, description, priority, deadline });
         closeModal();
         const branch = state.branches.find(b => b.id === branchId);
-        addActivity('task_assigned', `New task assigned: ${title}`, branch?.name || 'Branch');
+        addActivity('task_assigned', `New task assigned: ${title} `, branch?.name || 'Branch');
         showToast('Task assigned successfully!', 'success');
         switchView('tasks');
     } catch (err) {
@@ -2395,7 +2657,7 @@ window.handleAddSale = async function (e) {
         if (productSelect && productSelect.selectedIndex > 0) {
             const option = productSelect.options[productSelect.selectedIndex];
             const name = option.getAttribute('data-name');
-            items = `${qty}x ${name}`;
+            items = `${qty}x ${name} `;
             productId = productSelect.value;
         } else {
             // Fallback if they didn't select (shouldn't happen with required)
@@ -2405,7 +2667,7 @@ window.handleAddSale = async function (e) {
         await dbSales.add(state.branchId, { customer, items, amount, payment, productId, qty });
         closeModal();
         const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
-        addActivity('sale', `New sale to ${customer}`, branch.name, amount);
+        addActivity('sale', `New sale to ${customer} `, branch.name, amount);
         showToast(`Sale of ${fmt.currency(amount)} recorded!`, 'success');
         switchView('sales');
     } catch (err) {
@@ -2424,7 +2686,7 @@ window.handleAddExpense = async function (e) {
         await dbExpenses.add(state.branchId, { category, description, amount });
         closeModal();
         const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
-        addActivity('expense', `Expense: ${description}`, branch.name, amount);
+        addActivity('expense', `Expense: ${description} `, branch.name, amount);
         showToast(`Expense of ${fmt.currency(amount)} recorded!`, 'success');
         switchView('expenses');
     } catch (err) {
@@ -2616,8 +2878,8 @@ window.handleAddInventoryItem = async function (e) {
         branch_id: state.branchId,
         owner_id: state.profile.id,
         type: 'inventory_add',
-        subject: `New Stock Request: ${itemData.name}`,
-        message: `Requesting to add ${itemData.quantity} units of ${itemData.name}. Supplier: ${itemData.supplier}. Total Cost Basis: ${fmt.currency(itemData.quantity * itemData.cost_price)}`,
+        subject: `New Stock Request: ${itemData.name} `,
+        message: `Requesting to add ${itemData.quantity} units of ${itemData.name}.Supplier: ${itemData.supplier}. Total Cost Basis: ${fmt.currency(itemData.quantity * itemData.cost_price)} `,
         metadata: itemData,
         priority: 'medium',
         status: 'pending'
@@ -2676,8 +2938,8 @@ window.handleRestockStock = async function (e, id) {
         branch_id: state.branchId,
         owner_id: state.profile.id,
         type: 'inventory_update', // restock existing
-        subject: `Restock Request: ${restockData.name}`,
-        message: `Requesting restock of ${restockData.quantity} units for ${restockData.name}. Supplier: ${restockData.supplier}. Cost: ${fmt.currency(restockData.quantity * restockData.cost_price)}`,
+        subject: `Restock Request: ${restockData.name} `,
+        message: `Requesting restock of ${restockData.quantity} units for ${restockData.name}.Supplier: ${restockData.supplier}.Cost: ${fmt.currency(restockData.quantity * restockData.cost_price)} `,
         metadata: restockData,
         priority: 'medium',
         status: 'pending'
@@ -2876,7 +3138,7 @@ window.handleEditInventoryAddRequest = async function (e, id) {
 
     const updateData = {
         subject: `New Stock Request: ${itemData.name} (Updated)`,
-        message: `Requesting to add ${itemData.quantity} units of ${itemData.name}. Supplier: ${itemData.supplier}. Total Cost Basis: ${fmt.currency(itemData.quantity * itemData.cost_price)}`,
+        message: `Requesting to add ${itemData.quantity} units of ${itemData.name}.Supplier: ${itemData.supplier}. Total Cost Basis: ${fmt.currency(itemData.quantity * itemData.cost_price)} `,
         metadata: itemData
     };
 
@@ -2907,7 +3169,7 @@ window.handleEditRestockRequest = async function (e, id) {
 
     const updateData = {
         subject: `Restock Request: ${restockData.name} (Updated)`,
-        message: `Requesting restock of ${restockData.quantity} units for ${restockData.name}. Supplier: ${restockData.supplier}. Cost: ${fmt.currency(restockData.quantity * restockData.cost_price)}`,
+        message: `Requesting restock of ${restockData.quantity} units for ${restockData.name}.Supplier: ${restockData.supplier}.Cost: ${fmt.currency(restockData.quantity * restockData.cost_price)} `,
         metadata: restockData
     };
 
@@ -3101,194 +3363,939 @@ window.handleMarkAttendance = async function (e) {
     } finally {
         _setSubmitLoading(btn, false, 'Save Attendance');
     }
-    /* ── Suppliers & Purchase Orders Modal Handlers ─────────────────────────── */
-    window.handleAddSupplier = async function (e) {
-        e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
-        _setSubmitLoading(btn, true);
+};
 
-        const payload = {
-            branch_id: state.branchId,
-            name: document.getElementById('supplierName').value.trim(),
-            contact_person: document.getElementById('supplierContactPerson').value.trim(),
-            phone: document.getElementById('supplierPhone').value.trim(),
-            email: document.getElementById('supplierEmail').value.trim(),
-            address: document.getElementById('supplierAddress').value.trim(),
-            status: 'active'
-        };
+/* ── Suppliers & Purchase Orders Modal Handlers ─────────────────────────── */
+window.handleAddSupplier = async function (e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    _setSubmitLoading(btn, true);
 
-        try {
-            await dbSuppliers.add(payload);
-            showToast('Supplier added successfully', 'success');
-            closeModal();
-            if (window.renderSuppliersModule) renderSuppliersModule();
-        } catch (err) {
-            showToast('Failed to add supplier: ' + err.message, 'error');
-        } finally {
-            _setSubmitLoading(btn, false, 'Save Supplier');
-        }
+    const payload = {
+        enterprise_id: state.ownerId,
+        name: document.getElementById('supplierName').value.trim(),
+        contact_person: document.getElementById('supplierContactPerson').value.trim(),
+        phone: document.getElementById('supplierPhone').value.trim(),
+        email: document.getElementById('supplierEmail').value.trim(),
+        address: document.getElementById('supplierAddress').value.trim(),
+        status: 'active'
     };
 
-    window.handleEditSupplier = async function (e, id) {
-        e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
-        _setSubmitLoading(btn, true);
+    try {
+        await dbSuppliers.add(payload);
+        showToast('Supplier added successfully', 'success');
+        closeModal();
+        if (window.renderSuppliersModule) renderSuppliersModule();
+    } catch (err) {
+        showToast('Failed to add supplier: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Save Supplier');
+    }
+};
 
-        const payload = {
-            name: document.getElementById('editSupplierName').value.trim(),
-            contact_person: document.getElementById('editSupplierContactPerson').value.trim(),
-            phone: document.getElementById('editSupplierPhone').value.trim(),
-            email: document.getElementById('editSupplierEmail').value.trim(),
-            address: document.getElementById('editSupplierAddress').value.trim(),
-            status: document.getElementById('editSupplierStatus').value
-        };
+window.handleEditSupplier = async function (e, id) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    _setSubmitLoading(btn, true);
 
-        try {
-            await dbSuppliers.update(id, payload);
-            showToast('Supplier updated', 'success');
-            closeModal();
-            if (window.renderSuppliersModule) renderSuppliersModule();
-        } catch (err) {
-            showToast('Failed to update supplier: ' + err.message, 'error');
-        } finally {
-            _setSubmitLoading(btn, false, 'Save Changes');
-        }
+    const payload = {
+        name: document.getElementById('editSupplierName').value.trim(),
+        contact_person: document.getElementById('editSupplierContactPerson').value.trim(),
+        phone: document.getElementById('editSupplierPhone').value.trim(),
+        email: document.getElementById('editSupplierEmail').value.trim(),
+        address: document.getElementById('editSupplierAddress').value.trim(),
+        status: document.getElementById('editSupplierStatus').value
     };
 
-    window.handleCreatePO = async function (e) {
-        e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
+    try {
+        await dbSuppliers.update(id, payload);
+        showToast('Supplier updated', 'success');
+        closeModal();
+        if (window.renderSuppliersModule) renderSuppliersModule();
+    } catch (err) {
+        showToast('Failed to update supplier: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Save Changes');
+    }
+};
 
-        // Gather Items
-        const items = [];
-        const rows = document.getElementById('poItemsContainer').children;
-        for (const row of rows) {
-            const name = row.querySelector('.po-item-name').value.trim();
-            const qty = parseFloat(row.querySelector('.po-item-qty').value) || 0;
-            const price = parseFloat(row.querySelector('.po-item-price').value) || 0;
-            if (name && qty > 0) {
-                items.push({
-                    item_name: name,
-                    quantity: qty,
-                    unit_price: price,
-                    total_price: qty * price
-                });
+window.handleCreatePO = async function (e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    // Gather Items
+    const items = [];
+    const rows = document.getElementById('poItemsContainer').children;
+    for (const row of rows) {
+        const name = row.querySelector('.po-item-name').value.trim();
+        const qty = parseFloat(row.querySelector('.po-item-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.po-item-price').value) || 0;
+        if (name && qty > 0) {
+            items.push({
+                item_name: name,
+                quantity: qty,
+                unit_price: price,
+                total_price: qty * price
+            });
+        }
+    }
+
+    if (items.length === 0) {
+        showToast("Please add at least one item to the PO.", "error");
+        return;
+    }
+
+    _setSubmitLoading(btn, true);
+
+    const supplierSelect = document.getElementById('poSupplierId');
+    const total_amount = parseFloat(document.getElementById('poTotalAmountVal').value) || 0;
+
+    const poPayload = {
+        branch_id: state.branchId,
+        supplier_id: supplierSelect.value,
+        supplier_name: supplierSelect.options[supplierSelect.selectedIndex].text,
+        po_number: 'PO-' + Date.now().toString().slice(-6),
+        status: 'draft',
+        total_amount: total_amount,
+        expected_date: document.getElementById('poExpectedDate').value || null
+    };
+
+    try {
+        const poId = await dbPurchaseOrders.createWithItems(poPayload, items);
+        showToast(`PO ${poPayload.po_number} created`, 'success');
+        closeModal();
+        if (window.renderSuppliersModule) renderSuppliersModule();
+    } catch (err) {
+        showToast('Failed to create PO: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Create & Save PO');
+    }
+};
+
+window.updatePOStatus = async function (poId, newStatus) {
+    try {
+        await dbPurchaseOrders.updateStatus(poId, newStatus);
+        showToast('PO status updated', 'success');
+        if (window.renderSuppliersModule) renderSuppliersModule();
+        // optionally update the modal UI or re-render it
+        const po = await dbPurchaseOrders.fetchOne(poId);
+        openModal('viewPO', po);
+    } catch (err) {
+        showToast('Failed to update PO status', 'error');
+    }
+};
+
+/* ── Quotations Modal Handlers ───────────────────────────────────────────── */
+window.handleCreateQuotation = async function (e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    // Gather Items
+    const items = [];
+    const rows = document.getElementById('quoteItemsContainer').children;
+    for (const row of rows) {
+        const name = row.querySelector('.quote-item-name').value.trim();
+        const qty = parseFloat(row.querySelector('.quote-item-qty').value) || 0;
+        const price = parseFloat(row.querySelector('.quote-item-price').value) || 0;
+        if (name && qty > 0) {
+            items.push({
+                item_name: name,
+                quantity: qty,
+                unit_price: price
+            });
+        }
+    }
+
+    if (items.length === 0) {
+        showToast("Please add at least one line item.", "error");
+        return;
+    }
+
+    _setSubmitLoading(btn, true);
+
+    const overrideName = document.getElementById('quoteCustomerNameOverride').value.trim();
+    const custSel = document.getElementById('quoteCustomerId');
+    let cId = custSel.value || null;
+    let cName = overrideName || (cId ? custSel.options[custSel.selectedIndex].text : 'Walk-in / General');
+
+    const total_amount = parseFloat(document.getElementById('quoteTotalAmountVal').value) || 0;
+
+    const quotePayload = {
+        branch_id: state.branchId,
+        customer_name: cName,
+        quote_number: 'QT-' + Date.now().toString().slice(-6),
+        status: 'draft',
+        total_amount: total_amount,
+        valid_until: document.getElementById('quoteValidUntil').value
+    };
+
+    try {
+        const quoteId = await dbQuotations.create(quotePayload, items);
+        showToast(`Quotation ${quotePayload.quote_number} generated`, 'success');
+        closeModal();
+        if (window.renderQuotationsModule) renderQuotationsModule();
+    } catch (err) {
+        showToast('Failed to generate quote: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Save & Generate Quote');
+    }
+};
+
+window.updateQuotationStatus = async function (quoteId, newStatus) {
+    try {
+        await dbQuotations.updateStatus(quoteId, newStatus);
+        showToast('Quote status updated', 'success');
+        if (window.renderQuotationsModule) renderQuotationsModule();
+        // optionally reload modal
+        const quote = await dbQuotations.fetchWithItems(quoteId);
+        if (quote) openModal('viewQuotation', quote);
+    } catch (err) {
+        showToast('Failed to update quote status', 'error');
+    }
+};
+
+window.downloadQuotationPDF = async function (quoteId) {
+    try {
+        showToast('Generating PDF...', 'info');
+        const data = await dbQuotations.fetchWithItems(quoteId);
+        if (!data) { showToast('Quotation not found', 'error'); return; }
+
+        const items = data.items || [];
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const pw = doc.internal.pageSize.width;
+        const ph = doc.internal.pageSize.height;
+        const now = new Date();
+        const m = 14; // margin
+
+        // Colors (matching existing report PDFs)
+        const accent = [75, 85, 99];      // gray-600 (report table headers)
+        const dark = [17, 24, 39];        // gray-900
+        const mid = [55, 65, 81];         // gray-700
+        const muted = [107, 114, 128];    // gray-500
+        const light = [243, 244, 246];    // gray-100
+        const border = [156, 163, 175];   // gray-400 (report summary border)
+        const white = [255, 255, 255];
+
+        // Enterprise info
+        const entName = state.enterpriseName || 'BMS Enterprise';
+        const branch = state.branchProfile || (state.branches && state.branches.find(b => b.id === state.branchId)) || {};
+        const bAddress = branch.address || branch.location || '';
+        const bPhone = branch.phone || state.profile?.phone || '';
+        const bEmail = branch.email || state.profile?.email || '';
+        const bTin = branch.branch_tin || state.profile?.tax_id || '';
+        const bRegNo = branch.branch_reg_no || branch.branch_code || '';
+        const bFax = branch.fax || '';
+
+        // Helper: draw thin line
+        const hLine = (y, x1, x2) => {
+            doc.setDrawColor(...border);
+            doc.setLineWidth(0.3);
+            doc.line(x1 || m, y, x2 || pw - m, y);
+        };
+
+        // ═══════════════════════════════════════════
+        // 1) TOP HEADER BAR
+        // ═══════════════════════════════════════════
+        doc.setFillColor(...accent);
+        doc.rect(0, 0, pw, 4, 'F'); // thin indigo accent bar
+
+        // Company Name (bold, large, left)
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setTextColor(...dark);
+        doc.text(entName, m, 18);
+
+        // "Quote" title (right-aligned, indigo)
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text('Quote', pw - m, 18, { align: 'right' });
+
+        // Slogan / Address line
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...muted);
+        doc.text(bAddress || 'Business Management System', m, 25);
+
+        // Separator
+        hLine(28);
+
+        // ═══════════════════════════════════════════
+        // 2) DATE / QUOTE NO / EXPIRATION (right box)
+        // ═══════════════════════════════════════════
+        const infoBoxX = pw / 2 + 15;
+        const infoBoxW = pw - m - infoBoxX;
+        let iy = 33;
+
+        // Date
+        doc.setFillColor(...light);
+        doc.rect(infoBoxX, iy - 4, infoBoxW, 8, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text('DATE :', infoBoxX + 2, iy);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...dark);
+        doc.text(new Date(data.created_at || now).toLocaleDateString(), pw - m - 2, iy, { align: 'right' });
+
+        iy += 10;
+        doc.setFillColor(...white);
+        doc.rect(infoBoxX, iy - 4, infoBoxW, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text('QUOTE NO :', infoBoxX + 2, iy);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text(data.quote_number || 'N/A', pw - m - 2, iy, { align: 'right' });
+
+        iy += 10;
+        doc.setFillColor(...light);
+        doc.rect(infoBoxX, iy - 4, infoBoxW, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text('EXPIRATION DATE :', infoBoxX + 2, iy);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...dark);
+        doc.text(data.valid_until ? new Date(data.valid_until).toLocaleDateString() : 'N/A', pw - m - 2, iy, { align: 'right' });
+
+        // ═══════════════════════════════════════════
+        // 3) TO / PREPARED BY (two columns)
+        // ═══════════════════════════════════════════
+        let cy = iy + 14;
+        const colMid = pw / 2 + 5;
+
+        // TO label
+        doc.setFillColor(...accent);
+        doc.rect(m, cy - 4, 20, 7, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...white);
+        doc.text('TO :', m + 2, cy);
+
+        // Prepared by label
+        doc.rect(colMid, cy - 4, 40, 7, 'F');
+        doc.setTextColor(...white);
+        doc.text('Prepared by :', colMid + 2, cy);
+
+        cy += 8;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...dark);
+
+        // Customer info (left column)
+        doc.text(data.customer_name || 'Walk-in Customer', m, cy);
+        if (data.customer_phone) {
+            cy += 5;
+            doc.text(`Phone: ${data.customer_phone}`, m, cy);
+        }
+
+        // Company info (right column)
+        let cy2 = cy - (data.customer_phone ? 5 : 0);
+        doc.text(entName, colMid, cy2);
+        cy2 += 5;
+        if (bAddress) { doc.text(bAddress, colMid, cy2); cy2 += 5; }
+        if (bPhone) { doc.text(`Phone : ${bPhone}`, colMid, cy2); cy2 += 5; }
+        if (bEmail) { doc.text(`Email : ${bEmail}`, colMid, cy2); cy2 += 5; }
+
+        cy = Math.max(cy, cy2) + 6;
+        hLine(cy);
+
+        // ═══════════════════════════════════════════
+        // 4) ITEMS TABLE
+        // ═══════════════════════════════════════════
+        cy += 4;
+
+        const columns = ['#', 'DESCRIPTION', 'QUANTITY', 'UNIT PRICE', 'TOTAL'];
+        const rows = items.map((item, i) => [
+            i + 1,
+            item.item_name || 'N/A',
+            item.quantity,
+            fmt.currency(item.unit_price),
+            fmt.currency(item.quantity * item.unit_price)
+        ]);
+
+        // Pad rows to at least 5 for visual consistency
+        while (rows.length < 5) {
+            rows.push(['', '', '', '', '']);
+        }
+
+        doc.autoTable({
+            startY: cy,
+            head: [columns],
+            body: rows,
+            theme: 'grid',
+            headStyles: {
+                fillColor: accent,
+                textColor: white,
+                fontStyle: 'bold',
+                fontSize: 9,
+                halign: 'center'
+            },
+            styles: {
+                fontSize: 9,
+                cellPadding: 3,
+                textColor: mid,
+                lineColor: border,
+                lineWidth: 0.3
+            },
+            columnStyles: {
+                0: { cellWidth: 15, halign: 'center' },
+                1: { cellWidth: 'auto' },
+                2: { cellWidth: 28, halign: 'center' },
+                3: { cellWidth: 35, halign: 'right' },
+                4: { cellWidth: 35, halign: 'right' }
+            },
+            margin: { left: m, right: m },
+            didDrawPage: function () {
+                // Page footer
+                doc.setFillColor(...light);
+                doc.rect(0, ph - 12, pw, 12, 'F');
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(...muted);
+                doc.text('Page ' + doc.internal.getNumberOfPages(), m, ph - 4);
+                doc.text(`Generated by BMS © ${now.getFullYear()}`, pw - m, ph - 4, { align: 'right' });
             }
+        });
+
+        // ═══════════════════════════════════════════
+        // 5) SUB TOTAL / TAX / GRAND TOTAL
+        // ═══════════════════════════════════════════
+        let fy = doc.lastAutoTable.finalY || cy + 40;
+        const subTotal = items.reduce((s, it) => s + (it.quantity * it.unit_price), 0);
+        const taxRate = 0; // Can be adjusted
+        const taxAmount = subTotal * taxRate;
+        const grandTotal = subTotal + taxAmount;
+        const totalsX = pw - m - 90;
+
+        // Sub Total row
+        doc.setFillColor(...light);
+        doc.setDrawColor(...border);
+        doc.setLineWidth(0.3);
+        doc.rect(totalsX, fy, 90, 9, 'FD');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text('SUB TOTAL', totalsX + 3, fy + 6);
+        doc.setTextColor(...dark);
+        doc.text(fmt.currency(subTotal), pw - m - 3, fy + 6, { align: 'right' });
+
+        fy += 9;
+        // Tax row
+        doc.setFillColor(...white);
+        doc.rect(totalsX, fy, 90, 9, 'FD');
+        doc.setTextColor(...mid);
+        doc.text(`TAX ${taxRate > 0 ? (taxRate * 100) + '%' : ''}`, totalsX + 3, fy + 6);
+        doc.setTextColor(...dark);
+        doc.text(fmt.currency(taxAmount), pw - m - 3, fy + 6, { align: 'right' });
+
+        fy += 9;
+        // Grand Total row (indigo bg)
+        doc.setFillColor(...accent);
+        doc.rect(totalsX, fy, 90, 11, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...white);
+        doc.text('GRAND TOTAL', totalsX + 3, fy + 7.5);
+        doc.text(fmt.currency(grandTotal), pw - m - 3, fy + 7.5, { align: 'right' });
+
+        // ═══════════════════════════════════════════
+        // 6) INSTRUCTIONS
+        // ═══════════════════════════════════════════
+        fy += 18;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text('INSTRUCTIONS:', m, fy);
+        fy += 6;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...mid);
+        doc.text('1. Once signed, please fax or mail it to the provided address.', m + 3, fy);
+        fy += 4;
+        if (data.notes) {
+            doc.text(`2. ${data.notes}`, m + 3, fy);
+            fy += 4;
+        }
+        doc.text(`${data.notes ? '3' : '2'}. This quotation is valid until ${data.valid_until ? new Date(data.valid_until).toLocaleDateString() : 'further notice'}.`, m + 3, fy);
+
+        // ═══════════════════════════════════════════
+        // 7) ACCEPTANCE / SIGNATURE SECTION
+        // ═══════════════════════════════════════════
+        fy += 10;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(...mid);
+        doc.text('Please confirm your acceptance of this quote by signing this document:', m, fy);
+
+        fy += 5;
+        // Signature table
+        doc.autoTable({
+            startY: fy,
+            head: [['NAME', 'SIGNATURE', 'DATE']],
+            body: [['', '', '']],
+            theme: 'grid',
+            headStyles: {
+                fillColor: accent,
+                textColor: white,
+                fontStyle: 'bold',
+                fontSize: 8,
+                halign: 'center',
+                cellPadding: 2
+            },
+            styles: {
+                fontSize: 8,
+                cellPadding: 3,
+                textColor: mid,
+                lineColor: border,
+                lineWidth: 0.3,
+                minCellHeight: 10
+            },
+            columnStyles: {
+                0: { cellWidth: 80 },
+                1: { cellWidth: 60 },
+                2: { cellWidth: 40 }
+            },
+            margin: { left: m, right: m }
+        });
+
+        // ═══════════════════════════════════════════
+        // 8) THANK YOU FOOTER
+        // ═══════════════════════════════════════════
+        let footY = doc.lastAutoTable.finalY + 8;
+
+        // Check if we have enough space, if not add page
+        if (footY > ph - 40) {
+            doc.addPage();
+            footY = 20;
         }
 
-        if (items.length === 0) {
-            showToast("Please add at least one item to the PO.", "error");
-            return;
-        }
+        // "Thank you" banner
+        doc.setFillColor(...light);
+        doc.rect(m, footY, pw - m * 2, 12, 'F');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text('THANK YOU FOR YOUR BUSINESS!', pw / 2, footY + 8, { align: 'center' });
 
-        _setSubmitLoading(btn, true);
+        footY += 16;
 
-        const supplierSelect = document.getElementById('poSupplierId');
-        const total_amount = parseFloat(document.getElementById('poTotalAmountVal').value) || 0;
+        // Enquiries notice
+        doc.setFillColor(...accent);
+        doc.rect(m + 10, footY, pw - m * 2 - 20, 8, 'F');
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...white);
+        const enquiryText = `Should you have any enquiries concerning this quote, contact us on ${bPhone || bEmail || 'our office line'}`;
+        doc.text(enquiryText, pw / 2, footY + 5, { align: 'center' });
 
-        const poPayload = {
-            branch_id: state.branchId,
-            supplier_id: supplierSelect.value,
-            supplier_name: supplierSelect.options[supplierSelect.selectedIndex].text,
-            po_number: 'PO-' + Date.now().toString().slice(-6),
-            status: 'draft',
-            total_amount: total_amount,
-            expected_date: document.getElementById('poExpectedDate').value || null
+        footY += 12;
+
+        // Contact footer row
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...mid);
+        if (bPhone) doc.text(`Tel : ${bPhone}`, m, footY);
+        if (bEmail) doc.text(`E-mail : ${bEmail}`, pw - m, footY, { align: 'right' });
+
+        doc.save(`${data.quote_number || 'quotation'}_${Date.now()}.pdf`);
+        showToast('PDF downloaded', 'success');
+    } catch (err) {
+        console.error('PDF generation failed:', err);
+        showToast('Failed to generate PDF: ' + err.message, 'error');
+    }
+};
+
+window.downloadDocumentPDF = async function (docId) {
+    try {
+        showToast('Generating PDF...', 'info');
+        const data = await dbDocuments.fetchOne(docId);
+        if (!data) { showToast('Document not found', 'error'); return; }
+
+        const title = data.type === 'invoice' ? 'Invoice' : 'Receipt';
+        const docPrefix = data.type === 'invoice' ? 'INV' : 'REC';
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const pw = doc.internal.pageSize.width;
+        const ph = doc.internal.pageSize.height;
+        const now = new Date();
+        const m = 14;
+
+        // Colors
+        const accent = [75, 85, 99];      // gray-600 (Matching quotation headers)
+        const dark = [17, 24, 39];
+        const mid = [55, 65, 81];
+        const muted = [107, 114, 128];
+        const light = [243, 244, 246];
+        const border = [156, 163, 175];
+        const white = [255, 255, 255];
+
+        const entName = state.enterpriseName || 'BMS Enterprise';
+        const branch = state.branchProfile || (state.branches && state.branches.find(b => b.id === state.branchId)) || {};
+        const bAddress = branch.address || branch.location || '';
+        const bPhone = branch.phone || state.profile?.phone || '';
+        const bEmail = branch.email || state.profile?.email || '';
+
+        const hLine = (y, x1, x2) => {
+            doc.setDrawColor(...border);
+            doc.setLineWidth(0.3);
+            doc.line(x1 || m, y, x2 || pw - m, y);
         };
 
-        try {
-            const poId = await dbPurchaseOrders.createWithItems(poPayload, items);
-            showToast(`PO ${poPayload.po_number} created`, 'success');
-            closeModal();
-            if (window.renderSuppliersModule) renderSuppliersModule();
-        } catch (err) {
-            showToast('Failed to create PO: ' + err.message, 'error');
-        } finally {
-            _setSubmitLoading(btn, false, 'Create & Save PO');
+        // TOP HEADER
+        doc.setFillColor(...accent);
+        doc.rect(0, 0, pw, 4, 'F');
+
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setTextColor(...dark);
+        doc.text(entName, m, 18);
+
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text(title.toUpperCase(), pw - m, 18, { align: 'right' });
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...muted);
+        doc.text(bAddress || 'Business Management System', m, 25);
+
+        hLine(28);
+
+        // DATE / NO
+        const infoBoxX = pw / 2 + 15;
+        const infoBoxW = pw - m - infoBoxX;
+        let iy = 33;
+
+        doc.setFillColor(...light);
+        doc.rect(infoBoxX, iy - 4, infoBoxW, 8, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text('DATE :', infoBoxX + 2, iy);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...dark);
+        doc.text(new Date(data.created_at || now).toLocaleDateString(), pw - m - 2, iy, { align: 'right' });
+
+        iy += 10;
+        doc.setFillColor(...white);
+        doc.rect(infoBoxX, iy - 4, infoBoxW, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text(`${docPrefix} NO :`, infoBoxX + 2, iy);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text(data.document_number || 'N/A', pw - m - 2, iy, { align: 'right' });
+
+        if (data.reference_number) {
+            iy += 10;
+            doc.setFillColor(...light);
+            doc.rect(infoBoxX, iy - 4, infoBoxW, 8, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...mid);
+            doc.text('REF NO :', infoBoxX + 2, iy);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(...dark);
+            doc.text(data.reference_number, pw - m - 2, iy, { align: 'right' });
         }
-    };
 
-    window.updatePOStatus = async function (poId, newStatus) {
-        try {
-            await dbPurchaseOrders.updateStatus(poId, newStatus);
-            showToast('PO status updated', 'success');
-            if (window.renderSuppliersModule) renderSuppliersModule();
-            // optionally update the modal UI or re-render it
-            const po = await dbPurchaseOrders.fetchOne(poId);
-            openModal('viewPO', po);
-        } catch (err) {
-            showToast('Failed to update PO status', 'error');
+        // TO / FROM Section - Positioned below the info boxes
+        let cy = iy + 14;
+        const colMid = pw / 2 + 5;
+
+        doc.setFillColor(...accent);
+
+        // BILL TO label (Left Column)
+        doc.rect(m, cy - 4, 30, 7, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...white);
+        doc.text(data.type === 'invoice' ? 'BILL TO :' : 'RECEIVED FROM :', m + 2, cy);
+
+        // FROM label (Right Column - Aligned with info boxes)
+        doc.setFillColor(...accent);
+        doc.rect(infoBoxX, cy - 4, 20, 7, 'F');
+        doc.setTextColor(...white);
+        doc.text('FROM :', infoBoxX + 2, cy);
+
+        cy += 8; // Move text contents down after labels
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...dark);
+
+        // TO Column (Left)
+        doc.text(data.customer_name || 'Walk-in Customer', m, cy);
+        let cyL = cy;
+        if (data.customer_email) {
+            cyL += 5;
+            doc.text(`Email: ${data.customer_email}`, m, cyL);
         }
-    };
 
-    /* ── Quotations Modal Handlers ───────────────────────────────────────────── */
-    window.handleCreateQuotation = async function (e) {
-        e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
+        // FROM Column (Right) - Business details strictly below the label
+        let cyR = cy;
+        doc.setFont('helvetica', 'bold');
+        doc.text(entName, infoBoxX, cyR);
+        doc.setFont('helvetica', 'normal');
+        cyR += 5;
+        if (bAddress) { doc.text(bAddress, infoBoxX, cyR); cyR += 5; }
+        if (bPhone) { doc.text(`Phone : ${bPhone}`, infoBoxX, cyR); cyR += 5; }
+        if (bEmail) { doc.text(`Email : ${bEmail}`, infoBoxX, cyR); cyR += 5; }
 
-        // Gather Items
-        const items = [];
-        const rows = document.getElementById('quoteItemsContainer').children;
-        for (const row of rows) {
-            const name = row.querySelector('.quote-item-name').value.trim();
-            const qty = parseFloat(row.querySelector('.quote-item-qty').value) || 0;
-            const price = parseFloat(row.querySelector('.quote-item-price').value) || 0;
-            if (name && qty > 0) {
-                items.push({
-                    item_name: name,
-                    quantity: qty,
-                    unit_price: price,
-                    total_price: qty * price
-                });
+        cy = Math.max(cyL, cyR) + 6;
+        hLine(cy);
+
+        // ═══════════════════════════════════════════
+        // 4) ITEMS TABLE
+        // ═══════════════════════════════════════════
+        cy += 4;
+        const items = data.document_items || [];
+        const columns = ['#', 'DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL'];
+        const rows = items.map((item, i) => [
+            i + 1,
+            item.item_name || 'N/A',
+            item.quantity,
+            fmt.currency(item.unit_price),
+            fmt.currency(item.quantity * item.unit_price)
+        ]);
+
+        // Fallback if no items but have description
+        if (rows.length === 0 && data.description) {
+            rows.push([1, data.description, 1, fmt.currency(data.amount), fmt.currency(data.amount)]);
+        }
+
+        doc.autoTable({
+            startY: cy,
+            head: [columns],
+            body: rows,
+            theme: 'grid',
+            headStyles: {
+                fillColor: accent,
+                textColor: white,
+                fontStyle: 'bold',
+                fontSize: 9,
+                halign: 'center'
+            },
+            styles: {
+                fontSize: 9,
+                cellPadding: 3,
+                textColor: mid,
+                lineColor: border,
+                lineWidth: 0.3
+            },
+            columnStyles: {
+                0: { cellWidth: 12, halign: 'center' },
+                1: { cellWidth: 'auto' },
+                2: { cellWidth: 20, halign: 'center' },
+                3: { cellWidth: 35, halign: 'right' },
+                4: { cellWidth: 35, halign: 'right' }
+            },
+            margin: { left: m, right: m }
+        });
+
+        // ═══════════════════════════════════════════
+        // 5) FINANCIAL SUMMARY
+        // ═══════════════════════════════════════════
+        let fy = doc.lastAutoTable.finalY + 10;
+        const totalsX = pw - m - 90;
+
+        // Subtotal row
+        const subTotalAmount = items.reduce((sum, it) => sum + (it.quantity * it.unit_price), 0) || data.amount;
+        doc.setFillColor(...light);
+        doc.setDrawColor(...border);
+        doc.rect(totalsX, fy, 90, 9, 'FD');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...mid);
+        doc.text('SUB TOTAL', totalsX + 3, fy + 6);
+        doc.setTextColor(...dark);
+        doc.text(fmt.currency(subTotalAmount), pw - m - 3, fy + 6, { align: 'right' });
+
+        // Grand Total row
+        fy += 9;
+        doc.setFillColor(...accent);
+        doc.rect(totalsX, fy, 90, 11, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...white);
+        doc.text('GRAND TOTAL', totalsX + 3, fy + 7.5);
+        doc.text(fmt.currency(data.amount), pw - m - 3, fy + 7.5, { align: 'right' });
+
+        // Description/Notes below table if it exists
+        if (data.description && items.length > 0) {
+            fy += 18;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...dark);
+            doc.text('NOTES:', m, fy);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(...mid);
+            const splitNote = doc.splitTextToSize(data.description, pw - m * 2 - 10);
+            doc.text(splitNote, m, fy + 6);
+            fy += (splitNote.length * 5);
+        }
+
+        if (data.payment_method) {
+            fy += 12;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...dark);
+            doc.text('PAYMENT METHOD:', m, fy);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(...mid);
+            doc.text(data.payment_method, m, fy + 6);
+        }
+
+        // THANK YOU FOOTER
+        let footY = ph - 60;
+
+        doc.setFillColor(...light);
+        doc.rect(m, footY, pw - m * 2, 12, 'F');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...accent);
+        doc.text('THANK YOU FOR YOUR BUSINESS!', pw / 2, footY + 8, { align: 'center' });
+
+        footY += 16;
+
+        doc.setFillColor(...accent);
+        doc.rect(m + 10, footY, pw - m * 2 - 20, 8, 'F');
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...white);
+        const enquiryText = `Should you have any enquiries concerning this ${title.toLowerCase()}, contact us on ${bPhone || bEmail || 'our office line'}`;
+        doc.text(enquiryText, pw / 2, footY + 5, { align: 'center' });
+
+        footY += 12;
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...mid);
+        if (bPhone) doc.text(`Tel : ${bPhone}`, m, footY);
+        if (bEmail) doc.text(`E-mail : ${bEmail}`, pw - m, footY, { align: 'right' });
+
+        doc.save(`${data.document_number || 'document'}_${Date.now()}.pdf`);
+        showToast('PDF downloaded', 'success');
+    } catch (err) {
+        console.error('PDF generation failed:', err);
+        showToast('Failed to generate PDF: ' + err.message, 'error');
+    }
+};
+
+// Add missing init logic if not existing:
+window.initPoModal = function () {
+    if (!window.addPoItemRow) {
+        window.addPoItemRow = function () {
+            const c = document.getElementById('poItemsContainer');
+            if (!c) return;
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 items-center';
+            div.innerHTML = `
+                <input type="text" class="po-item-name form-input flex-1 text-sm" placeholder="Item Name / Part">
+                <input type="number" step="0.01" class="po-item-qty form-input w-20 text-sm" placeholder="Qty" oninput="window.calcPoTotal()">
+                <input type="number" step="0.01" class="po-item-price form-input w-24 text-sm" placeholder="Price" oninput="window.calcPoTotal()">
+                <button type="button" onclick="this.parentElement.remove(); window.calcPoTotal()" class="text-red-500 hover:text-red-700 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+            `;
+            c.appendChild(div);
+            lucide.createIcons();
+        };
+    }
+
+    if (!window.calcPoTotal) {
+        window.calcPoTotal = function () {
+            let total = 0;
+            const rows = document.getElementById('poItemsContainer').children;
+            for (const row of rows) {
+                const qty = parseFloat(row.querySelector('.po-item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.po-item-price').value) || 0;
+                total += (qty * price);
             }
-        }
-
-        if (items.length === 0) {
-            showToast("Please add at least one line item.", "error");
-            return;
-        }
-
-        _setSubmitLoading(btn, true);
-
-        const overrideName = document.getElementById('quoteCustomerNameOverride').value.trim();
-        const custSel = document.getElementById('quoteCustomerId');
-        let cId = custSel.value || null;
-        let cName = overrideName || (cId ? custSel.options[custSel.selectedIndex].text : 'Walk-in / General');
-
-        const total_amount = parseFloat(document.getElementById('quoteTotalAmountVal').value) || 0;
-
-        const quotePayload = {
-            branch_id: state.branchId,
-            customer_id: cId,
-            customer_name: cName,
-            quote_number: 'QT-' + Date.now().toString().slice(-6),
-            status: 'draft',
-            total_amount: total_amount,
-            valid_until: document.getElementById('quoteValidUntil').value
+            const display = document.getElementById('poTotalAmountDisplay');
+            const val = document.getElementById('poTotalAmountVal');
+            if (display) display.value = fmt.currency(total);
+            if (val) val.value = total;
         };
+    }
 
-        try {
-            const quoteId = await dbQuotations.create(quotePayload, items);
-            showToast(`Quotation ${quotePayload.quote_number} generated`, 'success');
-            closeModal();
-            if (window.renderQuotationsModule) renderQuotationsModule();
-        } catch (err) {
-            showToast('Failed to generate quote: ' + err.message, 'error');
-        } finally {
-            _setSubmitLoading(btn, false, 'Save & Generate Quote');
-        }
-    };
+    setTimeout(window.addPoItemRow, 100);
 
-    window.updateQuotationStatus = async function (quoteId, newStatus) {
-        try {
-            await dbQuotations.updateStatus(quoteId, newStatus);
-            showToast('Quote status updated', 'success');
-            if (window.renderQuotationsModule) renderQuotationsModule();
-            // optionally reload modal
-            const quote = await dbQuotations.fetchWithItems(quoteId);
-            if (quote) openModal('viewQuotation', quote);
-        } catch (err) {
-            showToast('Failed to update quote status', 'error');
+    const supplierSel = document.getElementById('poSupplierId');
+    if (supplierSel && !window._currentSuppliersList) {
+        dbSuppliers.fetchAll(state.ownerId).then(suppliers => {
+            window._currentSuppliersList = suppliers;
+            if (suppliers.length === 0) {
+                supplierSel.innerHTML = '<option disabled>No suppliers available</option>';
+            } else {
+                supplierSel.innerHTML = suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            }
+        }).catch(err => {
+            supplierSel.innerHTML = '<option disabled>Failed to load suppliers</option>';
+            console.error(err);
+        });
+    } else if (supplierSel && window._currentSuppliersList) {
+        if (window._currentSuppliersList.length === 0) {
+            supplierSel.innerHTML = '<option disabled>No suppliers available</option>';
+        } else {
+            supplierSel.innerHTML = window._currentSuppliersList.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         }
-    };
+    }
+};
+
+window.initQuoteModal = function () {
+    if (!window.addQuoteItemRow) {
+        window.addQuoteItemRow = function () {
+            const c = document.getElementById('quoteItemsContainer');
+            if (!c) return;
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 items-center';
+            div.innerHTML = `
+                    <input type="text" class="quote-item-name form-input flex-1 text-sm" placeholder="Item/Service">
+                    <input type="number" step="0.01" class="quote-item-qty form-input w-20 text-sm" placeholder="Qty" oninput="window.calcQuoteTotal()">
+                    <input type="number" step="0.01" class="quote-item-price form-input w-24 text-sm" placeholder="Price" oninput="window.calcQuoteTotal()">
+                    <button type="button" onclick="this.parentElement.remove(); window.calcQuoteTotal()" class="text-red-500 hover:text-red-700 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+                `;
+            c.appendChild(div);
+            lucide.createIcons();
+        };
+    }
+
+    if (!window.calcQuoteTotal) {
+        window.calcQuoteTotal = function () {
+            let total = 0;
+            const rows = document.getElementById('quoteItemsContainer').children;
+            for (const row of rows) {
+                const qty = parseFloat(row.querySelector('.quote-item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.quote-item-price').value) || 0;
+                total += (qty * price);
+            }
+            const display = document.getElementById('quoteTotalAmountDisplay');
+            const val = document.getElementById('quoteTotalAmountVal');
+            if (display) display.value = fmt.currency(total);
+            if (val) val.value = total;
+        };
+    }
+
+    setTimeout(window.addQuoteItemRow, 100);
+
+    const customerSel = document.getElementById('quoteCustomerId');
+    if (customerSel && !window._currentCustomersList) {
+        dbCustomers.fetchAllList(state.branchId).then(customers => {
+            window._currentCustomersList = customers;
+            let html = '<option value="">Walk-in Customer</option>';
+            if (customers.length > 0) {
+                html += customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+            customerSel.innerHTML = html;
+        }).catch(err => {
+            console.error(err);
+        });
+    } else if (customerSel && window._currentCustomersList) {
+        let html = '<option value="">Walk-in Customer</option>';
+        if (window._currentCustomersList.length > 0) {
+            html += window._currentCustomersList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+        customerSel.innerHTML = html;
+    }
 };

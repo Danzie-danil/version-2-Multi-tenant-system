@@ -142,6 +142,10 @@ window.openEditModal = async function (type, id) {
             case 'editNote': data = await dbNotes.fetchOne(id); break;
             case 'editCustomer': data = await dbCustomers.fetchOne(id); break;
             case 'editLoan': data = await dbLoans.fetchOne(id); break;
+            case 'editSupplier': data = await dbSuppliers.fetchOne(id); break;
+            case 'editStaff': data = await dbStaff.fetchOne(id); break;
+            case 'viewPO': data = await dbPurchaseOrders.fetchWithItems(id); break;
+            case 'viewQuotation': data = await dbQuotations.fetchWithItems(id); break;
         }
         if (data) openModal(type, data);
     } catch (err) {
@@ -492,6 +496,14 @@ window.openModal = function (type, data = null) {
     lucide.createIcons();
     // Reinitialize number formatting after modal content is injected
     initNumberFormatting();
+
+    // Init specific modals that require JavaScript logic
+    if (type === 'addPO') {
+        setTimeout(() => { if (window.initPoModal) window.initPoModal() }, 50);
+    }
+    if (type === 'createQuotation') {
+        setTimeout(() => { if (window.initQuoteModal) window.initQuoteModal() }, 50);
+    }
 };
 
 /* ── Activity Feed Helper ────────────────────────── */

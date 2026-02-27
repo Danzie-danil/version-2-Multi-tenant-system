@@ -175,7 +175,7 @@ window.renderStaffModule = function () {
                     ` : pagedRecords.map(rec => {
             const isActive = rec.status === 'active';
             return `
-                        <div onclick="openModal('editStaff', '${rec.id}')" data-search="${(rec.name || '').toLowerCase()} ${(rec.role || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[4px] ${isActive ? 'border-l-indigo-500' : 'border-l-gray-400'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                        <div onclick="openEditModal('editStaff', '${rec.id}')" data-search="${(rec.name || '').toLowerCase()} ${(rec.role || '').toLowerCase()}" class="bg-white border border-gray-200 border-l-[4px] ${isActive ? 'border-l-indigo-500' : 'border-l-gray-400'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
                             <div class="pt-1" onclick="event.stopPropagation()">
                                 <input type="checkbox" value="${rec.id}" onchange="toggleStaffSelection('${rec.id}')" class="staff-checkbox rounded w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.staffSelection.has(rec.id) ? 'checked' : ''}>
                             </div>

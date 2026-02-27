@@ -130,7 +130,7 @@ window.renderSuppliersModule = async function () {
 async function renderSuppliersList() {
     const area = document.getElementById('suppliersContentArea');
     try {
-        const records = await dbSuppliers.fetchAll(state.branchId);
+        const records = await dbSuppliers.fetchAll(state.ownerId);
         window.suppliersPageState.totalCount = records.length;
 
         const startIdx = (window.suppliersPageState.page - 1) * window.suppliersPageState.pageSize;
@@ -172,7 +172,7 @@ async function renderSuppliersList() {
                         <p class="text-gray-400 text-sm">No suppliers found</p>
                     </div>
                 ` : pagedRecords.map(rec => `
-                    <div onclick="openModal('editSupplier', '${rec.id}')" data-search="${(rec.name || '').toLowerCase()} ${(rec.contact_person || '').toLowerCase()}" class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex gap-4 hover:border-indigo-300 hover:shadow-md transition-all group relative cursor-pointer">
+                    <div onclick="openEditModal('editSupplier', '${rec.id}')" data-search="${(rec.name || '').toLowerCase()} ${(rec.contact_person || '').toLowerCase()}" class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex gap-4 hover:border-indigo-300 hover:shadow-md transition-all group relative cursor-pointer">
                         <div class="pt-1" onclick="event.stopPropagation()">
                             <input type="checkbox" value="${rec.id}" onchange="toggleSupplierSelection('${rec.id}')" class="supplier-checkbox rounded w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.suppliersSelection.has(rec.id) ? 'checked' : ''}>
                         </div>
@@ -269,7 +269,7 @@ async function renderPOsList() {
                         <p class="text-gray-400 text-sm">No purchase orders found</p>
                     </div>
                 ` : pagedRecords.map(rec => `
-                    <div onclick="openModal('viewPO', '${rec.id}')" data-search="${(rec.po_number || '').toLowerCase()} ${(rec.supplier_name || '').toLowerCase()}" class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex gap-4 hover:border-indigo-300 hover:shadow-md transition-all group relative cursor-pointer">
+                    <div onclick="openEditModal('viewPO', '${rec.id}')" data-search="${(rec.po_number || '').toLowerCase()} ${(rec.supplier_name || '').toLowerCase()}" class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex gap-4 hover:border-indigo-300 hover:shadow-md transition-all group relative cursor-pointer">
                         <div class="pt-1" onclick="event.stopPropagation()">
                             <input type="checkbox" value="${rec.id}" onchange="toggleSupplierSelection('${rec.id}')" class="supplier-checkbox rounded w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.suppliersSelection.has(rec.id) ? 'checked' : ''}>
                         </div>

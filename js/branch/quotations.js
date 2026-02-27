@@ -147,7 +147,7 @@ async function renderQuotationsList() {
                         <p class="text-gray-400 text-sm">No quotations created yet</p>
                     </div>
                 ` : pagedRecords.map(rec => `
-                    <div onclick="openModal('viewQuotation', '${rec.id}')" data-search="${(rec.quote_number || '').toLowerCase()} ${(rec.customer_name || '').toLowerCase()}" class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex gap-4 hover:border-indigo-300 hover:shadow-md transition-all group relative cursor-pointer">
+                    <div onclick="openEditModal('viewQuotation', '${rec.id}')" data-search="${(rec.quote_number || '').toLowerCase()} ${(rec.customer_name || '').toLowerCase()}" class="bg-white border border-gray-200 rounded-2xl p-5 md:p-6 flex gap-4 hover:border-indigo-300 hover:shadow-md transition-all group relative cursor-pointer">
                         <div class="pt-1" onclick="event.stopPropagation()">
                             <input type="checkbox" value="${rec.id}" onchange="toggleQuotationSelection('${rec.id}')" class="quotation-checkbox rounded w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" ${window.quotationsSelection.has(rec.id) ? 'checked' : ''}>
                         </div>

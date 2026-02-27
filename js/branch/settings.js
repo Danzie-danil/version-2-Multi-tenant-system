@@ -51,6 +51,48 @@ window.renderBranchSettings = function () {
                 </div>
             </div>
 
+            <!-- Section: Avatar & Identity -->
+            <div class="p-8 border-b border-gray-50 group transition-colors hover:bg-gray-50/30">
+                <div class="flex items-center justify-between mb-6 text-indigo-700">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="image" class="w-5 h-5"></i>
+                        <h3 class="text-lg font-bold">Branch Avatar</h3>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="relative group">
+                        <div id="branch_avatar_preview" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 text-xl font-bold overflow-hidden border-2 border-white shadow-md ring-2 ring-indigo-50">
+                            ${branch.avatar_url ? `<img src="${branch.avatar_url}" class="w-full h-full object-cover">` : (branch.name ? branch.name.charAt(0).toUpperCase() : 'B')}
+                        </div>
+                        <!-- We only allow uploading if they click a button or the image -->
+                        <label for="set_branch_avatar_file" class="absolute bottom-0 right-0 p-1.5 bg-indigo-600 text-white rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-all border-2 border-white scale-90 group-hover:scale-100">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                            <input type="file" id="set_branch_avatar_file" accept="image/*" class="hidden" onchange="handleBranchAvatarUpload(this)">
+                        </label>
+                    </div>
+                    <div class="flex-1" id="branch_avatar_controls">
+                        <h4 class="text-sm font-bold text-gray-900 mb-1">Upload Branch Image</h4>
+                        <p class="text-xs text-gray-500 mb-3">Square images work best. Max size 2MB.</p>
+                        <input type="hidden" id="branch_set_avatar_url" value="${branch.avatar_url || ''}" onchange="autoSaveBranchSettings()">
+                        <div class="flex items-center gap-2">
+                            ${branch.avatar_url ? `
+                                <button type="button" onclick="document.getElementById('set_branch_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                                    Replace
+                                </button>
+                                <button type="button" onclick="removeBranchAvatar()" class="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 rounded-lg border border-red-100 transition-colors">
+                                    Remove
+                                </button>
+                            ` : `
+                                <button type="button" onclick="document.getElementById('set_branch_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                                    Choose Image from Files
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Section: Contact Details -->
             <div class="p-8 border-b border-gray-50 group transition-colors hover:bg-gray-50/30">
                 <div class="flex items-center justify-between mb-6 text-indigo-700">
@@ -58,25 +100,22 @@ window.renderBranchSettings = function () {
                         <i data-lucide="phone" class="w-5 h-5"></i>
                         <h3 class="text-lg font-bold">Contact Details</h3>
                     </div>
-                    <button onclick="enableSectionEditing('contactDetailsSection', this)" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer" title="Edit Section">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    </button>
                 </div>
                 
-                <div id="contactDetailsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 editable-section opacity-75 grayscale-[20%] transition-all">
+                <div id="contactDetailsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 transition-all">
                     <div class="col-span-1">
                         <label for="branch_set_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input type="tel" id="branch_set_phone" value="${branch.phone || ''}" class="form-input w-full bg-gray-50" placeholder="+1 (555) 123-4567" disabled onchange="autoSaveBranchSettings()">
+                        <input type="tel" id="branch_set_phone" value="${branch.phone || ''}" class="form-input w-full" placeholder="+1 (555) 123-4567" onchange="autoSaveBranchSettings()">
                     </div>
                     
                     <div class="col-span-1">
                         <label for="branch_set_email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                        <input type="email" id="branch_set_email" value="${branch.email || ''}" class="form-input w-full bg-gray-50" placeholder="branch@example.com" disabled onchange="autoSaveBranchSettings()">
+                        <input type="email" id="branch_set_email" value="${branch.email || ''}" class="form-input w-full" placeholder="branch@example.com" onchange="autoSaveBranchSettings()">
                     </div>
                     
                     <div class="col-span-1 md:col-span-2 mt-4">
                         <label for="branch_set_address" class="block text-sm font-medium text-gray-700 mb-1">Physical Address</label>
-                        <textarea id="branch_set_address" class="form-input w-full bg-gray-50" rows="2" placeholder="123 Main St, City, Country" disabled onchange="autoSaveBranchSettings()">${branch.address || ''}</textarea>
+                        <textarea id="branch_set_address" class="form-input w-full" rows="2" placeholder="123 Main St, City, Country" onchange="autoSaveBranchSettings()">${branch.address || ''}</textarea>
                     </div>
                 </div>
             </div>
@@ -88,20 +127,17 @@ window.renderBranchSettings = function () {
                         <i data-lucide="briefcase" class="w-5 h-5"></i>
                         <h3 class="text-lg font-bold">Legal & Tax Identification</h3>
                     </div>
-                    <button onclick="enableSectionEditing('legalInfoSection', this)" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer" title="Edit Section">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    </button>
                 </div>
                 
-                <div id="legalInfoSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 editable-section opacity-75 grayscale-[20%] transition-all">
+                <div id="legalInfoSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 transition-all">
                     <div class="col-span-1">
                         <label for="branch_set_reg_no" class="block text-sm font-medium text-gray-700 mb-1">Business Registration No.</label>
-                        <input type="text" id="branch_set_reg_no" value="${branch.branch_reg_no || ''}" class="form-input w-full bg-gray-50" placeholder="e.g. REG-55214" disabled onchange="autoSaveBranchSettings()">
+                        <input type="text" id="branch_set_reg_no" value="${branch.branch_reg_no || ''}" class="form-input w-full" placeholder="e.g. REG-55214" onchange="autoSaveBranchSettings()">
                     </div>
                     
                     <div class="col-span-1">
                         <label for="branch_set_tin" class="block text-sm font-medium text-gray-700 mb-1">Tax Identification Number (TIN)</label>
-                        <input type="text" id="branch_set_tin" value="${branch.branch_tin || ''}" class="form-input w-full bg-gray-50" placeholder="e.g. TIN-998877" disabled onchange="autoSaveBranchSettings()">
+                        <input type="text" id="branch_set_tin" value="${branch.branch_tin || ''}" class="form-input w-full" placeholder="e.g. TIN-998877" onchange="autoSaveBranchSettings()">
                     </div>
                 </div>
             </div>
@@ -113,27 +149,24 @@ window.renderBranchSettings = function () {
                         <i data-lucide="clock" class="w-5 h-5"></i>
                         <h3 class="text-lg font-bold">Operational Settings</h3>
                     </div>
-                    <button onclick="enableSectionEditing('opsSettingsSection', this)" class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer" title="Edit Section">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i>
-                    </button>
                 </div>
                 
-                <div id="opsSettingsSection" class="grid grid-cols-1 md:grid-cols-3 gap-6 editable-section opacity-75 grayscale-[20%] transition-all">
+                <div id="opsSettingsSection" class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all">
                     <div class="col-span-1">
                         <label for="branch_set_tax" class="block text-sm font-medium text-gray-700 mb-1">Default Tax Rate (%)</label>
-                        <input type="number" id="branch_set_tax" value="${branch.tax_rate || 0}" step="0.01" class="form-input w-full bg-gray-50" placeholder="0.00" disabled onchange="autoSaveBranchSettings()">
+                        <input type="number" id="branch_set_tax" value="${branch.tax_rate || 0}" step="0.01" class="form-input w-full" placeholder="0.00" onchange="autoSaveBranchSettings()">
                     </div>
                     <div class="col-span-1">
                         <label for="branch_set_open" class="block text-sm font-medium text-gray-700 mb-1">Opening Time</label>
-                        <input type="time" id="branch_set_open" value="${branch.opening_time || '08:00'}" class="form-input w-full bg-gray-50" disabled onchange="autoSaveBranchSettings()">
+                        <input type="time" id="branch_set_open" value="${branch.opening_time || '08:00'}" class="form-input w-full" onchange="autoSaveBranchSettings()">
                     </div>
                     <div class="col-span-1">
                         <label for="branch_set_close" class="block text-sm font-medium text-gray-700 mb-1">Closing Time</label>
-                        <input type="time" id="branch_set_close" value="${branch.closing_time || '18:00'}" class="form-input w-full bg-gray-50" disabled onchange="autoSaveBranchSettings()">
+                        <input type="time" id="branch_set_close" value="${branch.closing_time || '18:00'}" class="form-input w-full" onchange="autoSaveBranchSettings()">
                     </div>
                     <div class="col-span-1 md:col-span-3 flex items-center gap-3 mt-2">
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="branch_set_notifs" ${branch.low_stock_notifications ? 'checked' : ''} class="sr-only peer" disabled onchange="autoSaveBranchSettings()">
+                            <input type="checkbox" id="branch_set_notifs" ${branch.low_stock_notifications ? 'checked' : ''} class="sr-only peer" onchange="autoSaveBranchSettings()">
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                         </label>
                         <span class="text-sm font-medium text-gray-700">Receive Low Stock Email Notifications</span>
@@ -155,73 +188,40 @@ window.renderBranchSettings = function () {
     }, 10);
 
     lucide.createIcons();
-};
 
-window.enableSectionEditing = function (sectionId, btn) {
-    const section = document.getElementById(sectionId);
-    if (!section) return;
-
-    const isEditing = !section.classList.contains('opacity-75');
-
-    if (isEditing) {
-        // Lock it
-        const inputs = section.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.disabled = true;
-            input.classList.add('bg-gray-50');
-            input.classList.remove('bg-white', 'border-indigo-300', 'shadow-inner');
+    // Attach auto-save listener for branch inputs
+    const content = document.getElementById('mainContent');
+    if (content) {
+        content.addEventListener('input', (e) => {
+            if (e.target.matches('input, textarea, select')) {
+                window.activeBranchInput = e.target;
+                if (e.target.onchange) { e.target.onchange(); }
+            }
         });
-        section.classList.add('opacity-75', 'grayscale-[20%]');
-        btn.innerHTML = '<i data-lucide="edit-3" class="w-4 h-4"></i>';
-        btn.classList.remove('text-indigo-600', 'bg-indigo-50', 'animate-pulse', 'ring-2', 'ring-indigo-300');
-        btn.classList.add('text-gray-400');
-    } else {
-        // Unlock it
-        const inputs = section.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.disabled = false;
-            input.classList.remove('bg-gray-50');
-            input.classList.add('bg-white', 'border-indigo-300', 'shadow-inner');
+        content.addEventListener('change', (e) => {
+            if (e.target.matches('input, textarea, select')) {
+                window.activeBranchInput = e.target;
+                // If the element doesn't have an inline onchange, trigger the save directly
+                if (!e.target.onchange) window.autoSaveBranchSettings();
+            }
         });
-        section.classList.remove('opacity-75', 'grayscale-[20%]');
-        inputs[0].focus();
-        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
-        btn.classList.add('text-indigo-600', 'bg-indigo-50', 'animate-pulse', 'ring-2', 'ring-indigo-300');
-        btn.classList.remove('text-gray-400');
+
+        if (typeof window.attachClickToEditIndicators === 'function') {
+            window.attachClickToEditIndicators(content);
+        }
     }
-    lucide.createIcons();
 };
 
 let autoSaveTimeout = null;
 let activeIndicatorTimeout = null;
+window.activeBranchInput = null;
 
 window.autoSaveBranchSettings = function () {
-    // Find whichever section is currently being edited (unlocked)
-    const editingSection = document.querySelector('.editable-section:not(.opacity-75)');
-    if (!editingSection) return;
+    let inputIndicator = window.activeBranchInput;
 
-    // Find the header of that section to place the indicator
-    const headerDiv = editingSection.previousElementSibling;
-    let indicator = headerDiv.querySelector('.save-indicator');
-
-    if (!indicator) {
-        // Create it if it doesn't exist
-        indicator = document.createElement('div');
-        indicator.className = 'save-indicator flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 opacity-0 mr-2';
-
-        // Insert right before the edit pen button
-        const editBtn = headerDiv.querySelector('button');
-        headerDiv.insertBefore(indicator, editBtn);
+    if (inputIndicator && typeof showInlineSaveIndicator === 'function') {
+        showInlineSaveIndicator(inputIndicator, 'saving');
     }
-
-    // Clear any pending fade outs so the indicator doesn't disappear prematurely
-    clearTimeout(activeIndicatorTimeout);
-
-    // Show "Saving..." indicator
-    indicator.innerHTML = '<span class="text-indigo-600">Saving...</span>';
-    indicator.classList.remove('opacity-0', 'bg-emerald-50', 'bg-red-50');
-    indicator.classList.add('opacity-100', 'bg-indigo-50');
-    lucide.createIcons();
 
     // Debounce to prevent spamming the database
     clearTimeout(autoSaveTimeout);
@@ -235,7 +235,8 @@ window.autoSaveBranchSettings = function () {
             tax_rate: parseFloat(document.getElementById('branch_set_tax').value) || 0,
             opening_time: document.getElementById('branch_set_open').value,
             closing_time: document.getElementById('branch_set_close').value,
-            low_stock_notifications: document.getElementById('branch_set_notifs').checked
+            low_stock_notifications: document.getElementById('branch_set_notifs').checked,
+            avatar_url: document.getElementById('branch_set_avatar_url')?.value || null
         };
 
         try {
@@ -246,31 +247,137 @@ window.autoSaveBranchSettings = function () {
                 ...updatedBranch
             };
 
-            // Show "Saved!" indicator
-            indicator.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 text-emerald-500"></i> <span class="text-emerald-600">Saved!</span>';
-            indicator.classList.remove('bg-indigo-50', 'bg-red-50');
-            indicator.classList.add('bg-emerald-50');
-            lucide.createIcons();
-
-            // Fade out the indicator slowly
-            activeIndicatorTimeout = setTimeout(() => {
-                indicator.classList.remove('opacity-100');
-                indicator.classList.add('opacity-0');
-            }, 2500);
-
             // Update global sidebar logic silently
             document.getElementById('currentUser').textContent = state.currentUser;
             if (updatedBranch.branch_code) {
                 document.getElementById('currentBranch').textContent = `Branch ID: ${updatedBranch.branch_code}`;
             }
 
+            // Sync avatar in the current branch's UI globally
+            window.updateSidebarAvatar?.();
+
+            if (inputIndicator && typeof showInlineSaveIndicator === 'function') {
+                showInlineSaveIndicator(inputIndicator, 'saved');
+            } else if (!inputIndicator && document.getElementById('branch_set_avatar_url')?.value !== state.branchProfile?.avatar_url) {
+                // If it's just an avatar change that wasn't from a text input
+                showToast('Branch avatar updated', 'success');
+            }
+
         } catch (error) {
             console.error('Auto-save Branch Settings Error:', error);
-            indicator.innerHTML = '<i data-lucide="alert-circle" class="w-3 h-3 text-red-500"></i> <span class="text-red-600">Failed</span>';
-            indicator.classList.remove('bg-indigo-50', 'bg-emerald-50');
-            indicator.classList.add('bg-red-50');
-            lucide.createIcons();
+            if (inputIndicator && typeof showInlineSaveIndicator === 'function') {
+                showInlineSaveIndicator(inputIndicator, 'error');
+            }
             showToast('Failed to auto-save settings: ' + error.message, 'error');
         }
     }, 1000); // Wait 1 second after typing stops
+};
+
+window.handleBranchAvatarUpload = function (input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+
+        // Validation
+        if (file.size > 20 * 1024 * 1024) {
+            showToast('Image is too large (max 20MB)', 'error');
+            input.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Compressing large image...', 'info');
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                // Auto-crop to Square Logic
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const size = 200; // Standardize to 200x200
+                canvas.width = size;
+                canvas.height = size;
+
+                // Calculate crop dimensions (center crop)
+                let sourceX, sourceY, sourceWidth, sourceHeight;
+                if (img.width > img.height) {
+                    sourceHeight = img.height;
+                    sourceWidth = img.height;
+                    sourceX = (img.width - img.height) / 2;
+                    sourceY = 0;
+                } else {
+                    sourceWidth = img.width;
+                    sourceHeight = img.width;
+                    sourceX = 0;
+                    sourceY = (img.height - img.width) / 2;
+                }
+
+                // Draw cropped image
+                ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, size, size);
+
+                const finalBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+                // Update Preview
+                const preview = document.getElementById('branch_avatar_preview');
+                if (preview) {
+                    preview.innerHTML = `<img src="${finalBase64}" class="w-full h-full object-cover">`;
+                }
+
+                // Update hidden input
+                const hiddenInput = document.getElementById('branch_set_avatar_url');
+                if (hiddenInput) {
+                    hiddenInput.value = finalBase64;
+                    // Trigger auto-save to persist the image immediately
+                    window.autoSaveBranchSettings();
+                }
+
+                updateBranchAvatarControls(true);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+window.removeBranchAvatar = function () {
+    const hiddenInput = document.getElementById('branch_set_avatar_url');
+    if (hiddenInput) {
+        hiddenInput.value = '';
+    }
+
+    const preview = document.getElementById('branch_avatar_preview');
+    if (preview) {
+        const branch = state.branchProfile || {};
+        preview.innerHTML = branch.name ? branch.name.charAt(0).toUpperCase() : 'B';
+    }
+
+    updateBranchAvatarControls(false);
+    window.autoSaveBranchSettings();
+};
+
+window.updateBranchAvatarControls = function (hasImage) {
+    const container = document.getElementById('branch_avatar_controls');
+    if (!container) return;
+
+    const buttonGroup = container.querySelector('.flex.items-center.gap-2');
+    if (!buttonGroup) return;
+
+    if (hasImage) {
+        buttonGroup.innerHTML = `
+            <button type="button" onclick="document.getElementById('set_branch_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                Replace
+            </button>
+            <button type="button" onclick="removeBranchAvatar()" class="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 bg-red-50 rounded-lg border border-red-100 transition-colors">
+                Remove
+            </button>
+        `;
+    } else {
+        buttonGroup.innerHTML = `
+            <button type="button" onclick="document.getElementById('set_branch_avatar_file').click()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100 transition-colors">
+                Choose Image from Files
+            </button>
+        `;
+    }
 };

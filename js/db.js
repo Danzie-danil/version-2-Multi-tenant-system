@@ -523,6 +523,11 @@ window.dbCustomers = {
         return { items: data, count: res.count || 0 };
     },
 
+    fetchAllList: async (branchId) => {
+        const res = await _db.from('customers').select('*').eq('branch_id', branchId).order('name', { ascending: true });
+        return _check(res, 'fetchCustomersList');
+    },
+
     fetchOne: async (id) => {
         const res = await _db.from('customers').select('*').eq('id', id).single();
         return _check(res, 'fetchOneCustomer');
@@ -1279,6 +1284,10 @@ window.dbStaff = {
         const res = await _db.from('staff').select('*').eq('branch_id', branchId).order('created_at', { ascending: false });
         return _check(res, 'fetchStaff');
     },
+    fetchOne: async (id) => {
+        const res = await _db.from('staff').select('*').eq('id', id).single();
+        return _check(res, 'fetchStaffOne');
+    },
     add: async (data) => {
         const res = await _db.from('staff').insert([data]).select().single();
         return _check(res, 'addStaff');
@@ -1314,6 +1323,10 @@ window.dbSuppliers = {
     fetchAll: async (enterpriseId) => {
         const res = await _db.from('suppliers').select('*').eq('enterprise_id', enterpriseId).order('name', { ascending: true });
         return _check(res, 'fetchSuppliers');
+    },
+    fetchOne: async (id) => {
+        const res = await _db.from('suppliers').select('*').eq('id', id).single();
+        return _check(res, 'fetchSupplierOne');
     },
     add: async (data) => {
         const res = await _db.from('suppliers').insert([data]).select().single();
@@ -1378,7 +1391,11 @@ window.dbQuotations = {
 
         const itemsToInsert = itemsData.map(item => ({ ...item, quotation_id: quote.id }));
         const { error: itemErr } = await _db.from('quotation_items').insert(itemsToInsert);
-        if (itemErr) throw itemErr;
+        if (itemErr) {
+            // Rollback: delete the orphaned quotation
+            await _db.from('quotations').delete().eq('id', quote.id);
+            throw itemErr;
+        }
 
         return quote;
     },
@@ -1389,5 +1406,39 @@ window.dbQuotations = {
     delete: async (id) => {
         const res = await _db.from('quotations').delete().eq('id', id);
         return _check(res, 'deleteQuotation');
+    }
+};
+
+window.dbDocuments = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('documents').select('*, document_items(*)').eq('branch_id', branchId).order('created_at', { ascending: false });
+        return _check(res, 'fetchDocuments');
+    },
+    fetchOne: async (id) => {
+        const res = await _db.from('documents').select('*, document_items(*)').eq('id', id).single();
+        return _check(res, 'fetchOneDocument');
+    },
+    fetchInvoices: async (branchId) => {
+        const res = await _db.from('documents').select('*, document_items(*)').eq('branch_id', branchId).eq('type', 'invoice').order('created_at', { ascending: false });
+        return _check(res, 'fetchInvoices');
+    },
+    add: async (data, itemsData = []) => {
+        const { data: doc, error: docErr } = await _db.from('documents').insert([data]).select().single();
+        if (docErr) throw docErr;
+
+        if (itemsData && itemsData.length > 0) {
+            const itemsToInsert = itemsData.map(item => ({ ...item, document_id: doc.id }));
+            const { error: itemErr } = await _db.from('document_items').insert(itemsToInsert);
+            if (itemErr) {
+                // Rollback if item inserts fail
+                await _db.from('documents').delete().eq('id', doc.id);
+                throw itemErr;
+            }
+        }
+        return doc;
+    },
+    delete: async (id) => {
+        const res = await _db.from('documents').delete().eq('id', id);
+        return _check(res, 'deleteDocument');
     }
 };

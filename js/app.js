@@ -25,6 +25,103 @@ window.toggleSidebar = function () {
     }
 };
 
+window.showInlineSaveIndicator = function (inputElem, state) {
+    if (!inputElem) return;
+    let wrapper = inputElem.parentElement;
+    if (!wrapper || wrapper.tagName === 'BODY') return;
+
+    // Ensure wrapper can hold absolute elements
+    if (window.getComputedStyle(wrapper).position === 'static') {
+        wrapper.classList.add('relative');
+    }
+
+    let indicator = wrapper.querySelector('.inline-input-save-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.className = 'inline-input-save-indicator absolute right-3 top-8 flex items-center justify-center pointer-events-none transition-all duration-300 opacity-0 z-10';
+        wrapper.appendChild(indicator);
+    }
+
+    let clickToEdit = wrapper.querySelector('.click-to-edit-indicator');
+
+    if (state === 'saving') {
+        if (clickToEdit) clickToEdit.style.display = 'none';
+        indicator.innerHTML = '<span class="text-[10px] font-bold text-indigo-500 bg-white/90 px-1.5 py-0.5 rounded shadow-sm animate-pulse">Saving...</span>';
+        indicator.classList.remove('opacity-0');
+        indicator.classList.add('opacity-100');
+    } else if (state === 'saved') {
+        indicator.innerHTML = '<span class="text-[10px] font-bold text-emerald-600 bg-white/90 px-1.5 py-0.5 rounded shadow-sm flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i>Saved</span>';
+        indicator.classList.remove('opacity-0');
+        indicator.classList.add('opacity-100');
+        lucide.createIcons();
+        setTimeout(() => {
+            indicator.classList.remove('opacity-100');
+            indicator.classList.add('opacity-0');
+            if (clickToEdit) clickToEdit.style.display = '';
+        }, 2000);
+    } else if (state === 'error') {
+        indicator.innerHTML = '<span class="text-[10px] font-bold text-red-600 bg-white/90 px-1.5 py-0.5 rounded shadow-sm flex items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i>Failed</span>';
+        indicator.classList.remove('opacity-0');
+        indicator.classList.add('opacity-100');
+        lucide.createIcons();
+        setTimeout(() => {
+            indicator.classList.remove('opacity-100');
+            indicator.classList.add('opacity-0');
+            if (clickToEdit) clickToEdit.style.display = '';
+        }, 3000);
+    }
+};
+
+window.attachClickToEditIndicators = function (container) {
+    if (!container) return;
+
+    // Select all form inputs that might be editable
+    const inputs = container.querySelectorAll('input.form-input, textarea.form-input, select.form-input');
+
+    inputs.forEach(input => {
+        // Skip uneditable or un-applicable types
+        if (input.disabled || input.readOnly) return;
+        if (['checkbox', 'radio', 'file', 'color', 'hidden', 'time', 'date', 'datetime-local', 'month', 'week'].includes(input.type)) return;
+
+        let wrapper = input.parentElement;
+        if (!wrapper || wrapper.tagName === 'BODY' || wrapper.querySelector('.click-to-edit-indicator')) return;
+
+        // Prepare the wrapper
+        if (window.getComputedStyle(wrapper).position === 'static') {
+            wrapper.classList.add('relative');
+        }
+        wrapper.classList.add('group');
+
+        // Ensure the input has enough right padding so text doesn't hide behind the indicator
+        input.classList.add('pr-[70px]');
+
+        // Create the indicator
+        const indicator = document.createElement('div');
+
+        let topClass = 'top-8'; // standard input under a label
+        if (input.tagName === 'TEXTAREA') topClass = 'top-9';
+        if (!wrapper.querySelector('label')) topClass = 'top-1/2 -translate-y-1/2'; // Vertical center if no label
+
+        indicator.className = `click-to-edit-indicator pointer-events-none absolute right-3 ${topClass} flex items-center gap-1 text-[10px] text-gray-400 font-medium opacity-70 transition-opacity z-0 bg-transparent px-1 rounded`;
+        indicator.innerHTML = '<i data-lucide="edit-2" class="w-3 h-3"></i> Click to edit';
+        wrapper.appendChild(indicator);
+
+        // Hide when input is focused
+        input.addEventListener('focus', () => {
+            indicator.classList.remove('opacity-70');
+            indicator.classList.add('opacity-0');
+        });
+        input.addEventListener('blur', () => {
+            indicator.classList.remove('opacity-0');
+            indicator.classList.add('opacity-70');
+        });
+    });
+
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+};
+
 window.switchView = function (viewId, context = null) {
     // Enforcement: check session expiry during navigation
     if (typeof checkSessionExpiry === 'function') checkSessionExpiry();
@@ -101,6 +198,15 @@ window.renderOwnerView = function (view, extraData = null) {
         case 'chat':
             renderChatModule();
             break;
+        case 'staff':
+            renderOwnerStaffModule();
+            break;
+        case 'suppliers':
+            renderOwnerSuppliersModule();
+            break;
+        case 'quotations':
+            renderOwnerQuotationsModule();
+            break;
         default:
             renderOwnerOverview();
     }
@@ -146,6 +252,9 @@ window.renderBranchView = function (view, extraData = null) {
         case 'quotations':
             renderQuotationsModule();
             break;
+        case 'invoices':
+            if (typeof renderInvoicesModule === 'function') renderInvoicesModule();
+            break;
         case 'settings':
             renderBranchSettings();
             break;
@@ -174,7 +283,7 @@ window.checkNotifications = async function (shush = false) {
         const [reqs, access, unreadChat, unreadCommentsRes] = await Promise.all([
             supabaseClient.from('requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending'),
             supabaseClient.from('access_requests').select('id', { count: 'exact', head: true }).eq('owner_id', state.profile.id).eq('status', 'pending'),
-            dbMessages.getUnreadCount(null, 'admin'),
+            dbMessages.getUnreadCount(null, 'owner'),
             supabaseClient.from('task_comments').select('id, tasks!inner(branch_id)', { count: 'exact', head: true }).eq('sender_role', 'branch').eq('is_read', false).in('tasks.branch_id', state.branches?.map(b => b.id) || [])
         ]);
 
