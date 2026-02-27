@@ -1222,10 +1222,12 @@ window.getModalHTML = function (type, data) {
                 </div>
             </div>
 
-            <div class="flex gap-3">
-                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                <button type="button" onclick="downloadInventoryCSVTemplate(); closeModal()" class="flex-1 btn-primary justify-center">
-                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download Template
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <button type="button" onclick="downloadInventoryCSVTemplate()" class="flex-1 px-4 py-2 border border-indigo-200 text-indigo-700 bg-indigo-50 rounded-lg font-bold hover:bg-indigo-100 flex items-center justify-center text-sm transition-colors">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Template
+                </button>
+                <button type="button" onclick="importInventoryCSV(); closeModal()" class="flex-1 btn-primary justify-center">
+                    <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Select CSV to Import
                 </button>
             </div>
         </div>`;
@@ -1254,10 +1256,12 @@ window.getModalHTML = function (type, data) {
                 </div>
             </div>
 
-            <div class="flex gap-3">
-                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                <button type="button" onclick="downloadCustomersCSVTemplate(); closeModal()" class="flex-1 btn-primary justify-center">
-                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download Template
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <button type="button" onclick="downloadCustomersCSVTemplate()" class="flex-1 px-4 py-2 border border-indigo-200 text-indigo-700 bg-indigo-50 rounded-lg font-bold hover:bg-indigo-100 flex items-center justify-center text-sm transition-colors">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Template
+                </button>
+                <button type="button" onclick="importCustomersCSV(); closeModal()" class="flex-1 btn-primary justify-center">
+                    <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Select CSV to Import
                 </button>
             </div>
         </div>`;
@@ -1286,10 +1290,12 @@ window.getModalHTML = function (type, data) {
                 </div>
             </div>
 
-            <div class="flex gap-3">
-                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                <button type="button" onclick="downloadExpensesCSVTemplate(); closeModal()" class="flex-1 btn-primary justify-center">
-                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download Template
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <button type="button" onclick="downloadExpensesCSVTemplate()" class="flex-1 px-4 py-2 border border-indigo-200 text-indigo-700 bg-indigo-50 rounded-lg font-bold hover:bg-indigo-100 flex items-center justify-center text-sm transition-colors">
+                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Template
+                </button>
+                <button type="button" onclick="importExpensesCSV(); closeModal()" class="flex-1 btn-primary justify-center">
+                    <i data-lucide="upload" class="w-4 h-4 mr-2"></i> Select CSV to Import
                 </button>
             </div>
         </div>`;
