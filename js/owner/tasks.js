@@ -1,5 +1,12 @@
 // ── Owner: Tasks & Objectives ─────────────────────────────────────────────
 
+window.ownerTasksStatusFilter = 'all';
+
+window.setOwnerTasksStatusFilter = function (status) {
+    window.ownerTasksStatusFilter = status;
+    renderTasksManagement();
+};
+
 window.renderTasksManagement = function () {
     const container = document.getElementById('mainContent');
 
@@ -55,13 +62,30 @@ window.renderTasksManagement = function () {
                 </div>
 
                 <div class="space-y-4">
-                    ${myTasks.length === 0 ? `
-                    <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
-                        <i data-lucide="clipboard-list" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
-                        <p class="text-gray-400 text-sm">No tasks assigned yet. Assign one above.</p>
+                    <!-- Search & Filters -->
+                    <div class="flex gap-2 mb-4">
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
+                            </div>
+                            <input type="text" placeholder="Search tasks..." oninput="filterList('ownerTasksList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                        </div>
+                        <select onchange="setOwnerTasksStatusFilter(this.value)" class="px-3 md:px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none hover:bg-white transition-all cursor-pointer">
+                            <option value="all" ${window.ownerTasksStatusFilter === 'all' ? 'selected' : ''}>All Status</option>
+                            <option value="pending" ${window.ownerTasksStatusFilter === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="in_progress" ${window.ownerTasksStatusFilter === 'in_progress' ? 'selected' : ''}>Ongoing</option>
+                            <option value="completed" ${window.ownerTasksStatusFilter === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="deleted" ${window.ownerTasksStatusFilter === 'deleted' ? 'selected' : ''}>Deleted</option>
+                        </select>
                     </div>
-                    ` : myTasks.map(task => `
-                    <div onclick="openDetailsModal('task', '${task.id}')" class="bg-white border border-gray-200 border-l-[4px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                    <div id="ownerTasksList" class="space-y-4">
+                    ${(window.ownerTasksStatusFilter === 'deleted' ? [] : myTasks.filter(t => window.ownerTasksStatusFilter === 'all' || t.status === window.ownerTasksStatusFilter)).length === 0 ? `
+                        <div class="py-16 text-center border-2 border-dashed border-gray-100 rounded-2xl">
+                            <i data-lucide="clipboard-list" class="w-10 h-10 text-gray-300 mx-auto mb-3"></i>
+                            <p class="text-gray-400 text-sm">No tasks found.</p>
+                        </div>
+                        ` : (window.ownerTasksStatusFilter === 'deleted' ? [] : myTasks.filter(t => window.ownerTasksStatusFilter === 'all' || t.status === window.ownerTasksStatusFilter)).map(task => `
+                    <div onclick="openDetailsModal('task', '${task.id}')" data-search="${task.title.toLowerCase()} ${task.status}" class="bg-white border border-gray-200 border-l-[4px] ${task.status === 'completed' ? 'border-l-emerald-500 bg-emerald-50/10 opacity-75' : 'border-l-indigo-500'} rounded-2xl p-5 md:p-6 flex gap-4 hover:shadow-md transition-all group relative cursor-pointer">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-2.5 flex-1 min-w-0">
@@ -82,6 +106,7 @@ window.renderTasksManagement = function () {
                             </div>
                         </div>
                     </div>`).join('')}
+                    </div>
                 </div>
             </div>`;
             lucide.createIcons();

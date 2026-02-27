@@ -1269,3 +1269,125 @@ window.dbMessages = {
         return _check(res, 'hardDelete');
     }
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NEW MODULES: HR, SUPPLIERS, PURCHASE ORDERS, QUOTATIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+window.dbStaff = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('staff').select('*').eq('branch_id', branchId).order('created_at', { ascending: false });
+        return _check(res, 'fetchStaff');
+    },
+    add: async (data) => {
+        const res = await _db.from('staff').insert([data]).select().single();
+        return _check(res, 'addStaff');
+    },
+    update: async (id, data) => {
+        data.updated_at = new Date().toISOString();
+        const res = await _db.from('staff').update(data).eq('id', id).select().single();
+        return _check(res, 'updateStaff');
+    },
+    delete: async (id) => {
+        const res = await _db.from('staff').delete().eq('id', id);
+        return _check(res, 'deleteStaff');
+    }
+};
+
+window.dbAttendance = {
+    fetchForDate: async (branchId, date) => {
+        const res = await _db
+            .from('attendance')
+            .select('*, staff!inner(*)')
+            .eq('staff.branch_id', branchId)
+            .eq('date', date);
+        return _check(res, 'fetchAttendance');
+    },
+    mark: async (data) => {
+        // data expects { staff_id, date, status, notes }
+        const res = await _db.from('attendance').upsert([data], { onConflict: 'staff_id,date' }).select().single();
+        return _check(res, 'markAttendance');
+    }
+};
+
+window.dbSuppliers = {
+    fetchAll: async (enterpriseId) => {
+        const res = await _db.from('suppliers').select('*').eq('enterprise_id', enterpriseId).order('name', { ascending: true });
+        return _check(res, 'fetchSuppliers');
+    },
+    add: async (data) => {
+        const res = await _db.from('suppliers').insert([data]).select().single();
+        return _check(res, 'addSupplier');
+    },
+    update: async (id, data) => {
+        const res = await _db.from('suppliers').update(data).eq('id', id).select().single();
+        return _check(res, 'updateSupplier');
+    },
+    delete: async (id) => {
+        const res = await _db.from('suppliers').delete().eq('id', id);
+        return _check(res, 'deleteSupplier');
+    }
+};
+
+window.dbPurchaseOrders = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('purchase_orders').select('*, suppliers(*)').eq('branch_id', branchId).order('created_at', { ascending: false });
+        // manually fetch items later if needed, or join
+        return _check(res, 'fetchPOs');
+    },
+    fetchWithItems: async (poId) => {
+        const poRes = await _db.from('purchase_orders').select('*, suppliers(*)').eq('id', poId).single();
+        const po = _check(poRes, 'fetchPO');
+        if (!po) return null;
+        const itemsRes = await _db.from('po_items').select('*').eq('po_id', poId);
+        po.items = _check(itemsRes, 'fetchPOItems');
+        return po;
+    },
+    create: async (poData, itemsData) => {
+        const { data: po, error: poErr } = await _db.from('purchase_orders').insert([poData]).select().single();
+        if (poErr) throw poErr;
+
+        const itemsToInsert = itemsData.map(item => ({ ...item, po_id: po.id }));
+        const { error: itemErr } = await _db.from('po_items').insert(itemsToInsert);
+        if (itemErr) throw itemErr;
+
+        return po;
+    },
+    updateStatus: async (id, status) => {
+        const res = await _db.from('purchase_orders').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select().single();
+        return _check(res, 'updatePOStatus');
+    }
+};
+
+window.dbQuotations = {
+    fetchAll: async (branchId) => {
+        const res = await _db.from('quotations').select('*').eq('branch_id', branchId).order('created_at', { ascending: false });
+        return _check(res, 'fetchQuotations');
+    },
+    fetchWithItems: async (quoteId) => {
+        const qRes = await _db.from('quotations').select('*').eq('id', quoteId).single();
+        const quote = _check(qRes, 'fetchQuotation');
+        if (!quote) return null;
+        const itemsRes = await _db.from('quotation_items').select('*').eq('quotation_id', quoteId);
+        quote.items = _check(itemsRes, 'fetchQuotationItems');
+        return quote;
+    },
+    create: async (quoteData, itemsData) => {
+        const { data: quote, error: qErr } = await _db.from('quotations').insert([quoteData]).select().single();
+        if (qErr) throw qErr;
+
+        const itemsToInsert = itemsData.map(item => ({ ...item, quotation_id: quote.id }));
+        const { error: itemErr } = await _db.from('quotation_items').insert(itemsToInsert);
+        if (itemErr) throw itemErr;
+
+        return quote;
+    },
+    updateStatus: async (id, status) => {
+        const res = await _db.from('quotations').update({ status, updated_at: new Date().toISOString() }).eq('id', id).select().single();
+        return _check(res, 'updateQuotationStatus');
+    },
+    delete: async (id) => {
+        const res = await _db.from('quotations').delete().eq('id', id);
+        return _check(res, 'deleteQuotation');
+    }
+};

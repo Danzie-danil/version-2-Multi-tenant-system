@@ -424,6 +424,18 @@ window.getModalHTML = function (type, data) {
                 
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 space-y-3">
                     <div>
+                        <label for="saleBarcode" class="block text-sm font-medium text-gray-700 mb-1">Scan Barcode (Auto-selects Product)</label>
+                        <div class="relative">
+                            <i data-lucide="barcode" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500"></i>
+                            <input type="text" id="saleBarcode" class="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Scan or enter SKU..." oninput="handleBarcodeScan(this.value)">
+                        </div>
+                    </div>
+                    <div class="relative flex items-center py-2">
+                        <div class="flex-grow border-t border-gray-200"></div>
+                        <span class="flex-shrink-0 mx-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">or manually select</span>
+                        <div class="flex-grow border-t border-gray-200"></div>
+                    </div>
+                    <div>
                         <label for="saleProduct" class="block text-sm font-medium text-gray-700 mb-1">Select Product</label>
                         <div class="flex gap-2">
                             <select id="saleProduct" class="form-input flex-1" onchange="updateSaleTotal()">
@@ -593,7 +605,7 @@ window.getModalHTML = function (type, data) {
             <form onsubmit="handleAddBranch(event)" class="space-y-4">
                 <div>
                     <label for="branchName" class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
-                    <input type="text" id="branchName" required class="form-input" placeholder="e.g. Westside Branch">
+                    <input type="text" id="branchName" required class="form-input" placeholder="e.g. WESTSIDE BRANCH" oninput="this.value = this.value.toUpperCase()">
                 </div>
                 <div>
                     <label for="branchLocation" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -605,7 +617,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div>
                     <label for="branchOwnerEmail" class="block text-sm font-medium text-gray-700 mb-1">Admin Owner Email (for App Login)</label>
-                    <input type="email" id="branchOwnerEmail" required class="form-input" placeholder="admin@example.com" autocomplete="email">
+                    <input type="email" id="branchOwnerEmail" required class="form-input bg-gray-50 text-gray-500 cursor-not-allowed" placeholder="admin@example.com" autocomplete="email" value="${state.currentUser || ''}" readonly>
                     <p class="text-xs text-gray-400 mt-1">Branch will use this email alongside their Name & PIN to log in.</p>
                 </div>
                 <div>
@@ -638,6 +650,11 @@ window.getModalHTML = function (type, data) {
                         <input type="text" inputmode="decimal" id="branchTarget" required class="form-input number-format" placeholder="15000">
                     </div>
                 </div>
+                
+                <button type="button" onclick="showToast('Please submit and create the branch first before setting preferences', 'warning')" class="w-full mt-2 flex items-center justify-center gap-2 p-2.5 bg-gray-50 dark:bg-white/5 text-gray-400 dark:text-gray-500 rounded-xl font-bold text-xs border border-gray-200 dark:border-white/10 cursor-not-allowed opacity-80" title="Create branch first">
+                    <i data-lucide="toggle-left" class="w-4 h-4"></i> Branch Preferences & Allowlist (Save first)
+                </button>
+
                 <div class="flex gap-3 pt-4">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
                     <button type="submit" class="flex-1 btn-primary justify-center">Create Branch</button>
@@ -660,7 +677,7 @@ window.getModalHTML = function (type, data) {
             <form onsubmit="handleEditBranch(event, '${data.id}')" class="space-y-4">
                 <div>
                     <label for="editBranchName" class="block text-sm font-medium text-gray-700 mb-1">Branch Name</label>
-                    <input type="text" id="editBranchName" value="${data.name}" required class="form-input">
+                    <input type="text" id="editBranchName" value="${data.name}" required class="form-input" oninput="this.value = this.value.toUpperCase()">
                 </div>
                 <div>
                     <label for="editBranchLocation" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -690,6 +707,11 @@ window.getModalHTML = function (type, data) {
                         <input type="text" inputmode="decimal" id="editBranchTarget" value="${data.target}" required class="form-input number-format">
                     </div>
                 </div>
+                
+                <button type="button" onclick="openBranchPreferencesModal(this.dataset.branch)" data-branch='${JSON.stringify(data).replace(/'/g, "&#39;")}' class="w-full mt-2 flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors border border-amber-100">
+                    <i data-lucide="toggle-left" class="w-4 h-4"></i> Branch Preferences & Allowlist
+                </button>
+
                 <div class="flex gap-3 pt-4">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
                     <button type="submit" class="flex-1 btn-primary justify-center">Save Changes</button>
@@ -1391,6 +1413,56 @@ window.getModalHTML = function (type, data) {
             </div>
         </div>`;
 
+        case 'downloadReports': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-6 h-6 text-violet-500"></i> Download Reports
+                </h3>
+                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleGeneratePDFReport(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Report Module</label>
+                    <select id="reportModule" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:text-white" required>
+                        <option value="sales">Sales Report</option>
+                        <option value="expenses">Expenses Report</option>
+                        <option value="inventory">Inventory Report</option>
+                        <option value="loans">Loans & Income Report</option>
+                        <option value="income">Income Report</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Report Timeframe</label>
+                    <select id="reportTimeframe" onchange="toggleReportCustomDates(this.value)" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:text-white" required>
+                        <option value="daily">Daily (Today)</option>
+                        <option value="weekly">Weekly (Last 7 Days)</option>
+                        <option value="monthly">Monthly (Last 30 Days)</option>
+                        <option value="all">All Time</option>
+                        <option value="custom">Custom Date Range</option>
+                    </select>
+                </div>
+                <div id="reportCustomDates" class="hidden grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                        <input type="date" id="reportStartDate" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                        <input type="date" id="reportEndDate" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:text-white">
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-gray-100 dark:border-gray-700/50">
+                    <button type="button" onclick="closeModal()" class="flex-1 py-3 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 px-4 bg-violet-600 text-white rounded-xl font-bold text-sm hover:bg-violet-700 transition-colors shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Generate PDF
+                    </button>
+                </div>
+            </form>
+        </div>`;
+
         case 'inventoryDetails': return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
@@ -1619,12 +1691,15 @@ window.getModalHTML = function (type, data) {
                     <p class="text-sm font-semibold uppercase w-2/3">${data.currency || 'Not set'}</p>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-2 mt-4">
+            <div class="grid grid-cols-3 gap-2 mt-4">
                 <button onclick='openModal("editBranch", ${JSON.stringify(data).replace(/'/g, "&apos;")})' class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
                     <i data-lucide="settings" class="w-4 h-4"></i> Settings
                 </button>
                 <button onclick="openModal('resetPin','${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-violet-50 text-violet-700 rounded-xl font-bold text-xs hover:bg-violet-100 transition-colors">
                     <i data-lucide="key" class="w-4 h-4"></i> PIN
+                </button>
+                <button onclick="state.branchId = '${data.id}'; openModal('downloadReports')" class="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-colors">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Reports
                 </button>
             </div>
             <button onclick='openBranchPreferencesModal(${JSON.stringify(data).replace(/'/g, "&apos;")})' class="w-full mt-2 flex items-center justify-center gap-2 p-2.5 bg-amber-50 text-amber-700 rounded-xl font-bold text-xs hover:bg-amber-100 transition-colors border border-amber-100">
@@ -1760,6 +1835,154 @@ window.getModalHTML = function (type, data) {
                 </div>
             </div>`;
         }
+
+        /* ── Staff & HR Module ──────────────────────────────────────────── */
+        case 'addStaff': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add Staff Member</h3>
+                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleAddStaff(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                    <input type="text" id="staffName" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required placeholder="John Doe">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Role/Position</label>
+                        <input type="text" id="staffRole" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required placeholder="e.g. Sales Rep">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Monthly Salary</label>
+                        <input type="number" step="0.01" id="staffSalary" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                        <input type="tel" id="staffPhone" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" placeholder="+1...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" id="staffEmail" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" placeholder="john@example.com">
+                    </div>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold py-3 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex justify-center items-center">
+                        <span>Save Staff</span>
+                    </button>
+                </div>
+            </form>
+        </div>`;
+
+        case 'editStaff': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Staff Member</h3>
+                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleEditStaff(event, '${data.id}')" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                    <input type="text" id="editStaffName" value="${data.name || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Role/Position</label>
+                        <input type="text" id="editStaffRole" value="${data.role || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Monthly Salary</label>
+                        <input type="number" step="0.01" id="editStaffSalary" value="${data.salary || 0}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                        <input type="tel" id="editStaffPhone" value="${data.phone || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" id="editStaffEmail" value="${data.email || ''}" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                    <select id="editStaffStatus" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white">
+                        <option value="active" ${data.status === 'active' ? 'selected' : ''}>Active</option>
+                        <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold py-3 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none flex justify-center items-center">
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>`;
+
+        case 'markAttendance': return `
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Record Attendance</h3>
+                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleMarkAttendance(event)" class="space-y-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 text-xs p-3 rounded-lg flex items-start gap-2 mb-4">
+                    <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+                    <p>Select a staff member and date to update their attendance record.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Staff Member</label>
+                    <select id="attendanceStaffId" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white" required>
+                        <option value="">Loading Staff...</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Date</label>
+                        <input type="date" id="attendanceDate" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <select id="attendanceStatus" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white" required>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="half-day">Half Day</option>
+                            <option value="leave">On Leave</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
+                    <input type="text" id="attendanceNotes" class="w-full p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition-all" placeholder="Reason for absence, etc.">
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModal()" class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold py-3 transition-colors shadow-lg shadow-emerald-200 dark:shadow-none flex justify-center items-center">
+                        <span>Save Attendance</span>
+                    </button>
+                </div>
+            </form>
+            <script>
+                // Auto-fill today's date
+                document.getElementById('attendanceDate').valueAsDate = new Date();
+                // Load Staff
+                dbStaff.fetchAll(state.branchId).then(staff => {
+                    const sel = document.getElementById('attendanceStaffId');
+                    sel.innerHTML = staff.filter(s => s.status === 'active').map(s => \`<option value="\${s.id}">\${s.name} (\${s.role})\</option>\`).join('');
+                });
+            </script>
+        </div>`;
 
         case 'taskDetails': {
             const comments = data._comments || [];
@@ -2272,6 +2495,13 @@ window.handleAddBranch = async function (e) {
         closeModal();
         showToast('Branch added successfully!', 'success');
         switchView('branches');
+
+        // Auto-open branch details after creation
+        setTimeout(() => {
+            if (typeof openDetailsModal === 'function') {
+                openDetailsModal('branch', branch.id);
+            }
+        }, 300);
     } catch (err) {
         showToast('Failed to add branch: ' + err.message, 'error');
         _setSubmitLoading(e.target, false, 'Create Branch');
@@ -2788,3 +3018,277 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('modalOverlay')
         ?.addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
 });
+
+/* ── Staff & HR Modal Handlers ──────────────────────────────────────────── */
+window.handleAddStaff = async function (e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    _setSubmitLoading(btn, true);
+
+    const payload = {
+        branch_id: state.branchId,
+        name: document.getElementById('staffName').value.trim(),
+        role: document.getElementById('staffRole').value.trim(),
+        salary: parseFloat(document.getElementById('staffSalary').value) || 0,
+        phone: document.getElementById('staffPhone').value.trim(),
+        email: document.getElementById('staffEmail').value.trim(),
+        status: 'active'
+    };
+
+    try {
+        await dbStaff.add(payload);
+        showToast('Staff member added successfully', 'success');
+        closeModal();
+        if (window.renderStaffModule) renderStaffModule();
+    } catch (err) {
+        showToast('Failed to add staff: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Save Staff');
+    }
+};
+
+window.handleEditStaff = async function (e, id) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    _setSubmitLoading(btn, true);
+
+    const payload = {
+        name: document.getElementById('editStaffName').value.trim(),
+        role: document.getElementById('editStaffRole').value.trim(),
+        salary: parseFloat(document.getElementById('editStaffSalary').value) || 0,
+        phone: document.getElementById('editStaffPhone').value.trim(),
+        email: document.getElementById('editStaffEmail').value.trim(),
+        status: document.getElementById('editStaffStatus').value
+    };
+
+    try {
+        await dbStaff.update(id, payload);
+        showToast('Staff member updated', 'success');
+        closeModal();
+        if (window.renderStaffModule) renderStaffModule();
+    } catch (err) {
+        showToast('Failed to update staff: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Save Changes');
+    }
+};
+
+window.handleMarkAttendance = async function (e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    _setSubmitLoading(btn, true);
+
+    const payload = {
+        staff_id: document.getElementById('attendanceStaffId').value,
+        date: document.getElementById('attendanceDate').value,
+        status: document.getElementById('attendanceStatus').value,
+        notes: document.getElementById('attendanceNotes').value.trim()
+    };
+
+    if (!payload.staff_id) {
+        showToast('Please select a staff member.', 'error');
+        _setSubmitLoading(btn, false, 'Save Attendance');
+        return;
+    }
+
+    try {
+        await dbAttendance.mark(payload);
+        showToast('Attendance recorded!', 'success');
+        closeModal();
+        if (window.renderStaffModule) renderStaffModule();
+    } catch (err) {
+        showToast('Failed to record attendance: ' + err.message, 'error');
+    } finally {
+        _setSubmitLoading(btn, false, 'Save Attendance');
+    }
+    /* ── Suppliers & Purchase Orders Modal Handlers ─────────────────────────── */
+    window.handleAddSupplier = async function (e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        _setSubmitLoading(btn, true);
+
+        const payload = {
+            branch_id: state.branchId,
+            name: document.getElementById('supplierName').value.trim(),
+            contact_person: document.getElementById('supplierContactPerson').value.trim(),
+            phone: document.getElementById('supplierPhone').value.trim(),
+            email: document.getElementById('supplierEmail').value.trim(),
+            address: document.getElementById('supplierAddress').value.trim(),
+            status: 'active'
+        };
+
+        try {
+            await dbSuppliers.add(payload);
+            showToast('Supplier added successfully', 'success');
+            closeModal();
+            if (window.renderSuppliersModule) renderSuppliersModule();
+        } catch (err) {
+            showToast('Failed to add supplier: ' + err.message, 'error');
+        } finally {
+            _setSubmitLoading(btn, false, 'Save Supplier');
+        }
+    };
+
+    window.handleEditSupplier = async function (e, id) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        _setSubmitLoading(btn, true);
+
+        const payload = {
+            name: document.getElementById('editSupplierName').value.trim(),
+            contact_person: document.getElementById('editSupplierContactPerson').value.trim(),
+            phone: document.getElementById('editSupplierPhone').value.trim(),
+            email: document.getElementById('editSupplierEmail').value.trim(),
+            address: document.getElementById('editSupplierAddress').value.trim(),
+            status: document.getElementById('editSupplierStatus').value
+        };
+
+        try {
+            await dbSuppliers.update(id, payload);
+            showToast('Supplier updated', 'success');
+            closeModal();
+            if (window.renderSuppliersModule) renderSuppliersModule();
+        } catch (err) {
+            showToast('Failed to update supplier: ' + err.message, 'error');
+        } finally {
+            _setSubmitLoading(btn, false, 'Save Changes');
+        }
+    };
+
+    window.handleCreatePO = async function (e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+
+        // Gather Items
+        const items = [];
+        const rows = document.getElementById('poItemsContainer').children;
+        for (const row of rows) {
+            const name = row.querySelector('.po-item-name').value.trim();
+            const qty = parseFloat(row.querySelector('.po-item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.po-item-price').value) || 0;
+            if (name && qty > 0) {
+                items.push({
+                    item_name: name,
+                    quantity: qty,
+                    unit_price: price,
+                    total_price: qty * price
+                });
+            }
+        }
+
+        if (items.length === 0) {
+            showToast("Please add at least one item to the PO.", "error");
+            return;
+        }
+
+        _setSubmitLoading(btn, true);
+
+        const supplierSelect = document.getElementById('poSupplierId');
+        const total_amount = parseFloat(document.getElementById('poTotalAmountVal').value) || 0;
+
+        const poPayload = {
+            branch_id: state.branchId,
+            supplier_id: supplierSelect.value,
+            supplier_name: supplierSelect.options[supplierSelect.selectedIndex].text,
+            po_number: 'PO-' + Date.now().toString().slice(-6),
+            status: 'draft',
+            total_amount: total_amount,
+            expected_date: document.getElementById('poExpectedDate').value || null
+        };
+
+        try {
+            const poId = await dbPurchaseOrders.createWithItems(poPayload, items);
+            showToast(`PO ${poPayload.po_number} created`, 'success');
+            closeModal();
+            if (window.renderSuppliersModule) renderSuppliersModule();
+        } catch (err) {
+            showToast('Failed to create PO: ' + err.message, 'error');
+        } finally {
+            _setSubmitLoading(btn, false, 'Create & Save PO');
+        }
+    };
+
+    window.updatePOStatus = async function (poId, newStatus) {
+        try {
+            await dbPurchaseOrders.updateStatus(poId, newStatus);
+            showToast('PO status updated', 'success');
+            if (window.renderSuppliersModule) renderSuppliersModule();
+            // optionally update the modal UI or re-render it
+            const po = await dbPurchaseOrders.fetchOne(poId);
+            openModal('viewPO', po);
+        } catch (err) {
+            showToast('Failed to update PO status', 'error');
+        }
+    };
+
+    /* ── Quotations Modal Handlers ───────────────────────────────────────────── */
+    window.handleCreateQuotation = async function (e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+
+        // Gather Items
+        const items = [];
+        const rows = document.getElementById('quoteItemsContainer').children;
+        for (const row of rows) {
+            const name = row.querySelector('.quote-item-name').value.trim();
+            const qty = parseFloat(row.querySelector('.quote-item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.quote-item-price').value) || 0;
+            if (name && qty > 0) {
+                items.push({
+                    item_name: name,
+                    quantity: qty,
+                    unit_price: price,
+                    total_price: qty * price
+                });
+            }
+        }
+
+        if (items.length === 0) {
+            showToast("Please add at least one line item.", "error");
+            return;
+        }
+
+        _setSubmitLoading(btn, true);
+
+        const overrideName = document.getElementById('quoteCustomerNameOverride').value.trim();
+        const custSel = document.getElementById('quoteCustomerId');
+        let cId = custSel.value || null;
+        let cName = overrideName || (cId ? custSel.options[custSel.selectedIndex].text : 'Walk-in / General');
+
+        const total_amount = parseFloat(document.getElementById('quoteTotalAmountVal').value) || 0;
+
+        const quotePayload = {
+            branch_id: state.branchId,
+            customer_id: cId,
+            customer_name: cName,
+            quote_number: 'QT-' + Date.now().toString().slice(-6),
+            status: 'draft',
+            total_amount: total_amount,
+            valid_until: document.getElementById('quoteValidUntil').value
+        };
+
+        try {
+            const quoteId = await dbQuotations.create(quotePayload, items);
+            showToast(`Quotation ${quotePayload.quote_number} generated`, 'success');
+            closeModal();
+            if (window.renderQuotationsModule) renderQuotationsModule();
+        } catch (err) {
+            showToast('Failed to generate quote: ' + err.message, 'error');
+        } finally {
+            _setSubmitLoading(btn, false, 'Save & Generate Quote');
+        }
+    };
+
+    window.updateQuotationStatus = async function (quoteId, newStatus) {
+        try {
+            await dbQuotations.updateStatus(quoteId, newStatus);
+            showToast('Quote status updated', 'success');
+            if (window.renderQuotationsModule) renderQuotationsModule();
+            // optionally reload modal
+            const quote = await dbQuotations.fetchWithItems(quoteId);
+            if (quote) openModal('viewQuotation', quote);
+        } catch (err) {
+            showToast('Failed to update quote status', 'error');
+        }
+    };
+};

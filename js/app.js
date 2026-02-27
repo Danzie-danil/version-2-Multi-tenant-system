@@ -137,6 +137,15 @@ window.renderBranchView = function (view, extraData = null) {
         case 'reports':
             renderReportsModule();
             break;
+        case 'staff':
+            renderStaffModule();
+            break;
+        case 'suppliers':
+            renderSuppliersModule();
+            break;
+        case 'quotations':
+            renderQuotationsModule();
+            break;
         case 'settings':
             renderBranchSettings();
             break;
@@ -186,6 +195,17 @@ window.checkNotifications = async function (shush = false) {
             }
         }
 
+        // Update Owner Tasks Badge
+        const ownerTasksBadge = document.getElementById('ownerTasksBadge');
+        if (ownerTasksBadge) {
+            if (unreadCommentsCount > 0) {
+                ownerTasksBadge.textContent = unreadCommentsCount > 99 ? '99+' : unreadCommentsCount;
+                ownerTasksBadge.classList.remove('hidden');
+            } else {
+                ownerTasksBadge.classList.add('hidden');
+            }
+        }
+
         if (totalPending > oldRequestCount) hasNew = true;
 
         if (totalPending > 0) {
@@ -213,6 +233,18 @@ window.checkNotifications = async function (shush = false) {
         const responses = reqsRes.filter(r => (r.status === 'rejected' || (r.status === 'pending' && r.admin_response)) && !dismissedRes.includes(r.id));
         const lastChecked = state.branchProfile?.last_notif_check || '1970-01-01T00:00:00Z';
         const newResponses = responses.filter(r => new Date(r.updated_at || r.created_at) > new Date(lastChecked)).length;
+
+        // Update Branch Tasks Badge
+        const branchTasksBadge = document.getElementById('branchTasksBadge');
+        if (branchTasksBadge) {
+            const totalTasksNotif = pendingTasks + unreadCommentsCount;
+            if (totalTasksNotif > 0) {
+                branchTasksBadge.textContent = totalTasksNotif > 99 ? '99+' : totalTasksNotif;
+                branchTasksBadge.classList.remove('hidden');
+            } else {
+                branchTasksBadge.classList.add('hidden');
+            }
+        }
 
         if (newResponses > 0 || currentUnreadChat > 0 || unreadCommentsCount > 0) hasNew = true;
 

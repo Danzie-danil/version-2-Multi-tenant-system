@@ -105,6 +105,24 @@ window.openModal = function (type, data = null) {
     content.innerHTML = html;
     modal.classList.remove('hidden');
     lucide.createIcons();
+
+    // Trigger Barcode Generation for Inventory Details
+    if (type === 'inventoryDetails' && data && data.sku && typeof JsBarcode !== 'undefined') {
+        setTimeout(() => {
+            try {
+                JsBarcode(`#barcode-${data.id}`, data.sku, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 50,
+                    displayValue: true,
+                    fontSize: 14,
+                    margin: 0
+                });
+            } catch (e) {
+                console.warn('Barcode generation failed:', e);
+            }
+        }, 50);
+    }
 };
 
 window.closeModal = function () {

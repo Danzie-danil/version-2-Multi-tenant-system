@@ -8,6 +8,9 @@
 
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -410,7 +413,10 @@
                         </button>
                         <button onclick="switchView('tasks',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
-                            <i data-lucide="check-square" class="w-4 h-4 flex-shrink-0"></i> Tasks & Objectives
+                            <i data-lucide="check-square" class="w-4 h-4 flex-shrink-0"></i>
+                            <span class="flex-1">Tasks & Objectives</span>
+                            <span id="ownerTasksBadge"
+                                class="hidden bg-indigo-600 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full">0</span>
                         </button>
                         <button onclick="switchView('analytics',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
@@ -458,9 +464,24 @@
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
                             <i data-lucide="users" class="w-4 h-4 flex-shrink-0"></i> Customers
                         </button>
+                        <button onclick="switchView('staff',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="user-check" class="w-4 h-4 flex-shrink-0"></i> Staff & HR
+                        </button>
+                        <button onclick="switchView('suppliers',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="truck" class="w-4 h-4 flex-shrink-0"></i> Suppliers & POs
+                        </button>
+                        <button onclick="switchView('quotations',this)"
+                            class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
+                            <i data-lucide="file-signature" class="w-4 h-4 flex-shrink-0"></i> Quotations
+                        </button>
                         <button onclick="switchView('tasks',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
-                            <i data-lucide="list-todo" class="w-4 h-4 flex-shrink-0"></i> My Tasks
+                            <i data-lucide="list-todo" class="w-4 h-4 flex-shrink-0"></i>
+                            <span class="flex-1">My Tasks</span>
+                            <span id="branchTasksBadge"
+                                class="hidden bg-indigo-600 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full">0</span>
                         </button>
                         <button onclick="switchView('reports',this)"
                             class="sidebar-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left text-sm font-medium text-gray-700">
@@ -595,6 +616,9 @@
     <script src="js/branch/reports.js"></script>
     <script src="js/branch/notes.js"></script>
     <script src="js/branch/loans.js"></script>
+    <script src="js/branch/staff.js"></script>
+    <script src="js/branch/suppliers.js"></script>
+    <script src="js/branch/quotations.js"></script>
     <script src="js/branch/requests.js"></script>
     <script src="js/branch/settings.js"></script>
     <script src="js/chat.js"></script>

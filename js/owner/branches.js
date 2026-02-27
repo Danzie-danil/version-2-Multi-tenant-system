@@ -44,19 +44,23 @@ window.renderBranchesManagement = function () {
                 </button>
             </div>
 
-            <!-- Summary Bar -->
-            <div class="grid grid-cols-3 gap-4">
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                    <p class="text-2xl font-black text-gray-900">${branches.length}</p>
-                    <p class="text-xs text-gray-500 mt-1 font-bold uppercase tracking-tight">Total Branches</p>
+            <!-- Stats -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+                <div class="bg-gradient-to-br from-indigo-500 to-violet-600 px-3 py-2 rounded-2xl text-white shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-indigo-100 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Total Branches">Total Branches</p>
+                    <p class="text-dynamic-lg font-black text-white truncate leading-none my-auto py-1">${branches.length}</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                    <p class="text-2xl font-black text-emerald-600">${branches.filter(b => b.status === 'active').length}</p>
-                    <p class="text-xs text-gray-500 mt-1 font-bold uppercase tracking-tight">Active</p>
+                <div class="bg-white dark:bg-gray-800 px-3 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Active">Active</p>
+                    <p class="text-dynamic-lg font-black text-emerald-600 dark:text-emerald-400 truncate leading-none my-auto py-1">${branches.filter(b => b.status === 'active').length}</p>
                 </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-center">
-                    <p class="text-2xl font-black text-indigo-600">${fmt.currency(combinedToday)}</p>
-                    <p class="text-xs text-gray-500 mt-1 font-bold uppercase tracking-tight">Combined Today</p>
+                <div class="bg-white dark:bg-gray-800 px-3 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Avg Target Progress">Target Attained</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 dark:text-white truncate leading-none my-auto py-1">${branches.length ? Math.round((withSales.filter(b => b.todaySales >= (b.target || 1000)).length / branches.length) * 100) : 0}%</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 px-3 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm stat-card min-w-0 flex flex-col h-full">
+                    <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Combined Today">Combined Today</p>
+                    <p class="text-dynamic-lg font-black text-indigo-600 dark:text-indigo-400 truncate leading-none my-auto py-1" title="${fmt.currency(combinedToday)}">${fmt.currency(combinedToday)}</p>
                 </div>
             </div>
 

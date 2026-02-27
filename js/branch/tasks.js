@@ -5,7 +5,14 @@ window.tasksSelection = new Set();
 window.tasksPageState = {
     page: 1,
     pageSize: 5,
-    totalCount: 0
+    totalCount: 0,
+    statusFilter: 'all' // all | pending | in_progress | completed | deleted
+};
+
+window.setTasksStatusFilter = function (status) {
+    window.tasksPageState.statusFilter = status;
+    window.tasksPageState.page = 1;
+    renderBranchTasks();
 };
 
 window.changeTasksPage = function (delta) {
@@ -210,10 +217,28 @@ window.renderBranchTasks = function () {
     </div>`;
     lucide.createIcons();
 
+    let query = supabaseClient.from('tasks').select('*', { count: 'exact' }).eq('branch_id', state.branchId);
+
+    // Status Filter logic
+    if (window.tasksPageState.statusFilter && window.tasksPageState.statusFilter !== 'all') {
+        if (window.tasksPageState.statusFilter === 'deleted') {
+            // Because tasks are hard-deleted, we will just return nothing for deleted filter
+            // unless a soft-delete mechanism is implemented in the DB.
+            query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+        } else {
+            query = query.eq('status', window.tasksPageState.statusFilter);
+        }
+    }
+
+    const from = (window.tasksPageState.page - 1) * window.tasksPageState.pageSize;
+    const to = from + window.tasksPageState.pageSize - 1;
+
+    query = query.order('created_at', { ascending: false }).range(from, to);
+
     Promise.all([
-        dbTasks.fetchAll(state.branchId, {
-            page: window.tasksPageState.page,
-            pageSize: window.tasksPageState.pageSize
+        query.then(res => {
+            if (res.error) throw res.error;
+            return { items: res.data, count: res.count || 0 };
         }),
         dbTaskTags.fetchAll(state.branchId)
     ]).then(([res, tags]) => {
@@ -236,11 +261,20 @@ window.renderBranchTasks = function () {
                 <h3 class="text-xl font-bold text-gray-900 mb-5">Tasks List</h3>
                 
                 <!-- Search & Filters -->
-                <div class="relative mb-4">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
+                <div class="flex gap-2 mb-4">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
+                        </div>
+                        <input type="text" placeholder="Search tasks..." oninput="filterList('tasksList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
                     </div>
-                    <input type="text" placeholder="Search tasks..." oninput="filterList('tasksList', this.value)" class="w-full pl-11 pr-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                    <select id="branchTaskFilter" onchange="setTasksStatusFilter(this.value)" class="px-3 md:px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none hover:bg-white transition-all cursor-pointer">
+                        <option value="all" ${window.tasksPageState.statusFilter === 'all' ? 'selected' : ''}>All Status</option>
+                        <option value="pending" ${window.tasksPageState.statusFilter === 'pending' ? 'selected' : ''}>Pending</option>
+                        <option value="in_progress" ${window.tasksPageState.statusFilter === 'in_progress' ? 'selected' : ''}>Ongoing</option>
+                        <option value="completed" ${window.tasksPageState.statusFilter === 'completed' ? 'selected' : ''}>Completed</option>
+                        <option value="deleted" ${window.tasksPageState.statusFilter === 'deleted' ? 'selected' : ''}>Deleted</option>
+                    </select>
                 </div>
 
                 <!-- Bulk Action Bar -->
@@ -323,6 +357,12 @@ window.advanceTask = async function (taskId, currentStatus) {
     const nextStatus = currentStatus === 'pending' ? 'in_progress' : 'completed';
     try {
         await dbTasks.updateStatus(taskId, nextStatus);
+
+        // Add an automatic comment to notify the owner
+        const statusText = nextStatus === 'completed' ? 'Completed' : 'In Progress';
+        const msg = `Task status updated to: ${statusText}`;
+        await dbTaskComments.add(taskId, 'branch', 'Branch System', msg);
+
         if (nextStatus === 'completed') {
             const branch = state.branches.find(b => b.id === state.branchId) || { name: 'Branch' };
             addActivity('task_completed', `Task completed`, branch.name);
@@ -330,6 +370,9 @@ window.advanceTask = async function (taskId, currentStatus) {
         } else {
             showToast('Task started!', 'info');
         }
+
+        // Force update of notifications/badges immediately
+        if (typeof checkNotifications === 'function') checkNotifications(true);
         switchView('tasks');
     } catch (err) {
         showToast('Failed to update task: ' + err.message, 'error');

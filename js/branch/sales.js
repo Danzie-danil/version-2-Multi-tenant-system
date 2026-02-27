@@ -802,3 +802,35 @@ window.updateSaleTotal = function () {
     }
 };
 
+window.handleBarcodeScan = async function (barcodeStr) {
+    if (!barcodeStr || barcodeStr.trim() === '') return;
+    const sku = barcodeStr.trim().toLowerCase();
+
+    try {
+        const res = await dbInventory.fetchAll(state.branchId, { pageSize: 1000 });
+        const inventory = res.items || [];
+
+        const matchedItem = inventory.find(i => (i.sku || '').toLowerCase() === sku);
+
+        if (matchedItem) {
+            const productSelect = document.getElementById('saleProduct');
+            if (productSelect) {
+                // Find matching option
+                for (let i = 0; i < productSelect.options.length; i++) {
+                    if (productSelect.options[i].value === matchedItem.id) {
+                        productSelect.selectedIndex = i;
+                        document.getElementById('saleBarcode').value = ''; // clear input after match
+                        showToast(`Product matched: ${matchedItem.name}`, 'success');
+                        window.updateSaleTotal();
+                        // Focus on quantity so user can adjust
+                        document.getElementById('saleQty').focus();
+                        return;
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Barcode scan error:', err);
+    }
+};
+

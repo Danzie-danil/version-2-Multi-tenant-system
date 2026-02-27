@@ -5,23 +5,21 @@ window.renderBranchRequestsModule = function () {
     container.innerHTML = `
     <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
-            <div class="flex items-center gap-2 sm:gap-3">
-                <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
-                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">My Approval Requests</div>
-                </div>
-                <!-- Status Filter -->
-                <div class="hidden md:flex items-center gap-2">
-                    <select id="reqFilterStatus" onchange="renderBranchRequestsList()" class="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
-                        <option value="pending">Pending Only</option>
-                        <option value="all">All Requests</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                </div>
+            <div class="inline-flex items-center min-w-0 flex-shrink bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
+                <div class="bg-indigo-50 text-indigo-700 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">My Requests</div>
             </div>
-            <button onclick="openModal('requestAttention', { type: 'general', id: null, summary: 'General Inquiry' })" class="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 font-bold">
-                <i data-lucide="plus" class="w-4 h-4"></i> New Request
-            </button>
+            
+            <div class="flex gap-1.5 sm:gap-2 flex-shrink-0">
+                <select id="reqFilterStatus" onchange="renderBranchRequestsList()" class="bg-white border border-gray-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm text-gray-700 cursor-pointer">
+                    <option value="pending">Pending Only</option>
+                    <option value="all">All Requests</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <button onclick="openModal('requestAttention', { type: 'general', id: null, summary: 'General Inquiry' })" class="btn-primary flex items-center justify-center gap-1 sm:gap-1.5 text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 font-bold whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> <span class="hidden sm:inline">New Request</span><span class="inline sm:hidden">New</span>
+                </button>
+            </div>
         </div>
 
         <div id="branchRequestsList" class="space-y-4 pb-20 md:pb-0">
