@@ -98,8 +98,9 @@
         if ((table === 'profiles' || table === 'branches') && payload.eventType === 'UPDATE') {
             const newTheme = payload.new?.theme;
             if (newTheme) {
-                const isMyProfile = (state.role === 'owner' && table === 'profiles' && payload.new.id === state.profile.id);
-                const isMyBranch = (state.role === 'branch' && table === 'branches' && payload.new.id === state.branchId);
+                // Ensure ID comparison is case-insensitive and string-based for robustness
+                const isMyProfile = (state.role === 'owner' && table === 'profiles' && String(payload.new.id).toLowerCase() === String(state.ownerId).toLowerCase());
+                const isMyBranch = (state.role === 'branch' && table === 'branches' && String(payload.new.id).toLowerCase() === String(state.branchId).toLowerCase());
 
                 // If it's my own profile/branch, apply theme instantly
                 if (isMyProfile || isMyBranch) {
@@ -113,29 +114,32 @@
                     }
                 }
 
-                // Optimization: If ONLY the theme changed relative to our current state, 
-                // skip the broad re-render loop below. This prevents the "Admin UI reload"
-                // where an owner sees their branch list refresh just because of a theme toggle.
-                let isOnlyThemeUpdate = false;
+                // Optimization: If NO SIGNIFICANT fields changed besides theme/technical meta, 
+                // skip the broad re-render loop below. This prevents the "Admin UI reload".
+                let existingState = null;
                 if (table === 'branches' && state.role === 'owner' && state.branches) {
-                    const existingBranch = state.branches.find(b => b.id === payload.new.id);
-                    if (existingBranch) {
-                        const changedKeys = Object.keys(payload.new).filter(k => payload.new[k] !== existingBranch[k]);
-                        isOnlyThemeUpdate = changedKeys.every(k => k === 'theme' || k === 'updated_at');
-                        // Update local state copy so subsequent checks are accurate
-                        Object.assign(existingBranch, payload.new);
-                    }
+                    existingState = state.branches.find(b => String(b.id).toLowerCase() === String(payload.new.id).toLowerCase());
                 } else if (table === 'profiles' && state.role === 'owner' && state.profile) {
-                    const isOnlyProfileTheme = Object.keys(payload.new).filter(k => payload.new[k] !== state.profile[k]).every(k => k === 'theme' || k === 'updated_at');
-                    if (isOnlyProfileTheme) isOnlyThemeUpdate = true;
+                    existingState = state.profile;
                 } else if (table === 'branches' && state.role === 'branch' && state.branchProfile) {
-                    const isOnlyBranchTheme = Object.keys(payload.new).filter(k => payload.new[k] !== state.branchProfile[k]).every(k => k === 'theme' || k === 'updated_at');
-                    if (isOnlyBranchTheme) isOnlyThemeUpdate = true;
+                    existingState = state.branchProfile;
                 }
 
-                if (isOnlyThemeUpdate) {
-                    console.log('[Realtime] Skipping broad re-render for theme-only update');
-                    return;
+                if (existingState) {
+                    // Fields that, if changed, SHOULD trigger a full re-render
+                    const meaningfulFields = ['name', 'location', 'manager', 'pin', 'target', 'status', 'currency', 'business_name', 'full_name'];
+                    const hasMeaningfulChange = meaningfulFields.some(f => {
+                        if (payload.new[f] === undefined) return false;
+                        // Use string-based comparison to avoid type mismatches (e.g., numeric 10000 vs string "10000")
+                        return String(payload.new[f]) !== String(existingState[f]);
+                    });
+
+                    if (!hasMeaningfulChange) {
+                        console.log('[Realtime] Skipping broad re-render for theme-only update');
+                        // Silently update local state so subsequent checks are accurate
+                        Object.assign(existingState, payload.new);
+                        return;
+                    }
                 }
             }
         }
