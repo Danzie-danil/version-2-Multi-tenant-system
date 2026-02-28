@@ -183,6 +183,11 @@ window.renderOwnerView = function (view, extraData = null) {
             renderAnalytics(); // function now handles its own async data loading & DOM injection
             break;
         }
+        case 'billing': {
+            renderSettings();
+            setTimeout(() => { if (typeof switchSettingsTab === 'function') switchSettingsTab('security'); }, 50);
+            break;
+        }
         case 'security': {
             const html = renderSecurity();
             document.getElementById('mainContent').innerHTML = html;
@@ -824,4 +829,139 @@ window.openResponseNotif = function (reqId) {
     switchView('requests', reqId);
     closeNotifications();
     checkNotifications(true);
+};
+
+// ── SaaS Onboarding Tour ───────────────────────────────────────────────────
+window.startSaaSTour = function (force = false) {
+    if (!force) {
+        // Check localStorage first (fast)
+        if (localStorage.getItem('bms_has_seen_tour')) return;
+        // Check database profile (persisted across devices)
+        if (state.profile && state.profile.has_seen_tour) return;
+    }
+
+    const steps = [
+        {
+            title: "Welcome to BMS!",
+            content: "Welcome to your trial. Let's walk through the key areas to get your business up to speed in minutes.",
+            target: null // Center modals
+        },
+        {
+            title: "1. Add Your First Branch",
+            content: "You need at least one active branch to process sales. Head over to Branches to set up your first location.",
+            target: "button[onclick*=\"switchView('branches'\"]"
+        },
+        {
+            title: "2. Add Your Team",
+            content: "Need help managing your branches? Navigate to the Staff & HR section to invite your managers and assign them to a branch.",
+            target: "button[onclick*=\"switchView('staff'\"]"
+        },
+        {
+            title: "3. Build Your Catalog",
+            content: "Before selling, you must stock your inventory. Go to the Inventory section to add or transfer products to your branches.",
+            target: "button[onclick*=\"switchView('inventory'\"]"
+        },
+        {
+            title: "4. Monitor Performance",
+            content: "Back here on the Overview screen, you'll see a live feed of all branch activities, pending approvals, and low stock alerts.",
+            target: "button[onclick*=\"switchView('overview'\"]"
+        },
+        {
+            title: "5. Setup Your Subscription",
+            content: "Your trial gives you access to the Pro plan. When you're ready, visit Settings to securely select your billing plan and keep business flowing smoothly.",
+            target: "button[onclick*=\"switchView('settings')\"]"
+        }
+    ];
+
+    let currentStep = 0;
+
+    function renderTourStep() {
+        const step = steps[currentStep];
+        let targetEl = step.target ? document.querySelector(step.target) : null;
+
+        if (targetEl) {
+            targetEl.scrollIntoView({ block: 'nearest' });
+        }
+
+        setTimeout(() => {
+            if (targetEl) targetEl = document.querySelector(step.target);
+
+            let positionClass = "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2";
+            let inlineStyle = "";
+            let cutoutHtml = `<div class="fixed inset-0 bg-indigo-950/70 backdrop-blur-sm pointer-events-none"></div>`;
+
+            if (targetEl && window.innerWidth >= 768) {
+                const rect = targetEl.getBoundingClientRect();
+
+                let tooltipTop = Math.max(20, rect.top);
+                if (tooltipTop + 260 > window.innerHeight) {
+                    tooltipTop = Math.max(20, window.innerHeight - 280);
+                }
+
+                positionClass = `fixed`;
+                inlineStyle = `style="top: ${tooltipTop}px; left: ${rect.right + 20}px;"`;
+
+                cutoutHtml = `<div class="absolute rounded-xl transition-all duration-300 pointer-events-none ring-4 ring-indigo-400" style="top: ${rect.top - 4}px; left: ${rect.left - 4}px; width: ${rect.width + 8}px; height: ${rect.height + 8}px; box-shadow: 0 0 0 9999px rgba(30, 27, 75, 0.7);"></div>`;
+            }
+
+            const html = `
+            <div id="tourOverlay" class="fixed inset-0 z-[100] overflow-hidden pointer-events-auto">${cutoutHtml}</div>
+            <div id="tourTooltip" class="${positionClass} z-[110] w-[320px] bg-white rounded-2xl shadow-2xl border border-indigo-100 p-6 slide-in" ${inlineStyle}>
+                <div class="mb-2 flex items-center gap-2">
+                    <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-indigo-500">Step ${currentStep + 1} of ${steps.length}</div>
+                </div>
+                <h3 class="text-xl font-black text-gray-900 mb-2 leading-tight">${step.title}</h3>
+                <p class="text-sm text-gray-600 font-medium mb-6">${step.content}</p>
+                <div class="flex items-center justify-between">
+                    <button id="tourSkipBtn" class="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-wider">Skip Tour</button>
+                    <button id="tourNextBtn" class="btn-primary py-2 px-6 rounded-xl text-sm shadow-indigo-500/30">
+                        ${currentStep === steps.length - 1 ? 'Finish' : 'Next <i data-lucide="arrow-right" class="w-4 h-4 ml-1 inline"></i>'}
+                    </button>
+                </div>
+            </div>`;
+
+            const oldOver = document.getElementById('tourOverlay');
+            const oldTool = document.getElementById('tourTooltip');
+            if (oldOver) oldOver.remove();
+            if (oldTool) oldTool.remove();
+
+            document.body.insertAdjacentHTML('beforeend', html);
+            if (window.lucide) window.lucide.createIcons();
+
+            document.getElementById('tourSkipBtn').onclick = () => endTour();
+            document.getElementById('tourNextBtn').onclick = () => {
+                currentStep++;
+                if (currentStep >= steps.length) {
+                    endTour();
+                } else {
+                    renderTourStep();
+                }
+            };
+        }, 50);
+    }
+
+    async function endTour() {
+        localStorage.setItem('bms_has_seen_tour', 'true');
+
+        // Sync to database if logged in as owner
+        if (state.ownerId && state.profile && !state.profile.has_seen_tour) {
+            try {
+                const updated = await dbProfile.upsert(state.ownerId, { has_seen_tour: true });
+                state.profile = updated;
+            } catch (err) {
+                console.error('Failed to sync tour status:', err);
+            }
+        }
+
+        const oldOver = document.getElementById('tourOverlay');
+        const oldTool = document.getElementById('tourTooltip');
+        if (oldOver) oldOver.remove();
+        if (oldTool) oldTool.remove();
+        showToast('You can replay the tour from settings later.', 'info');
+    }
+
+    setTimeout(() => renderTourStep(), 500);
 };

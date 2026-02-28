@@ -97,38 +97,6 @@ window.showToast = function (message, type = 'info', duration = 2500) {
 };
 
 /* ── Modal System ────────────────────────────────── */
-window.openModal = function (type, data = null) {
-    const modal = document.getElementById('modalOverlay');
-    const content = document.getElementById('modalContent');
-    const html = window.getModalHTML(type, data);
-    if (!html) return;
-    content.innerHTML = html;
-    modal.classList.remove('hidden');
-    lucide.createIcons();
-
-    // Trigger Barcode Generation for Inventory Details
-    if (type === 'inventoryDetails' && data && data.sku && typeof JsBarcode !== 'undefined') {
-        setTimeout(() => {
-            try {
-                JsBarcode(`#barcode-${data.id}`, data.sku, {
-                    format: "CODE128",
-                    width: 2,
-                    height: 50,
-                    displayValue: true,
-                    fontSize: 14,
-                    margin: 0
-                });
-            } catch (e) {
-                console.warn('Barcode generation failed:', e);
-            }
-        }, 50);
-    }
-};
-
-window.closeModal = function () {
-    const modal = document.getElementById('modalOverlay');
-    if (modal) modal.classList.add('hidden');
-};
 
 /* ── Edit Helper ────────────────────────────────── */
 window.openEditModal = async function (type, id) {
@@ -350,24 +318,16 @@ window.confirmDelete = async function (type, id, name = 'this item') {
 
 /* ── Formatters ──────────────────────────────────── */
 window.fmt = {
-    currency: (n) => {
-        // Map common codes to symbols for cleaner display
+    getSymbol: () => {
         const symbols = {
-            'USD': '$',    // US Dollar
-            'EUR': '€',    // Euro
-            'GBP': '£',    // British Pound
-            'KES': 'KSH ', // Kenyan Shilling
-            'TZS': 'TSh ', // Tanzanian Shilling
-            'NGN': '₦',    // Nigerian Naira
-            'UGX': 'USh ', // Ugandan Shilling
-            'ZAR': 'R ',   // South African Rand
-            'INR': '₹'     // Indian Rupee
+            'USD': '$', 'EUR': '€', 'GBP': '£', 'KES': 'KSH ',
+            'TZS': 'TSh ', 'NGN': '₦', 'UGX': 'USh ', 'ZAR': 'R ', 'INR': '₹'
         };
-
-        // Ensure state is loaded, default to USD if not set
         const code = (window.state && window.state.profile && window.state.profile.currency) ? window.state.profile.currency : 'USD';
-
-        const symbol = symbols[code] || (code + ' ');
+        return symbols[code] || (code + ' ');
+    },
+    currency: (n) => {
+        const symbol = window.fmt.getSymbol();
         return symbol + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
     number: (n) => {
@@ -494,8 +454,36 @@ window.openModal = function (type, data = null) {
     content.innerHTML = html;
     modal.classList.remove('hidden');
     lucide.createIcons();
+
     // Reinitialize number formatting after modal content is injected
-    initNumberFormatting();
+    if (window.initNumberFormatting) window.initNumberFormatting();
+
+    // Trigger Barcode Generation for Inventory Details
+    if (type === 'inventoryDetails' && data && data.sku && typeof JsBarcode !== 'undefined') {
+        setTimeout(() => {
+            try {
+                JsBarcode(`#barcode-${data.id}`, data.sku, {
+                    format: "CODE128", width: 2, height: 50, displayValue: true, fontSize: 14, margin: 0
+                });
+            } catch (e) { console.warn('Barcode generation failed:', e); }
+        }, 50);
+    }
+
+    // Populate Supplier Dropdowns
+    const supplierSelects = {
+        'addInventoryItem': 'itemSupplier',
+        'restockStock': 'restockSupplier',
+        'editInventoryAddRequest': 'editItemSupplierAdd',
+        'editRestockRequest': 'editRestockSupplier'
+    };
+
+    if (supplierSelects[type]) {
+        let currentVal = null;
+        if (data && (type === 'editInventoryAddRequest' || type === 'editRestockRequest')) {
+            currentVal = data.metadata ? data.metadata.supplier : null;
+        }
+        if (window.populateSupplierSelect) window.populateSupplierSelect(supplierSelects[type], currentVal);
+    }
 
     // Init specific modals that require JavaScript logic
     if (type === 'addPO') {
@@ -504,6 +492,11 @@ window.openModal = function (type, data = null) {
     if (type === 'createQuotation') {
         setTimeout(() => { if (window.initQuoteModal) window.initQuoteModal() }, 50);
     }
+};
+
+window.closeModal = function () {
+    const modal = document.getElementById('modalOverlay');
+    if (modal) modal.classList.add('hidden');
 };
 
 /* ── Activity Feed Helper ────────────────────────── */
@@ -642,4 +635,29 @@ let _globalDebounceTimers = {};
 window.debounce = function (key, fn, delay = 400) {
     clearTimeout(_globalDebounceTimers[key]);
     _globalDebounceTimers[key] = setTimeout(fn, delay);
+};
+
+/* ── showLoader / hideLoader ────────────────────── */
+window.showLoader = function (message = "Just a moment...") {
+    const loader = document.getElementById("global-loader");
+    const msgEl = document.getElementById("loader-message");
+    if (loader && msgEl) {
+        msgEl.textContent = message;
+        loader.classList.remove("hidden");
+    }
+};
+
+window.hideLoader = function () {
+    const loader = document.getElementById("global-loader");
+    if (loader) {
+        loader.classList.add("hidden");
+    }
+};
+
+window.renderPremiumLoader = function (message = "Loading...") {
+    return `
+    <div class="flex flex-col items-center justify-center py-20 w-full">
+        <div class="premium-spinner"></div>
+        <p class="loader-text mt-4">${message}</p>
+    </div>`;
 };

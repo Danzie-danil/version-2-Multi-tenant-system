@@ -75,9 +75,8 @@
     ];
 
     let _channel = null;
-
-
-
+    let _lastInitTime = 0;
+    const INIT_THROTTLE_MS = 5000;
 
     // ─── Get the active view for the current role ─────────────────────────────
     function getActiveView() {
@@ -168,16 +167,30 @@
     window.initRealtimeSync = function () {
         if (!window.supabaseClient || !window.state?.profile) return;
 
+        // Throttling to prevent rapid-fire re-initialisation loops
+        const now = Date.now();
+        if (now - _lastInitTime < INIT_THROTTLE_MS) {
+            console.log('[Realtime] Sync initialisation throttled...');
+            return;
+        }
+        _lastInitTime = now;
+
         // Clean up any previous channel
         if (_channel) {
             supabaseClient.removeChannel(_channel);
             _channel = null;
         }
 
+        const presenceKey = state.role === 'owner' ? state.ownerId : state.branchId;
+        if (!presenceKey) {
+            console.warn('[Realtime] Missing identity key for presence tracking');
+            return;
+        }
+
         _channel = supabaseClient.channel('bms-live', {
             config: {
                 broadcast: { self: false },
-                presence: { key: state.role === 'owner' ? state.ownerId : state.branchId }
+                presence: { key: presenceKey }
             }
         });
 
@@ -252,21 +265,18 @@
                 window.realtimeChannel = _channel; // Expose globally for broadcasts
 
                 // Track presence
-                await _channel.track({
-                    id: state.role === 'owner' ? state.ownerId : state.branchId,
-                    name: state.currentUser,
-                    role: state.role,
-                    online_at: new Date().toISOString()
-                });
+                if (presenceKey) {
+                    await _channel.track({
+                        id: presenceKey,
+                        name: state.currentUser,
+                        role: state.role,
+                        online_at: new Date().toISOString()
+                    });
+                }
             } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                console.warn('[Realtime] ⚠️ Connection issue, retrying…', status);
-
-                // Aggressive fallback for mobile connectivity issues
-                setTimeout(() => {
-                    if (!_channel || _channel.state !== 'joined') {
-                        window.initRealtimeSync?.();
-                    }
-                }, 3000);
+                console.warn('[Realtime] ⚠️ Connection status:', status);
+                // Note: removed aggressive recursive retry loop. 
+                // Supabase's internal client handles reconnection natively.
             }
         });
     };

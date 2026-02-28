@@ -208,11 +208,7 @@ window.renderLoansModule = function () {
                 <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Transaction
             </button>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">Loading financial data…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading financial data…')}
     </div>`;
     lucide.createIcons();
 

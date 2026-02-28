@@ -242,11 +242,7 @@ window.renderCustomersModule = function () {
                 </button>
             </div>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">Loading customer data…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading customer data…')}
     </div>`;
     lucide.createIcons();
 

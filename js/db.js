@@ -29,11 +29,11 @@ window.dbAuth = {
     getSession: () => _db.auth.getSession(),
 
     /** Register new owner */
-    signUp: (email, password, data) =>
+    signUp: (email, password, options = {}) =>
         _db.auth.signUp({
             email,
             password,
-            options: { data }
+            options
         })
 };
 
@@ -109,6 +109,16 @@ window.dbBranches = {
         return _check(res, 'fetchBranches');
     },
 
+    /** Fetch single branch managed by the given manager user ID */
+    fetchByManager: async (managerId) => {
+        const res = await _db
+            .from('branches')
+            .select('*')
+            .eq('manager_id', managerId)
+            .maybeSingle();
+        return _check(res, 'fetchBranchByManager');
+    },
+
     /** Verify branch credentials: returns branch or null */
     verifyCredentials: async (ownerEmail, branchName, pin) => {
         // Case-insensitive match for email and branch name is better for UX
@@ -158,17 +168,38 @@ window.dbBranches = {
         return true;
     },
 
-    /** Create a new branch */
-    add: async (ownerId, { name, location, manager, pin, target, owner_email, currency }) => {
+    add: async (ownerId, { name, location, manager, target, managerEmail, branchPassword, currency }) => {
+        let managerId = null;
+
+        // 1. Create the manager user via RPC ONLY if credentials provided
+        if (managerEmail && branchPassword) {
+            const meta = { role: 'branch_manager', branch_name: name };
+            const { data, error: rpcError } = await _db.rpc('create_branch_manager', {
+                mgr_email: managerEmail,
+                mgr_password: branchPassword,
+                mgr_meta: meta
+            });
+
+            if (rpcError) {
+                console.error('[DB] create_branch_manager error:', rpcError);
+                // If it fails because the function is missing, give a better error
+                if (rpcError.code === 'PGRST202' || rpcError.message?.includes('not found')) {
+                    throw new Error('Database setup incomplete: Missing "create_branch_manager" function. Please run the migration script.');
+                }
+                throw new Error('Failed to create manager account: ' + rpcError.message);
+            }
+            managerId = data;
+        }
+
+        // 2. Insert the branch record
         const payload = {
             owner_id: ownerId,
+            manager_id: managerId,
+            manager_email: managerEmail,
             name,
             location,
             manager,
-            pin,
-            target,
-            owner_email,
-            pin_updated_at: new Date().toISOString()
+            target
         };
         if (currency) payload.currency = currency;
 
@@ -194,16 +225,26 @@ window.dbBranches = {
         return _check(res, 'updateBranchAdmin');
     },
 
-    /** Reset branch PIN */
-    updatePin: async (branchId, newPin) => {
-        const res = await _db
+    /** Reset Manager Password */
+    updateManagerPassword: async (branchId, newPassword) => {
+        // Find the manager's auth user ID first
+        const { data: branch, error: fetchErr } = await _db
             .from('branches')
-            .update({
-                pin: newPin,
-                pin_updated_at: new Date().toISOString()
-            })
-            .eq('id', branchId);
-        return _check(res, 'updateBranchPin');
+            .select('manager_id')
+            .eq('id', branchId)
+            .single();
+
+        if (fetchErr || !branch || !branch.manager_id) {
+            throw new Error('This branch does not have a manager account assigned to it.');
+        }
+
+        const { error: rpcError } = await _db.rpc('reset_branch_manager_password', {
+            mgr_id: branch.manager_id,
+            new_password: newPassword
+        });
+
+        if (rpcError) throw new Error('Failed to update password: ' + rpcError.message);
+        return true;
     },
 
     /** Update branch profile details */

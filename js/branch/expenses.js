@@ -252,11 +252,7 @@ window.renderExpensesModule = function () {
                 </button>
             </div>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">Loading expenses…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading expenses…')}
     </div>`;
     lucide.createIcons();
 
@@ -300,7 +296,7 @@ window.renderExpensesModule = function () {
                 </div>
                 <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
                     <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Largest Expense">Largest Expense</p>
-                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : '$0.00'}</p>
+                    <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : fmt.currency(0)}">${expenses.length ? fmt.currency(Math.max(...expenses.map(e => e.amount))) : fmt.currency(0)}</p>
                 </div>
             </div>
 

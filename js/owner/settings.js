@@ -171,7 +171,7 @@ window.renderSettings = function () {
                                 <div>
                                     <label for="set_default_target" class="block text-sm font-medium text-gray-700 mb-1">Default Daily Sales Target</label>
                                     <div class="flex items-stretch rounded-lg shadow-sm border border-gray-300 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 overflow-hidden bg-white">
-                                        <span class="flex items-center px-3 bg-gray-50 border-r border-gray-300 text-gray-400 text-[10px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">${fmt.currency(0).replace(/[0-9.,\s]/g, '').trim() || 'Val'}</span>
+                                        <span class="flex items-center px-3 bg-gray-50 border-r border-gray-300 text-gray-400 text-[10px] font-black uppercase tracking-widest whitespace-nowrap flex-shrink-0">${fmt.getSymbol()}</span>
                                         <input type="text" inputmode="decimal" id="set_default_target" value="${profile.default_target || 10000}" class="flex-1 block w-full px-4 py-2 text-gray-900 border-0 focus:ring-0 focus:outline-none number-format min-w-0">
                                     </div>
                                     <p class="text-xs text-gray-400 mt-2">Applied as baseline when creating new branches.</p>
@@ -225,7 +225,15 @@ window.renderSettings = function () {
                             <div class="col-span-1">
                                 <label for="set_receipt_text" class="block text-sm font-medium text-gray-700 mb-1">Default Receipt / Invoice Footer Text</label>
                                 <textarea id="set_receipt_text" class="form-input w-full" rows="7" placeholder="Thank you for your business!">${profile.receipt_text || 'Thank you for your business!'}</textarea>
-                                <p class="text-xs text-gray-400 mt-2">Maximum 500 characters. Support for basic plain text.</p>
+                                <p class="text-xs text-gray-400 mt-2 mb-8">Maximum 500 characters. Support for basic plain text.</p>
+                                
+                                <div class="pt-6 border-t border-gray-100">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-1">Onboarding</h4>
+                                    <p class="text-xs text-gray-500 mb-3 border-none">Want to see the platform walkthrough again?</p>
+                                    <button type="button" onclick="closeModal(); startSaaSTour(true);" class="flex items-center justify-center w-full gap-2 px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 rounded-xl transition-all">
+                                        <i data-lucide="play-circle" class="w-4 h-4"></i> Replay Welcome Tour
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -253,33 +261,8 @@ window.renderSettings = function () {
                             </div>
                         </div>
 
-                        <div>
-                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Subscription Details</h4>
-                            <div class="space-y-2 max-w-sm">
-                                <div class="flex items-center justify-between p-2.5 bg-gray-50/50 rounded-xl border border-gray-100 group transition-all hover:bg-white hover:shadow-sm">
-                                    <div class="flex items-center gap-3">
-                                        <i data-lucide="zap" class="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
-                                        <span class="text-sm font-medium text-gray-600">Current Plan</span>
-                                    </div>
-                                    <span class="text-sm font-bold text-indigo-600">${profile.current_plan || 'Free Tier'}</span>
-                                </div>
-                                
-                                <div class="flex items-center justify-between p-2.5 bg-gray-50/50 rounded-xl border border-gray-100 group transition-all hover:bg-white hover:shadow-sm">
-                                    <div class="flex items-center gap-3">
-                                        <i data-lucide="calendar" class="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors"></i>
-                                        <span class="text-sm font-medium text-gray-600">Billing Cycle</span>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-900 capitalize">${profile.billing_cycle || 'Monthly'}</span>
-                                </div>
-
-                                <button type="button" class="w-full flex items-center justify-between p-2.5 bg-white rounded-xl border border-dashed border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/30 transition-all active:scale-[0.98] group">
-                                    <div class="flex items-center gap-3">
-                                        <i data-lucide="credit-card" class="w-4 h-4 text-gray-400 group-hover:text-indigo-600"></i>
-                                        <span class="text-sm font-bold">Manage Billing</span>
-                                    </div>
-                                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 opacity-50 group-hover:opacity-100"></i>
-                                </button>
-                            </div>
+                        <div id="billingSettingsContainer" class="mt-8 w-full border-t border-gray-100 pt-8">
+                            <!-- Billing UI injected here by billing.js -->
                         </div>
                     </div>
 
@@ -354,6 +337,10 @@ window.switchSettingsTab = function (tabName) {
     });
 
     lucide.createIcons();
+
+    if (tabName === 'security' && typeof renderOwnerBilling === 'function') {
+        renderOwnerBilling();
+    }
 };
 
 let ownerAutoSaveTimeout = null;

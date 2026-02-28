@@ -13,11 +13,7 @@ window.renderBranchesManagement = function () {
                 <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Branch
             </button>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">Loading branches…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading branches…')}
     </div>`;
     lucide.createIcons();
 
@@ -70,72 +66,66 @@ window.renderBranchesManagement = function () {
                 <p class="text-gray-400 text-sm">No branches yet. Create your first branch!</p>
                 <button onclick="openModal('addBranch')" class="mt-4 btn-primary text-sm">Add Branch</button>
             </div>` : `
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                ${withSales.map(branch => {
+            <div class="space-y-3.5">
+                ${withSales.map((branch, idx) => {
             const pct = fmt.percent(branch.todaySales, branch.target);
             const barColor = pct >= 100 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-500' : 'bg-red-500';
+            const accentColors = ['border-l-indigo-500', 'border-l-emerald-500', 'border-l-blue-500', 'border-l-purple-500', 'border-l-rose-500', 'border-l-amber-500'];
+            const accentColor = accentColors[idx % accentColors.length];
 
-            // Format currency for this specific branch, falling back to global currency
+            // Format currency for this specific branch
             const currCode = branch.currency || (state.profile && state.profile.currency) || 'USD';
             const fCurr = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currCode }).format(val || 0);
 
             return `
-                    <div onclick="openDetailsModal('branch', '${branch.id}')" class="module-card bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden flex flex-col h-full">
-                        <!-- Top Row: Icon + Name -->
-                        <div class="flex items-start justify-between mb-5">
-                            <div class="flex items-center gap-3.5">
-                                <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:scale-110 duration-300">
-                                    <i data-lucide="building-2" class="w-6 h-6"></i>
-                                </div>
+                    <div onclick="openDetailsModal('branch', '${branch.id}')" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 border-l-[4px] ${accentColor} rounded-2xl p-4 md:p-5 flex items-center gap-4 hover:shadow-md transition-all group relative cursor-pointer">
+                        <!-- Left Icon -->
+                        <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700/50 flex items-center justify-center text-gray-400 dark:text-gray-500 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:scale-110 duration-300 flex-shrink-0">
+                            <i data-lucide="building-2" class="w-6 h-6"></i>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-3 mb-1">
                                 <div>
-                                    <h3 class="font-black text-gray-900 dark:text-white text-base leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${branch.name}</h3>
-                                    <div class="flex items-center gap-1.5 mt-1">
+                                    <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">${branch.name}</h3>
+                                    <div class="flex items-center gap-2 mt-0.5">
                                         <span class="w-1.5 h-1.5 rounded-full ${branch.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}"></span>
-                                        <p class="text-[9px] text-gray-400 dark:text-gray-500 uppercase font-black tracking-[0.1em]">${branch.status}</p>
+                                        <p class="text-[10px] text-gray-400 dark:text-gray-500 uppercase font-bold tracking-widest">${branch.status}</p>
                                     </div>
                                 </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 leading-none mb-1">Today's Sales</p>
+                                    <span class="text-sm md:text-lg font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">${fCurr(branch.todaySales)}</span>
+                                </div>
                             </div>
-                            <div class="bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 p-2 rounded-xl group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/50 group-hover:text-indigo-400 transition-colors">
-                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                            </div>
-                        </div>
+                            
+                            <div class="flex items-end justify-between gap-3 mt-2">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex flex-col">
+                                        <p class="text-[8px] text-gray-400 dark:text-gray-500 uppercase font-black tracking-widest leading-none mb-1">Manager</p>
+                                        <p class="text-[11px] font-bold text-gray-700 dark:text-gray-200 truncate">${branch.manager || 'Unassigned'}</p>
+                                    </div>
+                                    <div class="h-5 w-px bg-gray-100 dark:bg-gray-700"></div>
+                                    <div class="flex flex-col">
+                                        <p class="text-[8px] text-gray-400 dark:text-gray-500 uppercase font-black tracking-widest leading-none mb-1">Achievement</p>
+                                        <p class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">${pct}%</p>
+                                    </div>
+                                </div>
 
-                        <!-- Manager info -->
-                        <div class="flex items-center gap-2.5 mb-5 p-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-2xl border border-gray-100/50 dark:border-gray-700/50">
-                            <div class="w-8 h-8 rounded-xl bg-white dark:bg-gray-700 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-600 text-gray-400 dark:text-gray-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
-                                <i data-lucide="user" class="w-4 h-4"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-[8px] text-gray-400 dark:text-gray-500 uppercase font-black tracking-wider mb-0.5">Branch Manager</p>
-                                <p class="text-[11px] font-bold text-gray-700 dark:text-gray-200 truncate leading-none">${branch.manager || 'Unassigned'}</p>
-                            </div>
-                        </div>
-
-                        <!-- Stats Grid: Vertical Stack -->
-                        <div class="grid grid-cols-1 gap-2 mb-6">
-                            <div class="bg-indigo-50/40 dark:bg-indigo-900/20 rounded-2xl p-3 border border-indigo-100/30 dark:border-indigo-800/30 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/40 transition-colors flex items-center justify-between">
-                                <p class="text-[8px] text-indigo-400 dark:text-indigo-300 uppercase font-black tracking-widest opacity-80">Today's Sales</p>
-                                <p class="text-sm font-black text-indigo-600 dark:text-indigo-400">${fCurr(branch.todaySales)}</p>
-                            </div>
-                            <div class="bg-emerald-50/40 dark:bg-emerald-900/20 rounded-2xl p-3 border border-emerald-100/30 dark:border-emerald-800/30 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/40 transition-colors flex items-center justify-between">
-                                <p class="text-[8px] text-emerald-400 dark:text-emerald-300 uppercase font-black tracking-widest opacity-80">Achievement</p>
-                                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">${pct}%</p>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar Section -->
-                        <div class="mt-auto pt-2">
-                            <div class="flex justify-between items-end mb-2">
-                                <p class="text-[9px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[0.15em]">Growth Metric</p>
-                                <p class="text-[10px] font-black text-gray-900 dark:text-white">${pct}%</p>
-                            </div>
-                            <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden shadow-inner">
-                                <div class="${barColor} h-full progress-bar transition-all duration-1000" style="width:${Math.min(pct, 100)}%"></div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-24 bg-gray-100 dark:bg-gray-700 rounded-full h-1 overflow-hidden hidden sm:block">
+                                        <div class="${barColor} h-full transition-all duration-1000" style="width:${Math.min(pct, 100)}%"></div>
+                                    </div>
+                                    <div class="text-gray-300 dark:text-gray-600 group-hover:text-indigo-400 transition-colors">
+                                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>`;
         }).join('')}
-            </div>`}
+            </div>`  }
         </div>`;
         lucide.createIcons();
     }).catch(err => {

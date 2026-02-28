@@ -75,14 +75,17 @@ window.bulkDeleteSelectedSuppliers = async function () {
         const ids = Array.from(window.suppliersSelection);
         if (window.suppliersActiveTab === 'suppliers') {
             await Promise.all(ids.map(id => dbSuppliers.delete(id)));
+            // Clear cached list for PO dropdowns
+            window._currentSuppliersList = null;
             showToast(`Deleted ${count} suppliers`, 'success');
         } else {
-            // Delete POs (Assuming cascading deletes or items deleted via DB trigger/function)
             await Promise.all(ids.map(id => dbPurchaseOrders.delete(id)));
             showToast(`Deleted ${count} purchase orders`, 'success');
         }
         window.suppliersSelection.clear();
-        renderSuppliersModule();
+
+        if (state.role === 'owner' && window.renderOwnerSuppliersModule) renderOwnerSuppliersModule();
+        else renderSuppliersModule();
     } catch (err) {
         showToast('Error: ' + err.message, 'error');
     }
@@ -115,7 +118,7 @@ window.renderSuppliersModule = async function () {
         </div>
 
         <div id="suppliersContentArea" class="pt-2 min-h-[300px]">
-            <div class="flex justify-center py-10"><p class="text-gray-400 text-sm">Loading...</p></div>
+            ${renderPremiumLoader('Loading suppliers & POs…')}
         </div>
     </div>`;
     lucide.createIcons();

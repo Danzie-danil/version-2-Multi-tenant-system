@@ -23,9 +23,7 @@ window.renderBranchRequestsModule = function () {
         </div>
 
         <div id="branchRequestsList" class="space-y-4 pb-20 md:pb-0">
-            <div class="flex items-center justify-center py-20">
-                <p class="text-gray-400 text-sm italic">Loading your requests...</p>
-            </div>
+            ${renderPremiumLoader('Loading your requests...')}
         </div>
     </div>`;
     lucide.createIcons();

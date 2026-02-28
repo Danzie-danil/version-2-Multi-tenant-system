@@ -19,9 +19,7 @@ window.renderRequestsModule = function (highlightId = null) {
         </div>
 
         <div id="requestsList" class="space-y-4 pb-20 md:pb-0">
-            <div class="flex items-center justify-center py-20">
-                <p class="text-gray-400 text-sm italic">Loading requests...</p>
-            </div>
+            ${renderPremiumLoader('Loading requests...')}
         </div>
     </div>`;
     lucide.createIcons();

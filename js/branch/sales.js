@@ -554,12 +554,7 @@ window.renderSalesModule = function () {
                 <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> New Sale
             </button>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <div class="rolling-loader mx-auto mb-4"></div>
-                <p class="text-gray-400 text-sm">Synchronizing sales history…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Synchronizing sales history…')}
     </div>`;
     lucide.createIcons();
 

@@ -47,6 +47,14 @@
 </head>
 
 <body class="bg-gray-50 text-gray-900">
+    <!-- Initial App Loader -->
+    <div id="initial-loader"
+        class="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-white dark:bg-[#0b141a] transition-opacity duration-500">
+        <div class="loader-content !shadow-none !border-none !bg-transparent">
+            <div class="premium-spinner"></div>
+            <p class="loader-text mt-4">Initializing BMS...</p>
+        </div>
+    </div>
 
     <!-- ── Login Screen ──────────────────────────────────────────────────── -->
     <div id="loginScreen" class="fixed inset-0 gradient-bg flex items-center justify-center z-50 p-4">
@@ -276,48 +284,35 @@
             <!-- Branch fields (hidden by default) -->
             <div id="branchSelector" class="hidden space-y-3">
                 <div>
-                    <label for="branchNameInput"
-                        class="login-label block text-sm font-medium text-gray-700 mb-1.5">Branch
-                        Name</label>
+                    <label for="branchEmailInput"
+                        class="login-label block text-sm font-medium text-gray-700 mb-1.5">Manager
+                        Email</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="building-2" class="w-5 h-5 text-gray-400"></i>
+                            <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
                         </div>
-                        <input type="text" id="branchNameInput" placeholder="e.g. Main Branch"
+                        <input type="email" id="branchEmailInput" placeholder="manager@branch.com" autocomplete="email"
                             class="form-input auth-input pl-10">
                     </div>
                 </div>
                 <div>
-                    <label for="pinInput" class="login-label block text-sm font-medium text-gray-700 mb-1.5">Branch
-                        PIN</label>
+                    <label for="branchPasswordInput"
+                        class="login-label block text-sm font-medium text-gray-700 mb-1.5">Password</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="key-round" class="w-5 h-5 text-gray-400"></i>
+                            <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
                         </div>
-                        <input type="password" id="pinInput" maxlength="6" placeholder="Enter 6-digit PIN"
-                            class="form-input auth-input text-center tracking-widest pl-10 pr-10"
-                            onkeydown="if(event.key==='Enter') login()">
-                        <button type="button" onclick="togglePasswordVisibility('pinInput', this)"
+                        <input type="password" id="branchPasswordInput" placeholder="Enter password"
+                            class="form-input auth-input pl-10 pr-10" onkeydown="if(event.key==='Enter') login()">
+                        <button type="button" onclick="togglePasswordVisibility('branchPasswordInput', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none z-10">
                             <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
                         </button>
                     </div>
                     <div class="text-right mt-1">
                         <button onclick="toggleBranchPinReset()" class="text-xs text-indigo-600 hover:text-indigo-800">
-                            Forgot PIN?
+                            Forgot Password?
                         </button>
-                    </div>
-                </div>
-                <div>
-                    <label for="branchOwnerEmail"
-                        class="login-label block text-sm font-medium text-gray-700 mb-1.5">Business Admin
-                        Email</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
-                        </div>
-                        <input type="email" id="branchOwnerEmail" placeholder="owner@business.com" autocomplete="email"
-                            class="form-input auth-input pl-10">
                     </div>
                 </div>
             </div>
@@ -623,6 +618,7 @@
     <script src="js/owner/branches.js"></script>
     <script src="js/owner/tasks.js"></script>
     <script src="js/owner/analytics.js"></script>
+    <script src="js/owner/billing.js"></script>
     <script src="js/owner/security.js"></script>
     <script src="js/owner/requests.js"></script>
     <script src="js/owner/settings.js"></script>
@@ -679,6 +675,13 @@
     </script>
     <script src="js/particles.js"></script>
 
+    <!-- Global Global Loading Overlay -->
+    <div id="global-loader" class="hidden">
+        <div class="loader-content">
+            <div class="premium-spinner"></div>
+            <p id="loader-message" class="loader-text">Just a moment...</p>
+        </div>
+    </div>
 </body>
 
 </html>

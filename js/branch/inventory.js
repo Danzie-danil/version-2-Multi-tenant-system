@@ -243,11 +243,7 @@ window.renderInventoryModule = function () {
                 </button>
             </div>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">Loading inventory data…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading inventory data…')}
     </div>`;
     lucide.createIcons();
 

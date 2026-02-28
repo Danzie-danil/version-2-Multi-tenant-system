@@ -25,7 +25,12 @@ window.renderOwnerOverview = function () {
     <div class="space-y-4 slide-in">
         <div class="flex flex-nowrap items-center gap-2 sm:gap-3 justify-between">
             <div class="inline-flex items-center gap-2 sm:gap-3 bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-2xl p-1 sm:p-1.5 pr-3 sm:pr-5 cursor-default hover:shadow-md transition-shadow overflow-hidden">
-                <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Business Overview</div>
+                <div class="flex items-center gap-2">
+                    <div class="bg-indigo-50 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-bold uppercase tracking-wider truncate">Business Overview</div>
+                    <span class="bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-2 py-1.5 rounded-lg border border-white/10 text-[9px] font-black uppercase tracking-widest shadow-sm hidden md:inline-block">
+                        Plan: ${(state.profile?.plan || 'Free Trial').toUpperCase().replace('_', ' ')}
+                    </span>
+                </div>
                 <span class="text-[10px] sm:text-sm font-medium text-gray-500 flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
                     <i data-lucide="calendar" class="w-3 h-3 sm:w-4 sm:h-4"></i>
                     ${new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}

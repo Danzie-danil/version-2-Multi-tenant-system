@@ -18,8 +18,10 @@ window.login = async function () {
             btn.textContent = 'Signing in…';
         }
 
+        showLoader('Signing in...');
         const { data, error } = await dbAuth.signIn(email, password);
         if (error) {
+            hideLoader();
             showToast('Login failed: ' + error.message, 'error');
             if (btn) {
                 btn.disabled = false;
@@ -57,75 +59,65 @@ window.login = async function () {
         }
 
         // Store session start for timeout policy
+        localStorage.setItem('bms_last_role', role);
         localStorage.setItem('bms_session_start', Date.now());
 
     } else {
-        // Branch manager: Owner Email + Branch Name + PIN
-        const ownerEmail = document.getElementById('branchOwnerEmail').value.trim();
-        const branchName = document.getElementById('branchNameInput').value.trim();
-        const pin = document.getElementById('pinInput').value.trim();
+        // Branch manager: Manager Email + Password
+        const email = document.getElementById('branchEmailInput').value.trim();
+        const password = document.getElementById('branchPasswordInput').value;
 
-        if (!ownerEmail || !branchName || !pin) {
-            showToast('Please enter Owner Email, Branch Name, and PIN', 'warning');
-            return;
-        }
-        if (pin.length !== 6) {
-            showToast('Please enter a 6-digit PIN', 'warning');
+        if (!email || !password) {
+            showToast('Please enter your Manager Email and Password', 'warning');
             return;
         }
 
-        const branchBtn = document.querySelector('#branchSelector button');
-        if (branchBtn) {
-            branchBtn.disabled = true;
-            branchBtn.textContent = 'Verifying…';
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Verifying…';
+        }
+
+        showLoader('Verifying credentials...');
+
+        const { data, error } = await dbAuth.signIn(email, password);
+
+        if (error) {
+            hideLoader();
+            showToast('Invalid credentials or account does not exist.', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
+                lucide.createIcons();
+            }
+            return;
         }
 
         let branch;
         try {
-            // New lookup method
-            branch = await dbBranches.verifyCredentials(ownerEmail, branchName, pin);
+            branch = await dbBranches.fetchByManager(data.user.id);
         } catch (e) {
             console.error(e);
-            showToast('Could not connect to server', 'error');
-            if (branchBtn) {
-                branchBtn.disabled = false;
-                branchBtn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
+            hideLoader();
+            showToast('Could not fetch branch data.', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
                 lucide.createIcons();
             }
             return;
         }
 
         if (!branch) {
-            showToast('Invalid credentials. Please check Email, Branch Name, and PIN.', 'error');
-            if (branchBtn) {
-                branchBtn.disabled = false;
-                branchBtn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
+            hideLoader();
+            showToast('No branch assigned to this manager account.', 'error');
+            await dbAuth.signOut(); // Kick them out if no branch assigned
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
                 lucide.createIcons();
             }
             return;
         }
-
-        // --- POLICY ENFORCEMENT: PIN EXPIRY ---
-        try {
-            const profile = await dbProfile.fetch(branch.owner_id);
-            const expiryDays = profile?.pin_expiry_days || 90;
-            const lastUpdate = new Date(branch.pin_updated_at || branch.created_at);
-            const now = new Date();
-            const diffDays = Math.floor((now - lastUpdate) / (1000 * 60 * 60 * 24));
-
-            if (diffDays >= expiryDays) {
-                showToast(`PIN Security Alert: Your branch PIN has expired (${diffDays} days old). Please contact your administrator to reset it.`, 'error');
-                if (branchBtn) {
-                    branchBtn.disabled = false;
-                    branchBtn.innerHTML = '<i data-lucide="log-in" class="w-5 h-5"></i> Access Dashboard';
-                    lucide.createIcons();
-                }
-                return;
-            }
-        } catch (err) {
-            console.warn('Failed to check PIN expiry during login:', err);
-        }
-        // --------------------------------------
 
         state.role = 'branch';
         state.branchId = branch.id;
@@ -162,13 +154,8 @@ window.login = async function () {
             state.profile = { currency: branch.currency || 'USD' };
         }
 
-        // Persist Branch Session
-        localStorage.setItem('bms_branch_session', JSON.stringify({
-            branchId: branch.id,
-            ownerId: branch.owner_id,
-            name: branch.name,
-            enterpriseName: state.enterpriseName
-        }));
+        // Persist session metadata
+        localStorage.setItem('bms_last_role', 'branch');
         localStorage.setItem('bms_session_start', Date.now());
     }
 
@@ -182,7 +169,12 @@ window.login = async function () {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     setupDashboard();
+    hideLoader();
     showToast(`Welcome back, ${state.currentUser}!`, 'success');
+
+    if (state.role === 'owner' && typeof startSaaSTour === 'function') {
+        setTimeout(startSaaSTour, 800);
+    }
 };
 
 // ── Auth State & UI Toggles ────────────────────────────────────────────────
@@ -241,6 +233,7 @@ window.handlePasswordReset = async function () {
     btn.textContent = 'Sending...';
     btn.disabled = true;
 
+    showLoader('Sending reset link...');
     try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin + '/index.html',
@@ -249,8 +242,10 @@ window.handlePasswordReset = async function () {
         showToast('Check your email for the reset link!', 'success');
         setTimeout(() => toggleResetPassword(), 2000);
     } catch (err) {
+        hideLoader();
         showToast(err.message, 'error');
     } finally {
+        hideLoader();
         btn.textContent = originalText;
         btn.disabled = false;
     }
@@ -290,13 +285,16 @@ window.requestPinReset = async function () {
     btn.textContent = 'Sending Request...';
     btn.disabled = true;
 
+    showLoader('Sending Request...');
     try {
         await dbBranches.requestAccess(email, branch);
         showToast('Request sent to owner! They will be notified.', 'success');
         setTimeout(() => toggleBranchPinReset(), 2000);
     } catch (err) {
+        hideLoader();
         showToast(err.message, 'error');
     } finally {
+        hideLoader();
         btn.textContent = originalText;
         btn.disabled = false;
     }
@@ -324,15 +322,20 @@ window.register = async function () {
         btn.textContent = 'Creating Account…';
     }
 
+    showLoader('Creating Account...');
     const fullPhone = countryCode + phone;
 
     // 1. Create User
     const { data: authData, error: authError } = await dbAuth.signUp(email, password, {
-        business_name: businessName,
-        phone: fullPhone
+        data: {
+            business_name: businessName,
+            phone: fullPhone
+        },
+        emailRedirectTo: window.location.origin
     });
 
     if (authError) {
+        hideLoader();
         showToast(authError.message, 'error');
         if (btn) {
             btn.disabled = false;
@@ -363,6 +366,7 @@ window.register = async function () {
             document.getElementById('regEmail').value = '';
             document.getElementById('regPassword').value = '';
 
+            hideLoader();
             showToast('Registration successful! Please check your email to confirm your account.', 'success');
 
             // Switch back to login view so they can log in after confirming
@@ -373,6 +377,7 @@ window.register = async function () {
             toggleRegistration();
 
         } catch (err) {
+            hideLoader(); // CRITICAL: Stop the animation
             console.error('Auto-provisioning failed:', err);
             showToast(`Branch setup failed: ${err.message}. Please create branch manually.`, 'error');
             if (btn) {
@@ -396,15 +401,27 @@ window.logout = async function () {
     if (state.role === 'owner') {
         await dbAuth.signOut();
     }
-    // Clear all local storage sessions
+    // Clear all local storage and session storage
     localStorage.clear();
+    sessionStorage.clear();
+
+    // Clear service worker / browser caches
+    if ('caches' in window) {
+        try {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+        } catch (e) {
+            console.error('Error clearing caches:', e);
+        }
+    }
 
     // Return default theme to light
     localStorage.setItem('bms-theme', 'light');
     document.documentElement.classList.remove('dark');
     if (typeof initTheme === 'function') initTheme('light');
 
-    location.reload();
+    // Force hard reload to completely refresh the app state from the server
+    window.location.reload(true);
 };
 
 
@@ -534,133 +551,120 @@ window.setLoginRole = function (role) {
 
 // ── Session Initialization ─────────────────────────────────────────────────
 window.initAuth = async function () {
-    // 1. Check for Owner Session (Supabase)
     const { data: { session } } = await dbAuth.getSession();
     const sessionStart = localStorage.getItem('bms_session_start');
 
     if (session) {
-        // --- POLICY ENFORCEMENT: SESSION DURATION ---
-        try {
-            const profile = await dbProfile.fetch(session.user.id);
-            const maxHrs = profile?.session_duration_hrs || 8;
-            if (sessionStart && (Date.now() - parseInt(sessionStart)) > (maxHrs * 3600000)) {
-                console.warn('Session expired based on enterprise policy');
-                showToast('Your session has expired. Please log in again.', 'info');
-                await logout();
-                return;
+        console.log('[Auth] Supabase session found, identifying role...');
+
+        // 1. Check if user is a Manager (source of truth is the branches table)
+        let branch = await dbBranches.fetchByManager(session.user.id);
+
+        if (branch) {
+            console.log('[Auth] Identified: Branch Manager');
+            state.role = 'branch';
+            state.branchId = branch.id;
+            state.ownerId = branch.owner_id;
+            state.currentUser = `${branch.name} (Manager)`;
+            state.branchProfile = { ...branch, branch_code: branch.branch_code || `BR-${branch.id.substring(0, 5).toUpperCase()}` };
+
+            // Fetch Enterprise info
+            try {
+                const profile = await dbProfile.fetch(branch.owner_id);
+                state.enterpriseName = profile?.business_name || 'BMS Enterprise';
+                state.profile = profile || { currency: 'USD' };
+                if (branch.currency) state.profile.currency = branch.currency;
+
+                // --- POLICY ENFORCEMENT: SESSION DURATION ---
+                const maxHrs = profile?.session_duration_hrs || 8;
+                if (sessionStart && (Date.now() - parseInt(sessionStart)) > (maxHrs * 3600000)) {
+                    console.warn('[Auth] Branch session expired based on enterprise policy');
+                    showToast('Your session has expired. Please log in again.', 'info');
+                    await logout();
+                    return;
+                }
+            } catch (e) {
+                console.warn('[Auth] Failed to fetch enterprise profile for manager', e);
+                state.enterpriseName = 'BMS Enterprise';
+                state.profile = { currency: 'USD' };
             }
-        } catch (e) { }
-        // --------------------------------------------
+        } else {
+            console.log('[Auth] Identified: Business Owner');
+            state.role = 'owner';
+            state.ownerId = session.user.id;
+            state.currentUser = session.user.email;
 
-        console.log('Restoring Owner Session...');
-        state.role = 'owner';
-        state.ownerId = session.user.id;
-        state.currentUser = session.user.email;
+            // Load profile
+            try {
+                let profile = await dbProfile.fetch(state.ownerId);
+                if (!profile) {
+                    profile = await dbProfile.upsert(state.ownerId, {
+                        full_name: session.user.user_metadata?.first_name || 'Admin',
+                        currency: 'USD'
+                    });
+                }
+                state.profile = profile;
 
-        // Load profile
-        try {
-            let profile = await dbProfile.fetch(state.ownerId);
-            if (!profile) {
-                profile = await dbProfile.upsert(state.ownerId, {
-                    full_name: session.user.user_metadata?.first_name || 'Admin',
-                    currency: 'USD'
-                });
+                // --- POLICY ENFORCEMENT: SESSION DURATION ---
+                const maxHrs = profile?.session_duration_hrs || 8;
+                if (sessionStart && (Date.now() - parseInt(sessionStart)) > (maxHrs * 3600000)) {
+                    console.warn('[Auth] Owner session expired based on enterprise policy');
+                    showToast('Your session has expired. Please log in again.', 'info');
+                    await logout();
+                    return;
+                }
+            } catch (e) {
+                console.error('[Auth] Profile fetch on restore failed', e);
+                state.profile = { currency: 'USD' };
             }
-            state.profile = profile;
-        } catch (e) {
-            console.error('Profile fetch on restore failed', e);
-            state.profile = { currency: 'USD' }; // Fallback
+
+            // Load branches
+            try {
+                state.branches = await dbBranches.fetchAll(state.ownerId);
+            } catch (e) {
+                console.error('[Auth] Failed to load branches:', e);
+                state.branches = [];
+            }
         }
 
-        // Load branches
-        try {
-            state.branches = await dbBranches.fetchAll(state.ownerId);
-        } catch (e) {
-            console.error('Failed to load branches:', e);
-            state.branches = [];
-        }
-
-        // Apply theme preference before showing app
-        if (state.profile?.theme && typeof initTheme === 'function') {
-            console.log(`[Theme] Successfully fetched owner preference: ${state.profile.theme}`);
-            initTheme(state.profile.theme);
-        }
+        // Common Setup for both roles
+        const userTheme = state.role === 'owner' ? state.profile?.theme : state.branchProfile?.theme;
+        if (userTheme && typeof initTheme === 'function') initTheme(userTheme);
 
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         setupDashboard();
+
+        if (state.role === 'owner' && typeof startSaaSTour === 'function') {
+            setTimeout(startSaaSTour, 800);
+        }
         return;
     }
 
-    // 2. Check for Branch Session (LocalStorage)
-    const branchSession = localStorage.getItem('bms_branch_session');
-    if (branchSession) {
-        try {
-            const data = JSON.parse(branchSession);
-            console.log('Restoring Branch Session...');
-            state.role = 'branch';
-            state.branchId = data.branchId;
-            state.ownerId = data.ownerId;
-            state.currentUser = `${data.name} (Manager)`;
-
-            // --- POLICY ENFORCEMENT: SESSION DURATION ---
-            try {
-                const profile = await dbProfile.fetch(data.ownerId);
-                const maxHrs = profile?.session_duration_hrs || 8;
-                if (sessionStart && (Date.now() - parseInt(sessionStart)) > (maxHrs * 3600000)) {
-                    console.warn('Branch session expired based on enterprise policy');
-                    showToast('Branch session has expired. Please log in again.', 'info');
-                    await logout();
-                    return;
-                }
-            } catch (e) { }
-            // --------------------------------------------
-
-            // Must re-fetch branch and global profile data on reload
-            try {
-                const { data: bData } = await window.supabaseClient.from('branches').select('*').eq('id', data.branchId).single();
-                if (bData) {
-                    state.branchProfile = { ...bData, branch_code: bData.branch_code || `BR-${bData.id.substring(0, 5).toUpperCase()}` };
-
-                    const profile = await dbProfile.fetch(data.ownerId);
-                    state.enterpriseName = profile?.business_name || data.enterpriseName || 'BMS Enterprise';
-                    state.profile = profile || { currency: 'USD' };
-                    if (bData.currency) state.profile.currency = bData.currency;
-                }
-            } catch (err) {
-                console.warn('Failed to rehydrate full branch profile', err);
-                state.enterpriseName = data.enterpriseName || 'BMS Enterprise';
-                state.profile = { currency: 'USD' };
-            }
-
-            // Apply theme preference before showing app
-            if (state.branchProfile?.theme && typeof initTheme === 'function') {
-                console.log(`[Theme] Successfully fetched branch preference: ${state.branchProfile.theme}`);
-                initTheme(state.branchProfile.theme);
-            }
-
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            setupDashboard();
-            return;
-        } catch (e) {
-            console.error('Invalid branch session', e);
-            localStorage.removeItem('bms_branch_session');
-        }
-    }
-
-    // 3. No session, ensure login screen is visible (and correctly handled)
+    // No session found
+    console.log('[Auth] No active session, redirecting to login...');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
 
-    // Default to owner view state if function exists
+    // Default to last used role or fallback to owner
+    const lastRole = localStorage.getItem('bms_last_role') || 'owner';
     if (typeof setLoginRole === 'function') {
-        setLoginRole('owner');
+        setLoginRole(lastRole);
+    }
+};
+
+window.hideInitialLoader = () => {
+    const initialLoader = document.getElementById('initial-loader');
+    if (initialLoader) {
+        initialLoader.classList.add('fade-out');
+        setTimeout(() => initialLoader.remove(), 500);
     }
 };
 
 // Initialize on Load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Auth.js Loaded');
-    initAuth();
+    initAuth().finally(() => {
+        hideInitialLoader();
+    });
 });

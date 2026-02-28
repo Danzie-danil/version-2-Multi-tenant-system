@@ -1,7 +1,7 @@
 // ── Owner: Quotations Monitoring ──────────────────────────────────────────
 window.renderOwnerQuotationsModule = async function () {
     const area = document.getElementById('mainContent');
-    area.innerHTML = `<div class="p-6"><div class="flex items-center gap-3 mb-4"><i data-lucide="loader-2" class="w-5 h-5 animate-spin text-indigo-500"></i><span class="text-sm text-gray-500">Loading quotations across all branches…</span></div></div>`;
+    area.innerHTML = renderPremiumLoader('Loading quotations across all branches…');
     lucide.createIcons();
 
     try {

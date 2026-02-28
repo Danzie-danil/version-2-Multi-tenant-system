@@ -209,11 +209,7 @@ window.renderBranchTasks = function () {
                 <span class="text-[10px] sm:text-xs font-medium">Assigned to you</span>
             </div>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-sm">Loading tasks…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading tasks…')}
     </div>`;
     lucide.createIcons();
 

@@ -3,11 +3,8 @@
 window.renderAnalytics = async function () {
     const container = document.getElementById('mainContent');
     container.innerHTML = `
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400">Loading analytics...</p>
-            </div>
-        </div>`;
+        ${renderPremiumLoader('Loading analytics...')}
+    `;
     lucide.createIcons();
 
     try {

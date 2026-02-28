@@ -201,11 +201,7 @@ window.renderNotesModule = function () {
                 <i data-lucide="edit-3" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Add Note
             </button>
         </div>
-        <div class="flex items-center justify-center py-20">
-            <div class="text-center">
-                <p class="text-gray-400 text-sm">Loading notes…</p>
-            </div>
-        </div>
+        ${renderPremiumLoader('Loading notes…')}
     </div>`;
     lucide.createIcons();
 

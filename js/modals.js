@@ -221,7 +221,7 @@ window.getModalHTML = function (type, data) {
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                     <p class="text-[10px] text-gray-400 uppercase font-black mb-1">Weekly Sales</p>
-                    <p class="text-lg font-bold text-gray-900 dark:text-white">Kes 42,500</p>
+                    <p class="text-lg font-bold text-gray-900 dark:text-white">${fmt.currency(42500)}</p>
                 </div>
                 <div class="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                     <p class="text-[10px] text-gray-400 uppercase font-black mb-1">Performance</p>
@@ -399,7 +399,8 @@ window.getModalHTML = function (type, data) {
 
         /* ── Add Sale (Branch) ───────────────────── */
         case 'addSale': {
-            const inventory = data || []; // Expect inventory array passed as data
+            const inventory = data || [];
+            const canSaleDirect = window.branchCanDo && branchCanDo('sales_add');
 
             // Helper to generate options
             const productOptions = inventory.map(item => `
@@ -411,7 +412,12 @@ window.getModalHTML = function (type, data) {
             return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Record New Sale</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">${canSaleDirect ? 'Record New Sale' : 'Request Sale Approval'}</h3>
+                    <p class="text-xs font-medium ${canSaleDirect ? 'text-emerald-600' : 'text-gray-500'}">
+                        ${canSaleDirect ? '✅ Allowed — will be recorded directly' : 'Sales require admin approval'}
+                    </p>
+                </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -453,7 +459,7 @@ window.getModalHTML = function (type, data) {
                             <input type="text" inputmode="decimal" id="saleQty" value="1" class="form-input number-format" oninput="updateSaleTotal()">
                         </div>
                         <div>
-                            <label for="saleAmount" class="block text-sm font-medium text-gray-700 mb-1">Total Amount ($)</label>
+                            <label for="saleAmount" class="block text-sm font-medium text-gray-700 mb-1">Total Amount (${fmt.getSymbol()})</label>
                             <input type="text" inputmode="decimal" id="saleAmount" required class="form-input number-format font-bold text-emerald-600" placeholder="0.00">
                         </div>
                     </div>
@@ -471,7 +477,7 @@ window.getModalHTML = function (type, data) {
 
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary btn-success justify-center">Record Sale</button>
+                    <button type="submit" class="flex-1 ${canSaleDirect ? 'bg-emerald-600 hover:bg-emerald-700' : 'btn-primary'} text-white px-4 py-2 rounded-lg font-black justify-center">${canSaleDirect ? 'Record Sale' : 'Submit for Approval'}</button>
                 </div>
             </form>
 
@@ -479,10 +485,17 @@ window.getModalHTML = function (type, data) {
         }
 
         /* ── Add Expense (Branch) ────────────────── */
-        case 'addExpense': return `
+        case 'addExpense': {
+            const canExpenseDirect = window.branchCanDo && branchCanDo('expenses_add');
+            return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Add Expense</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">${canExpenseDirect ? 'Record Expense' : 'Request Expense Approval'}</h3>
+                    <p class="text-xs font-medium ${canExpenseDirect ? 'text-rose-600' : 'text-gray-500'}">
+                        ${canExpenseDirect ? '✅ Allowed — will be recorded directly' : 'Expenses require admin approval'}
+                    </p>
+                </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -505,21 +518,29 @@ window.getModalHTML = function (type, data) {
                     <input type="text" id="expenseDesc" required class="form-input" placeholder="Enter description">
                 </div>
                 <div>
-                    <label for="expenseAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="expenseAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (${fmt.getSymbol()})</label>
                     <input type="text" inputmode="decimal" id="expenseAmount" required class="form-input number-format" placeholder="0">
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary btn-danger justify-center">Add Expense</button>
+                    <button type="submit" class="flex-1 ${canExpenseDirect ? 'bg-rose-600 hover:bg-rose-700' : 'btn-primary'} text-white px-4 py-2 rounded-lg font-black justify-center">${canExpenseDirect ? 'Record Expense' : 'Submit for Approval'}</button>
                 </div>
             </form>
         </div>`;
+        }
 
         /* ── Add Customer (Branch) ───────────────── */
-        case 'addCustomer': return `
+        case 'addCustomer': {
+            const canCustomerDirect = window.branchCanDo && branchCanDo('customers_add');
+            return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Add New Customer</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">${canCustomerDirect ? 'Add New Customer' : 'Request Customer Addition'}</h3>
+                    <p class="text-xs font-medium ${canCustomerDirect ? 'text-cyan-600' : 'text-gray-500'}">
+                        ${canCustomerDirect ? '✅ Allowed — will be added directly' : 'Additions require admin approval'}
+                    </p>
+                </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -539,43 +560,44 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center">Add Customer</button>
+                    <button type="submit" class="flex-1 ${canCustomerDirect ? 'bg-cyan-600 hover:bg-cyan-700' : 'btn-primary'} text-white px-4 py-2 rounded-lg font-black justify-center">${canCustomerDirect ? 'Add Customer' : 'Submit for Approval'}</button>
                 </div>
             </form>
         </div>`;
+        }
 
-        /* ── Reset Branch PIN (Owner) ────────────── */
-        case 'resetPin': {
+        /* ── Reset Manager Password (Owner) ────────────── */
+        case 'resetManagerPassword': {
             const branch = state.branches.find(b => b.id === data);
             if (!branch) return null;
             return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Reset Branch PIN</h3>
+                <h3 class="text-xl font-bold text-gray-900">Reset Manager Password</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex gap-3">
                 <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
-                <p class="text-sm text-yellow-800">You are resetting the PIN for <strong>${branch.name}</strong>. The branch will need to use the new PIN to log in.</p>
+                <p class="text-sm text-yellow-800">You are resetting the login password for the manager of <strong>${branch.name}</strong>. The manager will need to use this new password to log in.</p>
             </div>
-            <form onsubmit="handleResetPin(event, '${data}')" class="space-y-4">
+            <form onsubmit="handleResetManagerPassword(event, '${data}')" class="space-y-4">
                 <div>
-                    <label for="newPin" class="block text-sm font-medium text-gray-700 mb-1">New 6-Digit PIN</label>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
                     <div class="relative">
-                        <input type="password" id="newPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest pr-10" placeholder="••••••">
-                        <button type="button" onclick="togglePasswordVisibility('newPin', this)"
+                        <input type="password" id="newPassword" required minlength="6" class="form-input pr-10" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('newPassword', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none">
                             <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
                         </button>
                     </div>
                 </div>
                 <div>
-                    <label for="confirmPin" class="block text-sm font-medium text-gray-700 mb-1">Confirm PIN</label>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
                     <div class="relative">
-                        <input type="password" id="confirmPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest pr-10" placeholder="••••••">
-                        <button type="button" onclick="togglePasswordVisibility('confirmPin', this)"
+                        <input type="password" id="confirmPassword" required minlength="6" class="form-input pr-10" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('confirmPassword', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none">
                             <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
                         </button>
@@ -583,7 +605,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center">Reset PIN</button>
+                    <button type="submit" class="flex-1 btn-primary justify-center">Reset Password</button>
                 </div>
             </form>
         </div>`;
@@ -616,15 +638,15 @@ window.getModalHTML = function (type, data) {
                     <input type="text" id="branchManager" class="form-input" placeholder="Manager's full name">
                 </div>
                 <div>
-                    <label for="branchOwnerEmail" class="block text-sm font-medium text-gray-700 mb-1">Admin Owner Email (for App Login)</label>
-                    <input type="email" id="branchOwnerEmail" required class="form-input bg-gray-50 text-gray-500 cursor-not-allowed" placeholder="admin@example.com" autocomplete="email" value="${state.currentUser || ''}" readonly>
-                    <p class="text-xs text-gray-400 mt-1">Branch will use this email alongside their Name & PIN to log in.</p>
+                    <label for="managerEmail" class="block text-sm font-medium text-gray-700 mb-1">Manager Email</label>
+                    <input type="email" id="managerEmail" required class="form-input" placeholder="manager@branch.com" autocomplete="email">
+                    <p class="text-xs text-gray-400 mt-1">The manager will use this email to log in to this branch.</p>
                 </div>
                 <div>
-                    <label for="branchPin" class="block text-sm font-medium text-gray-700 mb-1">Initial PIN (6 digits)</label>
+                    <label for="branchPassword" class="block text-sm font-medium text-gray-700 mb-1">Manager Password</label>
                     <div class="relative">
-                        <input type="password" id="branchPin" required maxlength="6" pattern="[0-9]{6}" class="form-input text-center tracking-widest pr-10" placeholder="••••••">
-                        <button type="button" onclick="togglePasswordVisibility('branchPin', this)"
+                        <input type="password" id="branchPassword" required minlength="6" class="form-input pr-10" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility('branchPassword', this)"
                             class="absolute right-3 top-1/2 -translate-y-1/2 focus:outline-none">
                             <i data-lucide="eye" class="w-4 h-4 text-gray-400"></i>
                         </button>
@@ -687,6 +709,15 @@ window.getModalHTML = function (type, data) {
                     <label for="editBranchManager" class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
                     <input type="text" id="editBranchManager" value="${data.manager || ''}" class="form-input">
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Manager Email (Login)</label>
+                    <div class="flex gap-2">
+                        <input type="text" value="${data.manager_email || 'No email assigned'}" readonly class="form-input bg-gray-50 text-gray-500 flex-1">
+                        <button type="button" onclick="openModal('resetManagerPassword', '${data.id}')" class="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors border border-indigo-100 flex items-center gap-1.5 whitespace-nowrap">
+                            <i data-lucide="key-round" class="w-3.5 h-3.5"></i> Reset Pass
+                        </button>
+                    </div>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="editBranchCurrency" class="block text-sm font-medium text-gray-700 mb-1">Branch Currency</label>
@@ -703,7 +734,7 @@ window.getModalHTML = function (type, data) {
                         </select>
                     </div>
                     <div>
-                        <label for="editBranchTarget" class="block text-sm font-medium text-gray-700 mb-1">Sales Target ($)</label>
+                        <label for="editBranchTarget" class="block text-sm font-medium text-gray-700 mb-1">Sales Target (${fmt.getSymbol()})</label>
                         <input type="text" inputmode="decimal" id="editBranchTarget" value="${data.target}" required class="form-input number-format">
                     </div>
                 </div>
@@ -754,10 +785,17 @@ window.getModalHTML = function (type, data) {
         </div>`;
 
         /* ── Add Loan/Income (Branch) ────────────── */
-        case 'addLoan': return `
+        case 'addLoan': {
+            const canLoanDirect = window.branchCanDo && branchCanDo('loans_add');
+            return `
         <div class="p-6">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Record Loan / Income</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">${canLoanDirect ? 'Record Loan / Income' : 'Request Loan Approval'}</h3>
+                    <p class="text-xs font-medium ${canLoanDirect ? 'text-amber-600' : 'text-gray-500'}">
+                        ${canLoanDirect ? '✅ Allowed — will be recorded directly' : 'Loans require admin approval'}
+                    </p>
+                </div>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -777,7 +815,7 @@ window.getModalHTML = function (type, data) {
                     <input type="text" id="loanParty" class="form-input" placeholder="Customer or entity name">
                 </div>
                 <div>
-                    <label for="loanAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="loanAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (${fmt.getSymbol()})</label>
                     <input type="text" inputmode="decimal" id="loanAmount" required class="form-input number-format" placeholder="0">
                 </div>
                 <div>
@@ -786,10 +824,11 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary justify-center">Save Record</button>
+                    <button type="submit" class="flex-1 ${canLoanDirect ? 'bg-amber-600 hover:bg-amber-700' : 'btn-primary'} text-white px-4 py-2 rounded-lg font-black justify-center">${canLoanDirect ? 'Record Loan' : 'Submit for Approval'}</button>
                 </div>
             </form>
         </div>`;
+        }
 
         /* ── Add Inventory Item (Request Approval OR Direct if allowed) ─── */
         case 'addInventoryItem': {
@@ -843,7 +882,9 @@ window.getModalHTML = function (type, data) {
                     <div class="space-y-3">
                         <div>
                             <label for="itemSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
-                            <input type="text" id="itemSupplier" required class="form-input text-amber-900" placeholder="e.g. Acme Corp">
+                            <select id="itemSupplier" required class="form-input text-amber-900">
+                                <option value="" disabled selected>Select a supplier</option>
+                            </select>
                         </div>
                         <div class="grid grid-cols-3 gap-3">
                             <div class="col-span-1">
@@ -896,7 +937,9 @@ window.getModalHTML = function (type, data) {
                     <div class="space-y-3">
                         <div>
                             <label for="restockSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
-                            <input type="text" id="restockSupplier" required class="form-input text-amber-900" placeholder="e.g. Acme Corp">
+                            <select id="restockSupplier" required class="form-input text-amber-900">
+                                <option value="" disabled selected>Select a supplier</option>
+                            </select>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -1010,7 +1053,9 @@ window.getModalHTML = function (type, data) {
                     <div class="space-y-3">
                         <div>
                             <label for="editItemSupplierAdd" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
-                            <input type="text" id="editItemSupplierAdd" required class="form-input text-amber-900" value="${meta.supplier || ''}">
+                            <select id="editItemSupplierAdd" required class="form-input text-amber-900">
+                                <option value="" disabled>Select a supplier</option>
+                            </select>
                         </div>
                         <div class="grid grid-cols-3 gap-3">
                             <div class="col-span-1">
@@ -1064,7 +1109,9 @@ window.getModalHTML = function (type, data) {
                     <div class="space-y-3">
                         <div>
                             <label for="editRestockSupplier" class="block text-sm font-bold text-gray-700 mb-1">Supplier Name</label>
-                            <input type="text" id="editRestockSupplier" required class="form-input text-amber-900" value="${meta.supplier || ''}">
+                            <select id="editRestockSupplier" required class="form-input text-amber-900">
+                                <option value="" disabled>Select a supplier</option>
+                            </select>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -1107,7 +1154,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="editSaleAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                        <label for="editSaleAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (${fmt.getSymbol()})</label>
                         <input type="text" inputmode="decimal" id="editSaleAmount" value="${data.amount}" required class="form-input number-format">
                     </div>
                     <div>
@@ -1163,7 +1210,7 @@ window.getModalHTML = function (type, data) {
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="editItemPrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                        <label for="editItemPrice" class="block text-sm font-medium text-gray-700 mb-1">Price (${fmt.getSymbol()})</label>
                         <input type="text" inputmode="decimal" id="editItemPrice" value="${data.price}" required class="form-input number-format">
                     </div>
                     <div>
@@ -1349,7 +1396,7 @@ window.getModalHTML = function (type, data) {
                     <input type="text" id="editExpenseDesc" value="${data.description}" required class="form-input">
                 </div>
                 <div>
-                    <label for="editExpenseAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="editExpenseAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (${fmt.getSymbol()})</label>
                     <input type="text" inputmode="decimal" id="editExpenseAmount" value="${data.amount}" required class="form-input number-format">
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -2251,15 +2298,15 @@ window.getModalHTML = function (type, data) {
             if (isOwner) {
                 /* ── ADMIN VIEW ─────────────────────────────────────────── */
                 const statusOpts = ['pending', 'in_progress', 'completed'].map(s =>
-                    `< option value = "${s}" ${data.status === s ? 'selected' : ''}> ${s.replace('_', ' ')}</option > `
+                    `<option value="${s}" ${data.status === s ? 'selected' : ''}>${s.replace('_', ' ')}</option>`
                 ).join('');
 
                 const commentThread = comments.length === 0
-                    ? `< div class="text-center py-4 text-xs text-gray-400 italic" > No reminders sent yet.Send one below.</div > `
+                    ? `<div class="text-center py-4 text-xs text-gray-400 italic">No reminders sent yet. Send one below.</div>`
                     : comments.map(c => {
                         const isAdmin = c.sender_role === 'owner';
                         return `
-                < div class="flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-2" >
+                <div class="flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-2">
                     <div class="max-w-[80%] ${isAdmin
                                 ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm'
                                 : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
@@ -2270,12 +2317,12 @@ window.getModalHTML = function (type, data) {
                         <p class="text-sm leading-snug">${c.message}</p>
                         <p class="text-[9px] mt-1 ${isAdmin ? 'text-indigo-300' : 'text-gray-400'}">${fmt.dateTime(c.created_at)}</p>
                     </div>
-                        </div > `;
+                </div>`;
                     }).join('');
 
                 return `
-                < div class="p-5 flex flex-col max-h-[90vh]" >
-                    < !--Header -->
+                <div class="p-5 flex flex-col max-h-[90vh]">
+                    <!-- Header -->
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -2294,7 +2341,7 @@ window.getModalHTML = function (type, data) {
                         </button>
                     </div>
 
-                    <!--Task Meta-- >
+                    <!-- Task Meta -->
                     <div class="grid grid-cols-3 gap-2 mb-4">
                         <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
                             <p class="text-[9px] text-gray-400 uppercase font-black mb-1">Priority</p>
@@ -2310,7 +2357,7 @@ window.getModalHTML = function (type, data) {
                         </div>
                     </div>
 
-                    <!--Instructions -->
+                    <!-- Instructions -->
                 ${data.description ? `
                     <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 mb-4">
                         <p class="text-[9px] text-blue-500 uppercase font-black mb-1">Instructions</p>
@@ -2318,7 +2365,7 @@ window.getModalHTML = function (type, data) {
                     </div>` : ''
                     }
 
-                    < !--Admin Actions Row-- >
+                    <!-- Admin Actions Row -->
                     <div class="grid grid-cols-2 gap-2 mb-4">
                         <div class="flex flex-col gap-1">
                             <label class="text-[9px] text-gray-400 uppercase font-black">Change Status</label>
@@ -2334,7 +2381,7 @@ window.getModalHTML = function (type, data) {
                         </div>
                     </div>
 
-                    <!--Comment Thread-- >
+                    <!-- Comment Thread -->
                     <div class="flex-1 bg-gray-50 rounded-2xl border border-gray-100 p-3 mb-3 overflow-y-auto max-h-48" id="taskCommentThread">
                         <p class="text-[9px] text-gray-400 uppercase font-black mb-3 flex items-center gap-1.5">
                             <i data-lucide="message-square" class="w-3 h-3"></i> Reminders &amp; Replies
@@ -2343,7 +2390,7 @@ window.getModalHTML = function (type, data) {
                         ${commentThread}
                     </div>
 
-                    <!--Send Reminder-- >
+                    <!-- Send Reminder -->
                 <div class="flex gap-2">
                     <input type="text" id="adminReminderInput" placeholder="Type a reminder to the branch…"
                         class="flex-1 form-input text-sm py-2.5"
@@ -2362,7 +2409,7 @@ window.getModalHTML = function (type, data) {
 
                 const commentThread = comments.length === 0
                     ? ''
-                    : `< div class="space-y-2 mb-4" id = "taskCommentThread" >
+                    : `<div class="space-y-2 mb-4" id="taskCommentThread">
                 <p class="text-[9px] text-indigo-500 uppercase font-black flex items-center gap-1.5">
                     <i data-lucide="bell" class="w-3 h-3"></i> Admin Reminders &amp; Thread
                 </p>
@@ -2383,10 +2430,10 @@ window.getModalHTML = function (type, data) {
                             </div>`;
                     }).join('')
                     }
-                    </div > `;
+                    </div>`;
 
                 return `
-                < div class="p-6" >
+                <div class="p-6">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-xl font-bold text-gray-900">Task Details</h3>
                         <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
@@ -2507,7 +2554,7 @@ function _getEditLoanHTML(data) {
                     <input type="text" id="editLoanParty" value="${data.party || ''}" class="form-input">
                 </div>
                 <div>
-                    <label for="editLoanAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                    <label for="editLoanAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (${fmt.getSymbol()})</label>
                     <input type="text" inputmode="decimal" id="editLoanAmount" value="${data.amount}" required class="form-input number-format">
                 </div>
                 <div>
@@ -2712,23 +2759,21 @@ window.handleAddCustomer = async function (e) {
     }
 };
 
-window.handleResetPin = async function (e, branchId) {
+window.handleResetManagerPassword = async function (e, branchId) {
     e.preventDefault();
-    const newPin = document.getElementById('newPin').value;
-    const confirmPin = document.getElementById('confirmPin').value;
-    if (newPin !== confirmPin) { showToast('PINs do not match!', 'error'); return; }
-    if (!/^\d{6}$/.test(newPin)) { showToast('PIN must be 6 digits', 'error'); return; }
-    _setSubmitLoading(e.target, true, 'Reset PIN');
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    if (newPassword !== confirmPassword) { showToast('Passwords do not match!', 'error'); return; }
+    if (newPassword.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+    _setSubmitLoading(e.target, true, 'Reset Password');
     try {
-        await dbBranches.updatePin(branchId, newPin);
-        // Update local state too
-        const branch = state.branches.find(b => b.id === branchId);
-        if (branch) branch.pin = newPin;
+        await dbBranches.updateManagerPassword(branchId, newPassword);
         closeModal();
-        showToast(`PIN for ${branch?.name || 'branch'} reset successfully!`, 'success');
+        const branch = state.branches.find(b => b.id === branchId);
+        showToast(`Manager password for ${branch?.name || 'branch'} reset successfully!`, 'success');
     } catch (err) {
-        showToast('Failed to reset PIN: ' + err.message, 'error');
-        _setSubmitLoading(e.target, false, 'Reset PIN');
+        showToast('Failed to reset password: ' + err.message, 'error');
+        _setSubmitLoading(e.target, false, 'Reset Password');
     }
 };
 
@@ -2739,18 +2784,18 @@ window.handleAddBranch = async function (e) {
         const name = document.getElementById('branchName').value;
         const location = document.getElementById('branchLocation').value;
         const manager = document.getElementById('branchManager').value || 'Unassigned';
-        const pin = document.getElementById('branchPin').value;
+        const managerEmail = document.getElementById('managerEmail').value.trim();
+        const branchPassword = document.getElementById('branchPassword').value;
         const target = fmt.parseNumber(document.getElementById('branchTarget').value) || 10000;
-        const ownerEmail = document.getElementById('branchOwnerEmail').value.trim() || state.currentUser;
         const currency = document.getElementById('branchCurrency').value || 'USD';
 
         const branch = await dbBranches.add(state.ownerId, {
             name,
             location,
             manager,
-            pin,
             target,
-            owner_email: ownerEmail,
+            managerEmail,
+            branchPassword,
             currency
         });
         state.branches.push(branch);
@@ -3384,8 +3429,13 @@ window.handleAddSupplier = async function (e) {
     try {
         await dbSuppliers.add(payload);
         showToast('Supplier added successfully', 'success');
+
+        // Clear cached suppliers for PO dropdowns
+        window._currentSuppliersList = null;
+
         closeModal();
-        if (window.renderSuppliersModule) renderSuppliersModule();
+        if (state.role === 'owner' && window.renderOwnerSuppliersModule) renderOwnerSuppliersModule();
+        else if (window.renderSuppliersModule) renderSuppliersModule();
     } catch (err) {
         showToast('Failed to add supplier: ' + err.message, 'error');
     } finally {
@@ -3409,13 +3459,18 @@ window.handleEditSupplier = async function (e, id) {
 
     try {
         await dbSuppliers.update(id, payload);
-        showToast('Supplier updated', 'success');
+        showToast('Supplier updated successfully', 'success');
+
+        // Clear cached suppliers for PO dropdowns
+        window._currentSuppliersList = null;
+
         closeModal();
-        if (window.renderSuppliersModule) renderSuppliersModule();
+        if (state.role === 'owner' && window.renderOwnerSuppliersModule) renderOwnerSuppliersModule();
+        else if (window.renderSuppliersModule) renderSuppliersModule();
     } catch (err) {
         showToast('Failed to update supplier: ' + err.message, 'error');
     } finally {
-        _setSubmitLoading(btn, false, 'Save Changes');
+        _setSubmitLoading(btn, false, 'Update Supplier');
     }
 };
 
@@ -4297,5 +4352,32 @@ window.initQuoteModal = function () {
             html += window._currentCustomersList.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         }
         customerSel.innerHTML = html;
+    }
+};
+
+window.populateSupplierSelect = async function (selectId, selectedValue = null) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    try {
+        let suppliers = window._currentSuppliersList;
+        if (!suppliers) {
+            suppliers = await dbSuppliers.fetchAll(state.ownerId);
+            window._currentSuppliersList = suppliers;
+        }
+
+        if (suppliers.length === 0) {
+            select.innerHTML = '<option value="" disabled selected>No suppliers available. Add some first.</option>';
+        } else {
+            const options = suppliers.map(s => `
+                <option value="${s.name}" ${selectedValue === s.name ? 'selected' : ''}>${s.name}</option>
+            `).join('');
+
+            const placeholder = selectedValue ? '' : '<option value="" disabled selected>Select a supplier</option>';
+            select.innerHTML = placeholder + options;
+        }
+    } catch (err) {
+        console.error('Failed to populate supplier select:', err);
+        select.innerHTML = '<option value="" disabled selected>Error loading suppliers</option>';
     }
 };

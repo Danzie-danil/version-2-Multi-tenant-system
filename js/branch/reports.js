@@ -82,7 +82,7 @@ window.renderReportsModule = function () {
                             ${[
                     ['Total Transactions', sales.length, ''],
                     ['Total Revenue', fmt.currency(totalSales), 'text-emerald-600'],
-                    ['Average Sale', sales.length ? fmt.currency(totalSales / sales.length) : '$0.00', ''],
+                    ['Average Sale', sales.length ? fmt.currency(totalSales / sales.length) : fmt.currency(0), ''],
                     ['Daily Target', fmt.currency(branch.target), ''],
                     ['Remaining (Today)', fmt.currency(Math.max(0, branch.target - todaySales)), 'text-amber-600']
                 ].map(([label, value, cls]) => `
