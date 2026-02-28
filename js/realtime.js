@@ -97,24 +97,43 @@
         // If a theme change is detected, apply it immediately without a full reload.
         if ((table === 'profiles' || table === 'branches') && payload.eventType === 'UPDATE') {
             const newTheme = payload.new?.theme;
-            const oldTheme = payload.old?.theme;
-
-            if (newTheme && oldTheme && newTheme !== oldTheme) {
-                // Determine if this change belongs to the currently logged-in user
+            if (newTheme) {
                 const isMyProfile = (state.role === 'owner' && table === 'profiles' && payload.new.id === state.profile.id);
                 const isMyBranch = (state.role === 'branch' && table === 'branches' && payload.new.id === state.branchId);
 
+                // If it's my own profile/branch, apply theme instantly
                 if (isMyProfile || isMyBranch) {
-                    console.log('[Realtime] Theme sync detected, applying:', newTheme);
-                    window.initTheme?.(newTheme);
+                    const currentStoredTheme = (isMyProfile ? state.profile.theme : state.branchProfile?.theme);
+                    if (newTheme !== currentStoredTheme) {
+                        console.log('[Realtime] Theme sync detected, applying:', newTheme);
+                        window.initTheme?.(newTheme);
+                        // Update state to match visual change
+                        if (isMyProfile) state.profile.theme = newTheme;
+                        if (isMyBranch) state.branchProfile.theme = newTheme;
+                    }
                 }
 
-                // Optimization: If ONLY the theme (and updated_at) changed, skip the broad re-render loop below.
-                // This prevents the "Admin UI reload" when a branch user just toggles their theme.
-                const changedKeys = Object.keys(payload.new).filter(k => payload.new[k] !== payload.old[k]);
-                const isOnlyTheme = changedKeys.every(k => k === 'theme' || k === 'updated_at');
+                // Optimization: If ONLY the theme changed relative to our current state, 
+                // skip the broad re-render loop below. This prevents the "Admin UI reload"
+                // where an owner sees their branch list refresh just because of a theme toggle.
+                let isOnlyThemeUpdate = false;
+                if (table === 'branches' && state.role === 'owner' && state.branches) {
+                    const existingBranch = state.branches.find(b => b.id === payload.new.id);
+                    if (existingBranch) {
+                        const changedKeys = Object.keys(payload.new).filter(k => payload.new[k] !== existingBranch[k]);
+                        isOnlyThemeUpdate = changedKeys.every(k => k === 'theme' || k === 'updated_at');
+                        // Update local state copy so subsequent checks are accurate
+                        Object.assign(existingBranch, payload.new);
+                    }
+                } else if (table === 'profiles' && state.role === 'owner' && state.profile) {
+                    const isOnlyProfileTheme = Object.keys(payload.new).filter(k => payload.new[k] !== state.profile[k]).every(k => k === 'theme' || k === 'updated_at');
+                    if (isOnlyProfileTheme) isOnlyThemeUpdate = true;
+                } else if (table === 'branches' && state.role === 'branch' && state.branchProfile) {
+                    const isOnlyBranchTheme = Object.keys(payload.new).filter(k => payload.new[k] !== state.branchProfile[k]).every(k => k === 'theme' || k === 'updated_at');
+                    if (isOnlyBranchTheme) isOnlyThemeUpdate = true;
+                }
 
-                if (isOnlyTheme) {
+                if (isOnlyThemeUpdate) {
                     console.log('[Realtime] Skipping broad re-render for theme-only update');
                     return;
                 }
@@ -261,16 +280,32 @@
                     if (filter) opts.filter = filter;
 
                     _channel.on('postgres_changes', opts, (payload) => {
-                        console.log(`[Realtime] ${event} on ${table}:`, payload);
+                        console.log(`[Realtime] ${event} on ${table}${filter ? ' (filtered)' : ''}:`, payload);
                         handleChange(table, payload);
                     });
                 });
             };
 
-            // Simplified: Always use broad listeners and let Supabase RLS + JS local logic
-            // handle the filtering. This is much more robust than client-side UUID filters
-            // which can be flaky on different devices/browsers.
-            setupListener();
+            // ─── GRANULAR FILTERING ───
+            // Apply server-side filters where possible to minimize noise and improve performance.
+            let filter = null;
+            if (state.role === 'branch') {
+                if (table === 'branches') {
+                    filter = `id=eq.${state.branchId}`;
+                } else if (['sales', 'expenses', 'inventory', 'inventory_purchases', 'customers', 'tasks', 'notes', 'loans', 'requests', 'messages', 'task_comments'].includes(table)) {
+                    filter = `branch_id=eq.${state.branchId}`;
+                }
+            } else if (state.role === 'owner') {
+                if (table === 'profiles') {
+                    filter = `id=eq.${state.ownerId}`;
+                } else if (['branches', 'access_requests', 'requests'].includes(table)) {
+                    filter = `owner_id=eq.${state.ownerId}`;
+                }
+                // Note: sales/expenses/inventory tables do not have owner_id directly.
+                // Owners will receive broad updates for these, but handleChange handles the UI isolation.
+            }
+
+            setupListener(filter);
         });
 
         _channel.on('broadcast', { event: 'sync' }, (msg) => {
