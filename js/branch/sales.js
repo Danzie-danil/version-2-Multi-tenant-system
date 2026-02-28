@@ -596,13 +596,17 @@ window.renderSalesModule = function () {
                     <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Today's Transactions">Today's Trx</p>
                     <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1">${summary.transaction_count}</p>
                 </div>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full bg-indigo-50/20 border-indigo-100">
+                    <p class="text-[11px] sm:text-xs text-indigo-600 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Sales Target">Sales Target</p>
+                    <p class="text-dynamic-lg font-black text-indigo-700 truncate leading-none my-auto py-1" title="${fmt.currency(state.branchProfile?.target || 0)}">${fmt.currency(state.branchProfile?.target || 0)}</p>
+                </div>
                 <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full">
                     <p class="text-[11px] sm:text-xs text-gray-500 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Average Sale">Avg Sale</p>
                     <p class="text-dynamic-lg font-black text-gray-900 truncate leading-none my-auto py-1" title="${fmt.currency(summary.avg_sale)}">${fmt.currency(summary.avg_sale)}</p>
                 </div>
-                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 bg-indigo-50/20 border-indigo-100 flex flex-col h-full">
-                    <p class="text-[11px] sm:text-xs text-indigo-600 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Gross Profit">Gross Profit</p>
-                    <p class="text-dynamic-lg font-black text-indigo-700 truncate leading-none my-auto py-1" title="${fmt.currency(profit.gross_profit)}">${fmt.currency(profit.gross_profit)}</p>
+                <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm stat-card min-w-0 flex flex-col h-full bg-violet-50/20 border-violet-100">
+                    <p class="text-[11px] sm:text-xs text-violet-600 uppercase tracking-tight whitespace-normal font-bold leading-tight" title="Gross Profit">Gross Profit</p>
+                    <p class="text-dynamic-lg font-black text-violet-700 truncate leading-none my-auto py-1" title="${fmt.currency(profit.gross_profit)}">${fmt.currency(profit.gross_profit)}</p>
                 </div>
             </div>
 

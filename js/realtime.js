@@ -93,6 +93,34 @@
         const activeView = getActiveView();
         const routeMap = state.role === 'owner' ? OWNER_TABLE_VIEWS : BRANCH_TABLE_VIEWS;
 
+        // ─── SURGICAL THEME SYNC ───
+        // If a theme change is detected, apply it immediately without a full reload.
+        if ((table === 'profiles' || table === 'branches') && payload.eventType === 'UPDATE') {
+            const newTheme = payload.new?.theme;
+            const oldTheme = payload.old?.theme;
+
+            if (newTheme && oldTheme && newTheme !== oldTheme) {
+                // Determine if this change belongs to the currently logged-in user
+                const isMyProfile = (state.role === 'owner' && table === 'profiles' && payload.new.id === state.profile.id);
+                const isMyBranch = (state.role === 'branch' && table === 'branches' && payload.new.id === state.branchId);
+
+                if (isMyProfile || isMyBranch) {
+                    console.log('[Realtime] Theme sync detected, applying:', newTheme);
+                    window.initTheme?.(newTheme);
+                }
+
+                // Optimization: If ONLY the theme (and updated_at) changed, skip the broad re-render loop below.
+                // This prevents the "Admin UI reload" when a branch user just toggles their theme.
+                const changedKeys = Object.keys(payload.new).filter(k => payload.new[k] !== payload.old[k]);
+                const isOnlyTheme = changedKeys.every(k => k === 'theme' || k === 'updated_at');
+
+                if (isOnlyTheme) {
+                    console.log('[Realtime] Skipping broad re-render for theme-only update');
+                    return;
+                }
+            }
+        }
+
         // Find all route entries for this table (incl. _alias_ entries)
         const matchingEntries = Object.entries(routeMap).filter(([key, val]) => {
             const baseTable = key.replace(/^_[^_]+_/, '');

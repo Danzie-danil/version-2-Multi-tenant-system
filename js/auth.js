@@ -134,6 +134,7 @@ window.login = async function () {
             phone: branch.phone || '',
             email: branch.email || '',
             address: branch.address || '',
+            target: branch.target || 0,
             last_notif_check: branch.last_notif_check,
             theme: branch.theme
         };

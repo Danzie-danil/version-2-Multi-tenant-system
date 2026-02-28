@@ -1738,12 +1738,9 @@ window.getModalHTML = function (type, data) {
                     <p class="text-sm font-semibold uppercase w-2/3">${data.currency || 'Not set'}</p>
                 </div>
             </div>
-            <div class="grid grid-cols-3 gap-2 mt-4">
+            <div class="grid grid-cols-2 gap-2 mt-4">
                 <button onclick='openModal("editBranch", ${JSON.stringify(data).replace(/'/g, "&apos;")})' class="flex items-center justify-center gap-2 p-2.5 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-xs hover:bg-indigo-100 transition-colors">
                     <i data-lucide="settings" class="w-4 h-4"></i> Settings
-                </button>
-                <button onclick="openModal('resetPin','${data.id}')" class="flex items-center justify-center gap-2 p-2.5 bg-violet-50 text-violet-700 rounded-xl font-bold text-xs hover:bg-violet-100 transition-colors">
-                    <i data-lucide="key" class="w-4 h-4"></i> PIN
                 </button>
                 <button onclick="state.branchId = '${data.id}'; openModal('downloadReports')" class="flex items-center justify-center gap-2 p-2.5 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-colors">
                     <i data-lucide="file-text" class="w-4 h-4"></i> Reports
