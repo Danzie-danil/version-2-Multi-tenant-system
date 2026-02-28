@@ -2589,12 +2589,29 @@ function _setSubmitLoading(form, loading, originalText) {
  */
 window.openBranchPreferencesModal = async function (branchData) {
     try {
+        // Handle case where branchData is passed as a string (from dataset.branch)
+        if (typeof branchData === 'string') {
+            try {
+                branchData = JSON.parse(branchData);
+            } catch (e) {
+                console.error('[Modals] Failed to parse branchData string:', e);
+            }
+        }
+
+        if (!branchData || !branchData.id) {
+            console.error('[Modals] openBranchPreferencesModal: Invalid branchData provided', branchData);
+            return;
+        }
+
         // Re-fetch branch to ensure we have the latest preferences
         const freshBranch = await dbBranches.fetchOne(branchData.id);
         openModal('branchPreferences', freshBranch || branchData);
     } catch (err) {
-        // Fallback: open with the data we already have
-        openModal('branchPreferences', branchData);
+        console.error('[Modals] openBranchPreferencesModal error:', err);
+        // Fallback: open with the data we already have if we have it
+        if (branchData && branchData.id) {
+            openModal('branchPreferences', branchData);
+        }
     }
 };
 
@@ -2636,6 +2653,13 @@ window.toggleBranchPrefUI = function (btn) {
  * Also updates `state.branches` so the owner's view is immediately fresh.
  */
 window.handleSaveBranchPreferences = async function (branchId) {
+    // Guard against invalid or undefined branchId
+    if (!branchId || branchId === 'undefined') {
+        showToast('Error: Invalid branch reference. Please refresh the page.', 'error');
+        console.error('[Modals] handleSaveBranchPreferences called with invalid branchId:', branchId);
+        return;
+    }
+
     const toggles = document.querySelectorAll('[id^="pref-toggle-"]');
     const preferences = {};
     toggles.forEach(t => {

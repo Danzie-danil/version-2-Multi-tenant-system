@@ -100,6 +100,10 @@ window.showToast = function (message, type = 'info', duration = 2500) {
 
 /* ── Edit Helper ────────────────────────────────── */
 window.openEditModal = async function (type, id) {
+    if (!id || id === 'undefined') {
+        console.warn('[Utils] openEditModal: No valid ID provided', { type, id });
+        return;
+    }
     try {
         let data = null;
         // Fetch data based on type
@@ -122,6 +126,10 @@ window.openEditModal = async function (type, id) {
 };
 
 window.openDetailsModal = async function (type, id) {
+    if (!id || id === 'undefined') {
+        console.warn('[Utils] openDetailsModal: No valid ID provided', { type, id });
+        return;
+    }
     try {
         let data = null;
         // Fetch data based on type
