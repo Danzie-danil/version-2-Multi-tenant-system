@@ -595,64 +595,13 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!--  JS MODULE LOAD ORDER (dependencies first)                         -->
+    <!--  Vite Main Entry Point                                             -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-
-    <!-- 1. Supabase Client -->
-    <script src="js/supabase.js"></script>
-
-    <!-- 2. Shared State -->
-    <script src="js/state.js"></script>
-
-    <!-- 3. Database Layer -->
-    <script src="js/db.js"></script>
-
-    <!-- 4. Core Utilities -->
-    <script src="js/theme.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/modals.js"></script>
-
-    <!-- 5. Owner Modules -->
-    <script src="js/owner/overview.js"></script>
-    <script src="js/owner/branches.js"></script>
-    <script src="js/owner/tasks.js"></script>
-    <script src="js/owner/analytics.js"></script>
-    <script src="js/owner/billing.js"></script>
-    <script src="js/owner/security.js"></script>
-    <script src="js/owner/requests.js"></script>
-    <script src="js/owner/settings.js"></script>
-    <script src="js/owner/staff.js"></script>
-    <script src="js/owner/suppliers.js"></script>
-    <script src="js/owner/quotations.js"></script>
-
-    <!-- 6. Branch Modules -->
-    <script src="js/branch/dashboard.js"></script>
-    <script src="js/branch/sales.js"></script>
-    <script src="js/branch/expenses.js"></script>
-    <script src="js/branch/inventory.js"></script>
-    <script src="js/branch/customers.js"></script>
-    <script src="js/branch/tasks.js"></script>
-    <script src="js/branch/reports.js"></script>
-    <script src="js/branch/notes.js"></script>
-    <script src="js/branch/loans.js"></script>
-    <script src="js/branch/staff.js"></script>
-    <script src="js/branch/suppliers.js"></script>
-    <script src="js/branch/quotations.js"></script>
-    <script src="js/branch/invoices.js"></script>
-    <script src="js/branch/requests.js"></script>
-    <script src="js/branch/settings.js"></script>
-    <script src="js/chat.js"></script>
-
-    <!-- 7. Realtime WebSocket layer -->
-    <script src="js/realtime.js"></script>
-
-    <!-- 8. Main App Router (last — depends on everything above) -->
-    <script src="js/app.js"></script>
+    <script type="module" src="/js/main.js"></script>
 
     <!-- 6. Initialize Lucide icons on page load -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function initAppScripts() {
             lucide.createIcons();
             // Register Service Worker
             if ('serviceWorker' in navigator) {
@@ -671,9 +620,13 @@
                     window.location.reload();
                 });
             }
-        });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAppScripts);
+        } else {
+            initAppScripts();
+        }
     </script>
-    <script src="js/particles.js"></script>
 
     <!-- Global Global Loading Overlay -->
     <div id="global-loader" class="hidden">
