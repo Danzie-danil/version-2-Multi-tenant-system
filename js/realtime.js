@@ -221,7 +221,7 @@
         // Throttling to prevent rapid-fire re-initialisation loops
         const now = Date.now();
         if (now - _lastInitTime < INIT_THROTTLE_MS) {
-            console.log('[Realtime] Sync initialisation throttled...');
+            console.info('[Realtime] Sync initialization skipped (throttled)');
             return;
         }
         _lastInitTime = now;
@@ -234,7 +234,10 @@
 
         const presenceKey = state.role === 'owner' ? state.ownerId : state.branchId;
         if (!presenceKey) {
-            console.warn('[Realtime] Missing identity key for presence tracking');
+            // Silently skip if not logged in or ID not yet populated (race condition)
+            if (state.role) {
+                console.log('[Realtime] Identity key not yet ready for presence tracking');
+            }
             return;
         }
 
