@@ -1,8 +1,9 @@
-const CACHE_NAME = 'bms-v4';
+const CACHE_NAME = 'bms-v5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './css/index.css',
+    './js/main.js',
     './js/supabase.js',
     './js/state.js',
     './js/db.js',
@@ -12,6 +13,7 @@ const ASSETS_TO_CACHE = [
     './js/modals.js',
     './js/app.js',
     './js/particles.js',
+    './js/realtime.js',
     './js/simulation.js',
     './js/owner/overview.js',
     './js/owner/branches.js',
@@ -38,11 +40,16 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-    // Force new SW to enter waiting state immediately
     self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS_TO_CACHE);
+            return Promise.all(
+                ASSETS_TO_CACHE.map((url) => {
+                    return cache.add(url).catch((err) => {
+                        console.error(`[SW] Failed to cache: ${url}`, err);
+                    });
+                })
+            );
         })
     );
 });
